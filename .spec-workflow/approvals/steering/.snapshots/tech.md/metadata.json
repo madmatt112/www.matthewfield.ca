@@ -1,0 +1,62 @@
+{
+  "filePath": ".spec-workflow/steering/tech.md",
+  "currentVersion": 7,
+  "snapshots": [
+    {
+      "version": 1,
+      "filename": "snapshot-001.json",
+      "timestamp": "2026-03-23T22:20:35.827Z",
+      "trigger": "initial",
+      "approvalId": "approval_1774304435795_eeo0g3q8e",
+      "approvalTitle": "Tech steering document"
+    },
+    {
+      "version": 2,
+      "filename": "snapshot-002.json",
+      "timestamp": "2026-03-24T02:18:34.362Z",
+      "trigger": "revision_requested",
+      "approvalId": "approval_1774304435795_eeo0g3q8e",
+      "approvalTitle": "Tech steering document"
+    },
+    {
+      "version": 3,
+      "filename": "snapshot-003.json",
+      "timestamp": "2026-03-24T16:17:13.836Z",
+      "trigger": "revision_requested",
+      "approvalId": "approval_1774321407320_10cik11ki",
+      "approvalTitle": "Tech steering document (v2)"
+    },
+    {
+      "version": 4,
+      "filename": "snapshot-004.json",
+      "timestamp": "2026-03-24T16:51:38.523Z",
+      "trigger": "revision_requested",
+      "approvalId": "approval_1774370613203_wpvyvnkfn",
+      "approvalTitle": "Tech steering document (v3)"
+    },
+    {
+      "version": 5,
+      "filename": "snapshot-005.json",
+      "timestamp": "2026-03-24T17:14:32.185Z",
+      "trigger": "revision_requested",
+      "approvalId": "approval_1774372392851_58y5a3r57",
+      "approvalTitle": "Tech steering document (v4)"
+    },
+    {
+      "version": 6,
+      "filename": "snapshot-006.json",
+      "timestamp": "2026-03-24T17:27:20.228Z",
+      "trigger": "revision_requested",
+      "approvalId": "approval_1774372392851_58y5a3r57",
+      "approvalTitle": "Tech steering document (v4)"
+    },
+    {
+      "version": 7,
+      "filename": "snapshot-007.json",
+      "timestamp": "2026-03-25T02:41:29.037Z",
+      "trigger": "approved",
+      "approvalId": "approval_1774406473197_8w5lkiuab",
+      "approvalTitle": "Tech steering document (v4)"
+    }
+  ]
+}
