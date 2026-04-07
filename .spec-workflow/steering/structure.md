@@ -104,7 +104,7 @@ matthew-field.ca/
 #   Minimum required variables:
 #   - RESEND_API_KEY          — contact form email delivery
 #   - NEXT_PUBLIC_SITE_URL    — absolute URLs for RSS, OG images, sitemap
-├── .eslintrc.json                  # ESLint configuration
+├── eslint.config.mjs               # ESLint flat configuration
 ├── .prettierrc                     # Prettier configuration
 └── .gitignore
 ```

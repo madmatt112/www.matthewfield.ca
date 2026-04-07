@@ -1,0 +1,46 @@
+{
+  "filePath": ".spec-workflow/specs/site-foundation/tasks.md",
+  "currentVersion": 5,
+  "snapshots": [
+    {
+      "version": 1,
+      "filename": "snapshot-001.json",
+      "timestamp": "2026-04-02T20:33:32.961Z",
+      "trigger": "initial",
+      "approvalId": "approval_1775162012950_i3s0qi36s",
+      "approvalTitle": "site-foundation tasks breakdown"
+    },
+    {
+      "version": 2,
+      "filename": "snapshot-002.json",
+      "timestamp": "2026-04-03T02:40:58.666Z",
+      "trigger": "revision_requested",
+      "approvalId": "approval_1775162012950_i3s0qi36s",
+      "approvalTitle": "site-foundation tasks breakdown"
+    },
+    {
+      "version": 3,
+      "filename": "snapshot-003.json",
+      "timestamp": "2026-04-06T02:50:05.678Z",
+      "trigger": "revision_requested",
+      "approvalId": "approval_1775316524022_703zxpx3a",
+      "approvalTitle": "site-foundation tasks breakdown (v2 — post adversarial review)"
+    },
+    {
+      "version": 4,
+      "filename": "snapshot-004.json",
+      "timestamp": "2026-04-07T20:52:45.391Z",
+      "trigger": "revision_requested",
+      "approvalId": "approval_1775594645531_zvvt9i55h",
+      "approvalTitle": "site-foundation tasks breakdown (v3 — post adversarial review r2)"
+    },
+    {
+      "version": 5,
+      "filename": "snapshot-005.json",
+      "timestamp": "2026-04-07T21:52:36.344Z",
+      "trigger": "approved",
+      "approvalId": "approval_1775598642000_k4kw6vono",
+      "approvalTitle": "site-foundation tasks breakdown (v4 — post adversarial review r3)"
+    }
+  ]
+}
