@@ -1,0 +1,13 @@
+/.next
+/.velite
+/node_modules
+/pnpm-lock.yaml
+/public
+
+# Documentation and specs (authored by humans, not code)
+/.spec-workflow
+/research
+/project-overview.md
+
+# Local tooling (not project code)
+/.claude
