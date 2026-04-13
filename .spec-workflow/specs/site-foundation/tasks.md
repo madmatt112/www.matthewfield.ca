@@ -2,7 +2,7 @@
 
 ## Phase 1: Scaffolding + CI/CD + Testing Infrastructure (R1, R2, R12)
 
-- [ ] 1. Initialize Next.js project with TypeScript strict mode
+- [x] 1. Initialize Next.js project with TypeScript strict mode
   - File: package.json, tsconfig.json, .nvmrc, next.config.ts
   - Initialize Next.js App Router project with TypeScript strict mode enabled
   - Pin Node.js 24 LTS via `.nvmrc`, set `packageManager` field for pnpm in `package.json`
@@ -11,7 +11,7 @@
   - _Requirements: R1 AC1, R1 AC2, R1 AC4_
   - _Prompt: Role: Full-stack developer setting up a greenfield Next.js App Router project | Task: Initialize Next.js with TypeScript strict mode using create-next-app with --tailwind flag (ensures tailwindcss is installed as a dependency), configure .nvmrc for Node.js 24 LTS, set pnpm via packageManager field, configure path aliases @/* and #site/content in tsconfig.json | Restrictions: Use App Router (not Pages Router), must use --tailwind flag, TypeScript strict mode must be enabled, follow kebab-case file naming convention, no barrel files | Success: pnpm install exits 0, tsc --noEmit passes, path aliases resolve correctly, tailwindcss is in dependencies_
 
-- [ ] 2. Configure ESLint and Prettier
+- [x] 2. Configure ESLint and Prettier
   - File: eslint.config.mjs, .prettierrc, .prettierignore
   - Set up ESLint with Next.js config and Prettier for code formatting
   - Add `pnpm lint` and `pnpm format` / `pnpm format:check` scripts
@@ -19,7 +19,7 @@
   - _Requirements: R1 AC3_
   - _Prompt: Role: Developer configuring linting and formatting for a Next.js TypeScript project | Task: Configure ESLint with Next.js config and Prettier, add lint/format/format:check scripts to package.json | Restrictions: Use flat ESLint config, ensure ESLint and Prettier do not conflict, add .prettierignore for build artifacts (.next, .velite, node_modules) | Success: pnpm lint and pnpm format:check run without errors on the initial codebase_
 
-- [ ] 3. Set up GitHub Actions CI pipeline
+- [x] 3. Set up GitHub Actions CI pipeline
   - File: .github/workflows/ci.yml
   - Create single-job CI workflow with: install, lint, format:check, typecheck, test, build, Playwright install, test:e2e
   - Trigger on push to main and pull requests to main
