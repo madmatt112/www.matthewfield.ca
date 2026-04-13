@@ -37,7 +37,7 @@
   - _Requirements: R2 AC2, R2 AC3_
   - _Prompt: Role: DevOps engineer configuring Vercel deployment | Task: Link the matthew-field.ca GitHub repo to a Vercel project. Configure automatic production deploys on push to main (when CI checks pass). Verify preview deploys are enabled for pull requests. Open a test PR to confirm a preview deployment is created with a unique URL | Restrictions: No deploy step in GitHub Actions — Vercel's GitHub integration handles this. Do not configure custom domains yet | Success: Push to main triggers production deploy, PRs get preview deploys with unique URLs_
 
-- [ ] 5. Configure Vitest with canary test
+- [x] 5. Configure Vitest with canary test
   - File: vitest.config.ts, src/canary.test.tsx
   - Set up Vitest with jsdom environment, React plugin, and path aliases
   - Add `pnpm test` script. Write canary test rendering a plain React component (not shadcn/ui — components not installed yet)
@@ -45,7 +45,7 @@
   - _Requirements: R12 AC1, R12 AC3, R12 AC4_
   - _Prompt: Role: Developer setting up Vitest for a Next.js App Router project | Task: Create vitest.config.ts with jsdom environment, @vitejs/plugin-react, path alias @/ → /src. Write canary test in src/canary.test.tsx that renders a plain React component (e.g., a simple button element) via @testing-library/react and asserts visible text. Do not use shadcn/ui components — they are not installed until Phase 3 | Restrictions: Test includes in `src/**/*.test.{ts,tsx}`, path aliases must match tsconfig.json | Success: pnpm test runs and passes the canary test, proving path aliases and JSX transforms work_
 
-- [ ] 6. Configure Playwright with canary test
+- [x] 6. Configure Playwright with canary test
   - File: e2e/playwright.config.ts, e2e/tests/smoke.test.ts
   - Set up Playwright config with webServer pointing to `pnpm start` on port 3000
   - Add `pnpm test:e2e` script. Write canary test that loads `/` and asserts page title and visible heading
@@ -55,7 +55,7 @@
 
 ## Phase 2: Content Pipeline + CSS Isolation Spike (R3, R9 partial, R11)
 
-- [ ] 7. Configure Velite content pipeline
+- [x] 7. Configure Velite content pipeline
   - File: velite.config.ts, content/pages/about.mdx, src/styles/globals.css (placeholder)
   - Define `pages` collection schema (title, description, slug, body) with pattern `pages/*.mdx`
   - Configure output to `.velite/` with assets to `public/static`

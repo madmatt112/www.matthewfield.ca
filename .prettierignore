@@ -3,6 +3,10 @@
 /node_modules
 /pnpm-lock.yaml
 /public
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache
 
 # Documentation and specs (authored by humans, not code)
 /.spec-workflow
