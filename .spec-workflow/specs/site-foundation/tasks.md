@@ -27,7 +27,7 @@
   - _Requirements: R2 AC1, R2 AC2, R2 AC4, R2 AC5, R2 AC6_
   - _Prompt: Role: DevOps engineer configuring CI for a Next.js project on GitHub Actions | Task: Create .github/workflows/ci.yml with single-job pipeline: checkout, pnpm setup, node setup with .nvmrc, pnpm install, lint, format:check, typecheck, test (vitest), build, playwright install with browser caching, test:e2e. Note: postinstall script (velite build) is added in task 7 — CI should tolerate its absence until then | Restrictions: Single job (no artifact passing), use pnpm/action-setup@v4 and actions/setup-node@v4 with cache: pnpm, cache Playwright browsers via actions/cache@v4 keyed on pnpm-lock.yaml hash. Vercel handles deployment via its own GitHub integration — no deploy step in this workflow | Success: Workflow runs all steps sequentially, caches pnpm and Playwright browsers, fails fast on any step failure_
 
-- [ ] 4. [MANUAL] Configure Vercel project and preview deploys
+- [x] 4. [MANUAL] Configure Vercel project and preview deploys
   - Vercel platform configuration (non-code task — requires Vercel dashboard or authenticated CLI access)
   - Link GitHub repo to Vercel project
   - Enable automatic deploys on push to main and preview deploys on PRs
