@@ -1,0 +1,398 @@
+CSS isolation spike — Playwright verification results
+======================================================
+
+Source: e2e/tests/playground-isolation.test.ts
+Fixtures: src/app/(playground)/spike/page.tsx + spike-overlays.tsx
+Container + layer setup: src/app/(playground)/layout.tsx + src/styles/playground.css
+Build: Next.js 16.2.2 (Webpack production output + Turbopack dev)
+Dates captured: 2026-04-15 (v1 suite), 2026-04-16 (v2 + v3 suite — review-v6/v7 fixes)
+
+This file is the empirical artifact for task 13. Task 14 reads it to
+derive the graduated outcome (a / b / c) and write spike-results.md.
+
+Tests in the checked-in suite are identified by name everywhere in this
+document. Playwright's parallel-run worker IDs (the "1 [chromium]", "2
+[chromium]" prefixes in reporter output below) are NOT stable indices
+— cross-reference by test name only.
+
+Assertions go through numeric lab-channel comparison (`expectLabClose`)
+and structured rgb / string equality helpers so Lightning CSS / Tailwind
+/ Chromium serialization drift doesn't flip .toBe() strings. Every
+value recorded below corresponds to a read the suite actually performs.
+
+=====================================================================
+SPIKE FINDING (surfaced by the AC2 + shadcn-Button-typography tests)
+=====================================================================
+The playground.css @layer playground block cannot re-establish
+non-custom-property typography on .playground-container because the
+same rule block also applies `all: initial` unlayered. Unlayered rules
+beat layered rules on the same element, so the `all: initial` reset
+wins over the @layer playground declarations of font-family,
+font-size, line-height, color, etc. Custom properties are NOT affected
+— CSS `all` excludes custom properties by spec — which is why every
+token-based assertion passes cleanly. Consequences:
+
+  - .playground-container (and descendants by inheritance) renders
+    with font-family at the CSS initial serif default ("Times New
+    Roman" on Chromium's bundled font image in this CI env; other
+    distros may report Liberation Serif / DejaVu Serif). The intended
+    ui-sans-serif stack from @layer playground never materializes.
+  - The container's own `color` computed value is CanvasText (which
+    serializes to rgb(0, 0, 0) on Chromium's white canvas) from the
+    reset, not from the @layer playground re-declaration.
+  - Any shadcn component that relies on inherited typography from the
+    container (e.g. the Button fixture's font-family) inherits the
+    reset values, not the playground values.
+
+Recommendation for task 14 / spec 8: move the typography
+re-establishment out of @layer playground (either to an unlayered rule
+on .playground-container with specificity high enough to beat the
+reset, or to a second unlayered block declared after the reset). Keep
+the custom-property re-establishment in @layer playground — it works
+correctly there.
+
+The `shadcn Button receives utility-class padding + records typography
+regression` test asserts the computed font-family does NOT contain
+`ui-sans-serif`. When the playground.css fix lands, that assertion
+will flip (the playground stack will start appearing) and force the
+test to be updated — that is the intended flip-from-broken-to-fixed
+pattern.
+
+=====================================================================
+Production-build run — 2026-04-16, PORT=3100, `pnpm start`
+=====================================================================
+
+Reporter output (pnpm test:e2e --reporter=list, verbatim):
+
+    Running 8 tests using 6 workers
+
+      ✓  3 [chromium] › e2e/tests/playground-isolation.test.ts:178:7
+           › plain div inline styles are preserved (weak — see AC2
+           anchor test for isolation proof) (797ms)
+      ✓  4 [chromium] › e2e/tests/playground-isolation.test.ts:246:7
+           › Tailwind utilities resolve inside @layer playground (815ms)
+      ✓  5 [chromium] › e2e/tests/playground-isolation.test.ts:199:7
+           › shadcn Button receives utility-class padding + records
+           typography regression (851ms)
+      ✓  2 [chromium] › e2e/tests/playground-isolation.test.ts:269:7
+           › playground container stays light when host site is dark
+           (974ms)
+      ✓  6 [chromium] › e2e/tests/playground-isolation.test.ts:355:7
+           › shadcn Button consumes re-established tokens via var()
+           inline style (991ms)
+      ✓  1 [chromium] › e2e/tests/playground-isolation.test.ts:306:7
+           › descendant reaches re-established tokens via var()
+           references (971ms)
+      ✓  8 [chromium] › e2e/tests/smoke.test.ts:3:5
+           › home page loads with title and visible heading (262ms)
+      ✓  7 [chromium] › e2e/tests/playground-isolation.test.ts:392:7
+           › AC2 — site globals blocked at container boundary
+           (non-inline inheritance) (354ms)
+
+      8 passed (3.7s)
+
+=====================================================================
+Turbopack dev-build run — 2026-04-16, PORT=3200, `pnpm dev`
+=====================================================================
+
+Reporter output (pnpm exec playwright test ... --reporter=list, verbatim):
+
+    Running 7 tests using 6 workers
+
+      ✓  2 [chromium] › e2e/tests/playground-isolation.test.ts:242:7
+           › Tailwind utilities resolve inside @layer playground (1.5s)
+      ✓  6 [chromium] › e2e/tests/playground-isolation.test.ts:174:7
+           › plain div inline styles are preserved (weak — see AC2
+           anchor test for isolation proof) (1.6s)
+      ✓  5 [chromium] › e2e/tests/playground-isolation.test.ts:195:7
+           › shadcn Button receives utility-class padding + records
+           typography regression (1.7s)
+      ✓  1 [chromium] › e2e/tests/playground-isolation.test.ts:351:7
+           › shadcn Button consumes re-established tokens via var()
+           inline style (2.2s)
+      ✓  4 [chromium] › e2e/tests/playground-isolation.test.ts:265:7
+           › playground container stays light when host site is dark
+           (2.2s)
+      ✓  3 [chromium] › e2e/tests/playground-isolation.test.ts:302:7
+           › descendant reaches re-established tokens via var()
+           references (2.2s)
+      ✓  7 [chromium] › e2e/tests/playground-isolation.test.ts:388:7
+           › AC2 — site globals blocked at container boundary
+           (non-inline inheritance) (833ms)
+
+      7 passed (3.7s)
+
+(The dev run is scoped to the spike suite by passing the test file
+path — smoke.test.ts asserts the default Next.js landing title and is
+orthogonal to the spike question.)
+
+=====================================================================
+Direct computed-value comparison (Webpack prod vs Turbopack dev)
+=====================================================================
+Captured via `page.evaluate(() => getComputedStyle(el))` on identical
+fixtures under each bundler. R11 AC5's literal requirement: "comparing
+computed style values for key properties between builds, not just
+visual inspection".
+
+| Fixture                                 | Property          | Webpack prod (PORT=3100)            | Turbopack dev (PORT=3200)           | Match |
+|-----------------------------------------|-------------------|-------------------------------------|-------------------------------------|-------|
+| spike-plain-div-target                  | color             | rgb(255, 0, 0)                      | rgb(255, 0, 0)                      | ✓     |
+| spike-tailwind-div-target               | background-color  | lab(54.1736 13.3369 -74.6839)       | lab(54.1736 13.3369 -74.6839)       | ✓     |
+| playground-container                    | --background      | lab(100% 0 0)                       | lab(100% 0 0)                       | ✓     |
+| playground-container                    | --foreground      | lab(2.75381% 0 0)                   | lab(2.75381% 0 0)                   | ✓     |
+| playground-container                    | --primary         | lab(7.78201% -.0000149012 0)        | lab(7.78201% -.0000149012 0)        | ✓     |
+| playground-container                    | color             | rgb(0, 0, 0)                        | rgb(0, 0, 0)                        | ✓     |
+| spike-token-access-target               | background-color  | lab(7.78201 -0.0000149012 0)        | lab(7.78201 -0.0000149012 0)        | ✓     |
+| spike-token-access-target               | color             | lab(98.26 0 0)                      | lab(98.26 0 0)                      | ✓     |
+| spike-button-token-target               | background-color  | lab(7.78201 -0.0000149012 0)        | lab(7.78201 -0.0000149012 0)        | ✓     |
+| spike-button-token-target               | color             | lab(98.26 0 0)                      | lab(98.26 0 0)                      | ✓     |
+| spike-shadcn-button-target              | font-family       | "Times New Roman"                   | "Times New Roman"                   | ✓     |
+| spike-shadcn-button-target              | padding-left      | 16px                                | 16px                                | ✓     |
+| spike-shadcn-button-target              | padding-top       | 8px                                 | 8px                                 | ✓     |
+| spike-shadcn-button-target              | font-size         | 14px                                | 14px                                | ✓     |
+| spike-ac2-inherit-target                | font-family       | "Times New Roman"                   | "Times New Roman"                   | ✓     |
+
+No bundler divergence observed. The expected-value tuples the checked-in
+suite uses (EXPECTED_BACKGROUND_LIGHT, EXPECTED_PRIMARY_LIGHT, etc.) are
+valid under both bundlers. R11 AC5 is satisfied empirically.
+
+=====================================================================
+Per-test evidence (values the suite reads and asserts)
+=====================================================================
+
+---------------------------------------------------------------------
+`plain div inline styles are preserved (weak — ...)`        : PASS
+---------------------------------------------------------------------
+Element: [data-testid="spike-plain-div-target"]
+Asserted:
+  color        = rgb(255, 0, 0)   (inline style "color:red")
+  font-family  = serif            (inline style "font-family:serif",
+                                   exact match — assertion rejects
+                                   `sans-serif` / `ui-sans-serif`)
+Outcome: confirms the fixture; does NOT by itself prove R11 AC2 because
+inline styles always win. AC2 is actually proven by the non-inline
+AC2-anchor test.
+
+---------------------------------------------------------------------------
+`shadcn Button receives utility-class padding + records typography regression` : PASS
+---------------------------------------------------------------------------
+Element: [data-testid="spike-shadcn-button-target"] (default Button variant)
+Asserted:
+  padding-left   = 16px                   (px-4)
+  padding-right  = 16px                   (px-4)
+  padding-top    = 8px                    (py-2)
+  padding-bottom = 8px                    (py-2)
+  font-size      = 14px                   (text-sm)
+  font-family    NOT toContain "Geist"    (host-site-leak guard; narrowed
+                                          to Geist only because the
+                                          intended playground stack
+                                          contains Arial / Helvetica)
+  font-family    NOT toContain "ui-sans-serif"
+                                          (observed-broken marker — see
+                                           SPIKE FINDING; flips to
+                                           failing when playground.css
+                                           typography fix lands, forcing
+                                           a test update)
+
+Background / color verification for this utility-class fixture is
+deferred to task 15 (the @theme block it adds is what makes bg-primary
+/ text-primary-foreground resolve). Task 13's explicit deferral is
+recorded on task 13's line in tasks.md. The component-path AC3 proof
+lives in the `shadcn Button consumes re-established tokens via var()
+inline style` test below, which does not depend on task 15.
+
+---------------------------------------------------------------------
+`Tailwind utilities resolve inside @layer playground`            : PASS
+---------------------------------------------------------------------
+Element: [data-testid="spike-tailwind-div-target"]
+Asserted:
+  background-color ≈ lab(54.1736 13.3369 -74.6839)  (bg-blue-500, via
+                                                     expectLabClose)
+  padding-top      = 16px                           (p-4)
+  padding-bottom   = 16px                           (p-4)
+  padding-left     = 16px                           (p-4)
+  padding-right    = 16px                           (p-4)
+  font-size        = 18px                           (text-lg)
+  line-height      = 28px                           (text-lg)
+Outcome: Tailwind utility classes apply normally inside @layer
+playground. Caveat (for task 14 to note): this is observational — the
+same values would resolve if utilities were being delivered via
+Tailwind's own utilities layer instead of through @layer playground. A
+strongly controlled test (an in-layer-playground rule intentionally
+conflicting with bg-blue-500 / p-4) was not added as part of task 13.
+
+---------------------------------------------------------------------------
+`playground container stays light when host site is dark`          : PASS
+---------------------------------------------------------------------------
+Element: [data-testid="playground-container"]
+Asserted (light baseline, via expectLabClose / expectRgbEqual):
+  --background         ≈ lab(100% 0 0)                   (oklch(1 0 0))
+  --foreground         ≈ lab(2.75381% 0 0)               (oklch(0.145 0 0))
+  --primary            ≈ lab(7.78201% -.0000149012 0)    (oklch(0.205 0 0))
+  --primary-foreground ≈ lab(98.26% 0 0)                 (oklch(0.985 0 0))
+  color                = rgb(0, 0, 0)                    (see SPIKE FINDING:
+                                                          color comes from
+                                                          all: initial →
+                                                          CanvasText, not
+                                                          from the layer
+                                                          re-declaration)
+
+After `applyDarkMode(page) + page.reload()`:
+  All five readings asserted equal (string equality) to the light-mode
+  readings. If the .dark class were leaking through the container,
+  --background would flip to ~lab(2.75% 0 0) and --foreground to
+  ~lab(98.26% 0 0) — the equality check would fail.
+
+---------------------------------------------------------------------
+`descendant reaches re-established tokens via var() references` : PASS
+---------------------------------------------------------------------
+Element: [data-testid="spike-token-access-target"]
+Fixture: plain <div> with inline backgroundColor=var(--primary),
+         color=var(--primary-foreground), borderRadius=var(--radius).
+Asserted (light baseline):
+  background-color           ≈ lab(7.78201% -.0000149012 0)
+  color                      ≈ lab(98.26% 0 0)
+  border-top-left-radius     = 10px
+  border-top-right-radius    = 10px
+  border-bottom-left-radius  = 10px
+  border-bottom-right-radius = 10px
+  inherited --background     ≈ lab(100% 0 0)
+  inherited --foreground     ≈ lab(2.75381% 0 0)
+  inherited --primary        ≈ lab(7.78201% -.0000149012 0)
+After applyDarkMode + reload: all nine readings equal the light
+baseline. The inherited --background/--foreground readings are the
+load-bearing dark-mode assertion (:root.dark redeclares these to
+different values), proving the container's @layer playground
+re-declaration actively wins against inheritance rather than
+coincidentally matching a light :root.
+
+---------------------------------------------------------------------------
+`shadcn Button consumes re-established tokens via var() inline style` : PASS
+---------------------------------------------------------------------------
+Element: [data-testid="spike-button-token-target"]
+Fixture: <Button> with inline backgroundColor=var(--primary),
+         color=var(--primary-foreground).
+Asserted (light baseline, via expectLabClose):
+  background-color ≈ lab(7.78201% -.0000149012 0)     (from --primary)
+  color            ≈ lab(98.26% 0 0)                  (from --primary-foreground)
+After applyDarkMode + reload: both values asserted equal to the light
+baseline. This is the direct R11 AC3 verification at the shadcn Button
+component path — independent of task 15's @theme wiring. Confirms the
+actual Button component (not just a generic div) renders with the
+container's re-established tokens when given a direct var() consumer.
+
+---------------------------------------------------------------------
+`AC2 — site globals blocked at container boundary` : PASS
+---------------------------------------------------------------------
+Element: [data-testid="spike-ac2-inherit-target"]
+Fixture: plain <div> with no inline styles, no classes.
+Asserted (via not.toContain, each):
+  font-family NOT toContain "Geist"      (host <html> declares
+                                          "Geist, Geist Fallback";
+                                          narrowed to Geist only because
+                                          the intended playground stack
+                                          contains Arial / Helvetica)
+
+Observed value on this CI environment: `"Times New Roman"` (Chromium
+initial serif default). Portable across other Chromium distros that
+might return Liberation Serif / DejaVu Serif — the negation assertion
+still passes because the CSS initial can never include the host's
+declared names.
+
+This is the R11 AC2 anchor. The descendant has no inline overrides, so
+its font-family comes entirely from inheritance. The fact that none of
+the host's declared families appear proves the container's reset is
+blocking the cascade. The fact that `"Times New Roman"` (or equivalent
+initial) appears instead of the intended playground ui-sans-serif
+stack is the SPIKE FINDING surfaced above — not an AC2 failure.
+
+=====================================================================
+Overlay containment matrix (from src/app/(playground)/spike/spike-overlays.tsx)
+=====================================================================
+Every shadcn/ui Content wrapper hardcodes its Portal and does not forward
+a `container` prop, so the default behavior for Dialog, DropdownMenu,
+Popover, Tooltip and Select is "portal escapes to document.body".
+
+Tier 1 mitigation — exported Portal wrapper (spreads container prop):
+  Dialog       → DialogPortal       (used in `Contained Dialog` branch is
+                                     equivalent; we drop to the primitive
+                                     for symmetry with Tier 2)
+  DropdownMenu → DropdownMenuPortal
+
+Tier 2 mitigation — drop to the underlying Radix primitive's Portal:
+  Popover  → PopoverPrimitive.Portal     (no exported PopoverPortal)
+  Tooltip  → TooltipPrimitive.Portal     (no exported TooltipPortal)
+  Select   → SelectPrimitive.Portal      (no exported SelectPortal)
+
+The `Contained Dialog` branch in the spike fixture proves the
+container-prop pattern keeps the portal inside .playground-container.
+Spec 8 (playground) will need to apply the appropriate tier to every
+overlay-bearing playground item, or accept the document.body escape and
+ensure those overlays inherit the host site's dark-mode tokens instead.
+
+=====================================================================
+Suggested graduated outcome (final call belongs to task 14)
+=====================================================================
+(b) Same-page CSS isolation is viable WITH restrictions:
+
+  - Custom-property re-establishment inside @layer playground works as
+    designed; the container's tokens override inherited :root.dark
+    values and reach descendants via inheritance, var() consumption,
+    and on shadcn components (Button fixture). R11 AC3 is satisfied at
+    the primitive level for both div and Button component paths, and
+    will be re-verified for the Tailwind utility path (bg-primary,
+    text-primary-foreground) by task 15's @theme block.
+
+  - Non-custom-property typography re-establishment (font-family,
+    font-size, line-height, color) declared in @layer playground does
+    NOT override the container's unlayered `all: initial` — the
+    container and descendants render with browser-default typography.
+    Follow-up task needs to move typography re-declarations out of the
+    layer or use unlayered specificity to win against the reset. The
+    shadcn Button typography assertion pins the current state so the
+    fix or any future regression is immediately detectable.
+
+  - Overlays portal to document.body by default; spec 8 must opt into
+    Tier 1 / Tier 2 containment per overlay if the playground item
+    needs its overlays to live inside the isolation boundary.
+
+Outcome is (b), not (a), because the typography re-declaration bug is
+a real gap in the isolation strategy even though the underlying AC2 /
+AC4 goals (site globals don't leak, Tailwind utilities work) still
+pass.
+
+=====================================================================
+ThemeProvider integration follow-up (task 16)
+=====================================================================
+The dark-mode tests in playground-isolation.test.ts use
+`applyDarkMode(page)`, which sets localStorage "theme"="dark" AND adds
+the `.dark` class to <html> via an init script (pre-hydration). The
+localStorage write is currently inert (no ThemeProvider in the build);
+it becomes load-bearing when task 16 ships next-themes with
+attribute="class" and defaultTheme="system".
+
+When task 16 merges:
+  1. Re-run the spike suite (`pnpm test:e2e e2e/tests/playground-
+     isolation.test.ts`) to confirm the dark-mode assertions still hold
+     against the new hydration path.
+  2. If next-themes' mount race causes intermittent failures, either
+     switch the manual `classList.add` out for `page.emulateMedia
+     ({ colorScheme: "dark" })` combined with a deterministic wait on
+     the rendered class, or add a fixture variant on
+     (playground)/layout.tsx that does not mount ThemeProvider for
+     spike tests.
+  3. Update this file with the re-run reporter output so the dev vs.
+     prod comparison remains evidenced.
+
+=====================================================================
+Dev-mode (Turbopack) manual verification procedure
+=====================================================================
+  1. Terminal A: PORT=<n> pnpm dev
+  2. Terminal B: PORT=<n> pnpm exec playwright test \
+                   --config=e2e/playwright.config.ts \
+                   e2e/tests/playground-isolation.test.ts
+  3. The non-CI Playwright config sets reuseExistingServer=true, so the
+     tests hit the running Turbopack dev server.
+
+The 2026-04-16 run (recorded above) confirms 7/7 spike tests pass
+under Turbopack using the same expected-value tuples as production.

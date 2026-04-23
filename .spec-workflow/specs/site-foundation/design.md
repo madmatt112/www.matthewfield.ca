@@ -553,7 +553,7 @@ const cspDirectives = [
 const nextConfig: NextConfig = {
   headers: async () => [
     {
-      source: "/((?!playground(/|$)).*)",
+      source: "/((?!playground(?:/|$)).*)",
       headers: [
         {
           key: "Content-Security-Policy",
@@ -568,7 +568,7 @@ const nextConfig: NextConfig = {
 - Content pages get the full CSP. `default-src 'self'` provides a baseline fallback.
 - `connect-src 'self'` is sufficient — the contact form (spec 2) uses `/api/contact` (same origin). Note: `connect-src` must be updated when external analytics (Plausible, Umami, Vercel Analytics) are added.
 - `font-src 'self'` explicit for clarity since `next/font` self-hosts.
-- Playground routes (`/playground` and `/playground/*`) are excluded via negative lookahead regex with segment boundary (`(/|$)`) — prevents accidentally excluding unrelated routes like a hypothetical `/playground-tips`.
+- Playground routes (`/playground` and `/playground/*`) are excluded via negative lookahead regex with segment boundary (`(?:/|$)`) — prevents accidentally excluding unrelated routes like a hypothetical `/playground-tips`. The boundary is a non-capturing group because Next.js path-to-regexp rejects capturing groups inside `source`.
 - **Nonce-based CSP was considered and rejected.** Next.js 14+ supports nonce-based CSP which eliminates `'unsafe-inline'` for scripts, but it requires dynamic header generation (a new nonce per request) via edge middleware. This adds latency (~1-5ms), consumes Vercel edge function invocations, and conflicts with the static-first architecture. For a personal site with no user authentication and no stored data, `'unsafe-inline'` is an acceptable tradeoff.
 
 ## Velite Pipeline Design
