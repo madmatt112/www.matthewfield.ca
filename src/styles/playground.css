@@ -1,0 +1,77 @@
+/* CSS isolation spike — playground route group stylesheet (task 10).
+
+   Two-part isolation strategy:
+     1. .playground-container reset (unlayered) wipes inherited site styles
+        from outside the container so children start from a known baseline.
+     2. @layer playground (declared at lowest priority in src/styles/globals.css)
+        re-establishes typography defaults and shadcn/ui token values inside
+        the container so child components render predictably.
+
+   Token values mirror src/styles/tokens.css :root — keep them in sync when
+   shadcn defaults change. Light-mode only by design: the playground stays
+   light when the host site is in dark mode (verified by task 13). */
+
+.playground-container {
+  all: initial;
+  isolation: isolate;
+  display: block;
+  box-sizing: border-box;
+  unicode-bidi: normal;
+}
+
+@layer playground {
+  .playground-container {
+    font-family:
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      "Helvetica Neue",
+      Arial,
+      sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: oklch(0.145 0 0);
+    box-sizing: border-box;
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+
+    /* shadcn/ui token values mirrored from src/styles/tokens.css :root.
+       Re-declared here so descendants inside .playground-container always
+       resolve to playground-scoped tokens regardless of the host site theme. */
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: oklch(0.205 0 0);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.97 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.708 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --radius: 0.625rem;
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.205 0 0);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.708 0 0);
+  }
+}

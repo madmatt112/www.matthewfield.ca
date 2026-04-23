@@ -1,1 +1,61 @@
-/* Placeholder — populated in task 8 (tokens + shadcn/ui scaffolding). */
+/* Declare the playground cascade layer before importing Tailwind so it
+   sits at the lowest priority — the playground route group relies on this
+   ordering to keep its styles from leaking into the main site. */
+@layer playground;
+
+@import "tailwindcss";
+
+/* tokens.css is intentionally unlayered — unlayered CSS cascades above
+   Tailwind's layered base/components/utilities, ensuring token values
+   take priority. Do not wrap this import in a @layer declaration. */
+@import "./tokens.css";
+
+/* Class-based dark mode: next-themes toggles the `dark` class on <html>;
+   without this declaration Tailwind v4's `dark:` variant falls back to
+   prefers-color-scheme and ignores the toggle. */
+@custom-variant dark (&:is(.dark *));
+
+/* Maps Tailwind color / radius utilities onto the shadcn/ui tokens declared
+   in tokens.css. Regenerate by running
+     `npx shadcn@latest init --base radix --preset nova --yes --force`
+   against a scratch `create-next-app` (neutral base color is already the
+   shadcn default and copies verbatim into tokens.css) — then lift the
+   emitted @theme inline block back into this file. Do not hand-edit, so
+   the mapping stays byte-aligned with upstream shadcn. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
