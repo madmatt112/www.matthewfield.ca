@@ -4,9 +4,9 @@
   "private": true,
   "packageManager": "pnpm@9.15.0",
   "scripts": {
-    "dev": "concurrently --kill-others-on-fail --names velite,next \"velite dev\" \"next dev --turbopack\"",
+    "dev": "concurrently --kill-others-on-fail --names velite,next \"velite dev\" \"next dev --turbopack --port 3013\"",
     "build": "next build",
-    "start": "next start",
+    "start": "next start --port 3013",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
