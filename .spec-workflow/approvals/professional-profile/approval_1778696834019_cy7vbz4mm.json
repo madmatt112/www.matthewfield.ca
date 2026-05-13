@@ -1,0 +1,20 @@
+{
+  "id": "approval_1778696834019_cy7vbz4mm",
+  "title": "professional-profile: tasks (revised)",
+  "filePath": ".spec-workflow/specs/professional-profile/tasks.md",
+  "type": "document",
+  "status": "needs-revision",
+  "createdAt": "2026-05-13T18:27:14.020Z",
+  "category": "spec",
+  "categoryName": "professional-profile",
+  "response": "Adversarial review requested via dashboard. A background review is running (job: e1f43511-583d-4dd1-98ae-4e2c1e5e6b4a).",
+  "annotations": "{\n  \"decision\": \"needs-revision\",\n  \"trigger\": \"adversarial-review\",\n  \"specName\": \"professional-profile\",\n  \"phase\": \"tasks\",\n  \"promptOutputPath\": \"/home/mcf/repo/matthew-field.ca/.spec-workflow/specs/professional-profile/reviews/adversarial-prompt-tasks-r2.md\",\n  \"analysisOutputPath\": \"/home/mcf/repo/matthew-field.ca/.spec-workflow/specs/professional-profile/reviews/adversarial-analysis-tasks-r2.md\",\n  \"analysisVersion\": 2,\n  \"jobId\": \"e1f43511-583d-4dd1-98ae-4e2c1e5e6b4a\",\n  \"timestamp\": \"2026-05-13T20:12:21.835Z\"\n}",
+  "respondedAt": "2026-05-13T20:12:21.847Z",
+  "comments": [
+    {
+      "type": "general",
+      "comment": "An adversarial review (v2) has been requested for this document. Use the adversarial-response tool with specName \"professional-profile\", phase \"tasks\", and version 2 to read the analysis, evaluate each finding, and present your assessment to the user before making changes.",
+      "timestamp": "2026-05-13T20:12:21.835Z"
+    }
+  ]
+}
