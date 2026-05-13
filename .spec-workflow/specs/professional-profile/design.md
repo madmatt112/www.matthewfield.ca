@@ -50,7 +50,7 @@ This design records *how* the requirements compose into a buildable implementati
 
 - **Velite `#site/content`**: `/profile/page.tsx` imports `profile` (singular, since `single: true` emits a single object, not an array) from `#site/content`. Type generation is automatic via Velite's `.velite/index.d.ts`.
 - **Existing `metadataBase` in `src/app/layout.tsx`**: `metadata.alternates.canonical = '/profile'` resolves against this base to produce the absolute URL asserted by Req 6.3.
-- **Existing root layout `<title>` template** (`%s | matthew-field.ca`): `/profile/page.tsx`'s `generateMetadata()` returns `title: profile.title`, which the template wraps. No layout-level changes.
+- **Existing root layout `<title>` template** (`%s | matthewfield.ca`): `/profile/page.tsx`'s `generateMetadata()` returns `title: profile.title`, which the template wraps. No layout-level changes.
 - **Existing Playwright config (`e2e/playwright.config.ts`)**: kept; the wrapper script (`scripts/run-e2e.mjs`) invokes `playwright test --config=e2e/playwright.config.ts` after env preparation. The config's `webServer` clause is unchanged.
 - **Existing CSP smoke test (`e2e/tests/csp.test.ts`)**: NOT modified. A new test file (`e2e/tests/contact-form.test.ts`) covers the form-specific CSP assertions of Req-NFR-Security; the two CSP tests run in parallel and assert different surfaces.
 
@@ -189,7 +189,7 @@ The transitions are pure state changes; the side effects (focus, scroll, fire Cu
 - **Purpose**: Render the wide-layout professional profile page.
 - **Interfaces**:
   - `default export`: React server component (no props per Next.js page convention).
-  - `generateMetadata(): Metadata`: returns `{ title: profile.title, description: profile.description, alternates: { canonical: '/profile' } }`. Site-wide `%s | matthew-field.ca` template wraps `title`. Removes the placeholder `robots: { index: false }`.
+  - `generateMetadata(): Metadata`: returns `{ title: profile.title, description: profile.description, alternates: { canonical: '/profile' } }`. Site-wide `%s | matthewfield.ca` template wraps `title`. Removes the placeholder `robots: { index: false }`.
   - `export const dynamic = 'force-static'` (Req 1.9).
 - **Composition** (in DOM order): page wrapper (`<main className="mx-auto max-w-5xl px-..."`), headshot image (when `profile.headshot` present, rendered with Next.js `<Image>` using the Velite-resolved `src`/`width`/`height`/`blurDataURL` properties produced by `s.image()`), `<h1>{profile.headline}</h1>` group, location + availability metadata, `<MDXContent code={profile.body} />`, contact section subtree (tagline `<p>`, `<SocialLinks />`, `<ObfuscatedEmail />`, `<ContactForm source="profile" />`).
 - **Dependencies**: `#site/content` (`profile` export), `next/image`, `@/components/shared/mdx-content`, `@/components/shared/social-links`, `@/components/shared/obfuscated-email`, `@/components/shared/contact-form`.
@@ -260,7 +260,7 @@ The transitions are pure state changes; the side effects (focus, scroll, fire Cu
 - **Pipeline implementation order** (matches Req 3.5 a–g):
   1. `const raw = await req.arrayBuffer()`. If `raw.byteLength > 32 * 1024` → `return Response.json({ error }, { status: 413 })`.
   2. Origin/Referer check. The accepted-origin set is computed once per request as a small list rather than a single string:
-     - The production site origin from `process.env.NEXT_PUBLIC_SITE_URL` (e.g. `https://matthew-field.ca`).
+     - The production site origin from `process.env.NEXT_PUBLIC_SITE_URL` (e.g. `https://matthewfield.ca`).
      - The current Vercel deployment's own origin: `https://${process.env.VERCEL_URL}` if `VERCEL_URL` is set (Vercel injects this per-deploy on every preview and production build, so the running deployment's own origin is always in the list — preview submissions self-match without further configuration).
      - The Vercel preview wildcard suffix: any host ending in `.vercel.app` (covers Vercel-internal alias hosts like `matthew-field-ca-git-feat-x-mcf.vercel.app` that may appear on the request even when `VERCEL_URL` reflects a different alias for the same deploy).
      - `http://localhost:<port>` (any port, by hostname-equality on `localhost`) for local dev and the E2E wrapper.
@@ -359,7 +359,7 @@ type SiteConfig = {
 links: {
   linkedin: "https://www.linkedin.com/in/matthew-field-...",
   github: "https://github.com/...",
-  email: "hello@matthew-field.ca",
+  email: "hello@matthewfield.ca",
 },
 ```
 
@@ -458,7 +458,7 @@ The exact `s.image()` output shape is the Velite-defined `Image` type; consumed 
 Two narrow unit-test surfaces — neither is a full coverage push; both target the pieces where wiring mistakes are silent.
 
 - **`src/lib/mail.ts`** — subject construction across the three `source` cases (`'profile'`, `'contact'`, `undefined`) produces the literal strings asserted in Req 3.6. The outbound `fetch` is intercepted via `vi.stubGlobal('fetch', ...)`. Verifies `text` contains `name`, `email`, `source`, `message`; verifies `html` is not set; verifies `reply_to` is the bare email string. Additional cases: the 9-second `AbortController` timeout fires when the stubbed fetch hangs, surfacing as a `TimeoutError`; the env-tuple cache rebuilds when `RESEND_BASE_URL` changes between calls; the sanity guard throws when `RESEND_API_KEY === 'test-key'` AND `RESEND_BASE_URL` is unset (or resolves to `https://api.resend.com`).
-- **`src/app/api/contact/route.ts`** — the validation pipeline tested in isolation by invoking `POST(new Request(...))` directly. One case per branch of Req 3.5: oversize body → 413; populated honeypot → 200 + `sendContactEmail` NOT called; zod failure on each field → 400 with the matching `errors` key; malformed JSON → 400; non-plain-object body (`null`, `[]`, `"string"`, `42`) → 400; happy path → 200 + `sendContactEmail` called once with normalized `source`. `sendContactEmail` mocked via `vi.mock('@/lib/mail', ...)`. Origin-check cases pin `process.env.NEXT_PUBLIC_SITE_URL = 'https://matthew-field.ca'` explicitly via `vi.stubEnv` and exercise: matching production-origin Request → continues; foreign Origin (`https://attacker.example`) → 403; `*.vercel.app` Origin matched via wildcard → continues; `localhost` Origin → continues; both-absent fallback → continues. The 503 path (timeout) asserts both the status code AND the presence of the `Retry-After: 60` response header — without that assertion, a regression that returns 503 without the header silently violates Req 3.8.
+- **`src/app/api/contact/route.ts`** — the validation pipeline tested in isolation by invoking `POST(new Request(...))` directly. One case per branch of Req 3.5: oversize body → 413; populated honeypot → 200 + `sendContactEmail` NOT called; zod failure on each field → 400 with the matching `errors` key; malformed JSON → 400; non-plain-object body (`null`, `[]`, `"string"`, `42`) → 400; happy path → 200 + `sendContactEmail` called once with normalized `source`. `sendContactEmail` mocked via `vi.mock('@/lib/mail', ...)`. Origin-check cases pin `process.env.NEXT_PUBLIC_SITE_URL = 'https://matthewfield.ca'` explicitly via `vi.stubEnv` and exercise: matching production-origin Request → continues; foreign Origin (`https://attacker.example`) → 403; `*.vercel.app` Origin matched via wildcard → continues; `localhost` Origin → continues; both-absent fallback → continues. The 503 path (timeout) asserts both the status code AND the presence of the `Retry-After: 60` response header — without that assertion, a regression that returns 503 without the header silently violates Req 3.8.
 
 `<ContactForm />` is NOT unit-tested with jsdom — its surface is screen-reader behavior, focus management, and reduced-motion handling, all of which are fragile to assert in jsdom. The Playwright smoke covers the meaningful wiring; jsdom DOM tests would mostly assert React rendered the JSX as written, which is not load-bearing.
 
@@ -588,7 +588,7 @@ The Order-of-Operations rule (Req 1.14) is enforced by the implementation tasks,
 
 These are not requirements — they're design-time guidance for whoever decomposes this into tasks.
 
-- **Mail-provider filter prerequisite (NEW)**: the per-address mail-provider filter that defends `siteConfig.links.email` (e.g. `hello@matthew-field.ca`) MUST be in place at the mail provider *before the first commit referencing the alias lands on `main`*. GitHub Code Search indexes commits within minutes; once the value is committed, the address is searchable globally before the production deploy completes. Order: (1) provision the alias and forwarder rule + filter at the mail provider; (2) commit the value into `siteConfig`. This is alongside the DNS prerequisite, not a substitute for it.
+- **Mail-provider filter prerequisite (NEW)**: the per-address mail-provider filter that defends `siteConfig.links.email` (e.g. `hello@matthewfield.ca`) MUST be in place at the mail provider *before the first commit referencing the alias lands on `main`*. GitHub Code Search indexes commits within minutes; once the value is committed, the address is searchable globally before the production deploy completes. Order: (1) provision the alias and forwarder rule + filter at the mail provider; (2) commit the value into `siteConfig`. This is alongside the DNS prerequisite, not a substitute for it.
 - **Same-commit constraint** (Req 1.14): the Velite `profile` collection schema and the initial `content/profile.mdx` must land together. The decomposition task list orders them as parts of the same task. Note: the constraint is *also* enforced incidentally by existing tooling — schema-first commits fail Velite's missing-file check (Req 1.2); content-first commits fail TypeScript's undefined-export check at typecheck time. The same-commit rule is a hygiene constraint, not the only line of defense.
 - **DNS prerequisite** (Req 3.6 production-from clause): SPF/DKIM/DMARC + Resend domain verification are launch prerequisites and live partially outside the codebase. The task list calls out the DNS work as a discrete task that must complete before production cutover; preview deploys can land first using the sandbox `from`.
 - **Wrapper script before tests**: `scripts/run-e2e.mjs` and the mock server must exist before the Playwright tests are added, otherwise the tests cannot run locally. Decomposition should land the harness in one task, then the test files in subsequent tasks.

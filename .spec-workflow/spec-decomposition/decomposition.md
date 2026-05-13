@@ -1,4 +1,4 @@
-# Spec Decomposition: matthew-field.ca
+# Spec Decomposition: matthewfield.ca
 
 ## Overview
 
@@ -21,7 +21,7 @@ Personal website rebuild for Matthew Field — replacing WordPress.com with a ma
 - Velite is configured with the `pages` schema only (for landing page and future slash page content). Each downstream content spec adds its own schema to `velite.config.ts`. Spec 1 documents the schema pattern for downstream specs to follow.
 - Velite must run before type-checking in CI. Ensure a `postinstall` script or explicit Velite build step generates `.velite/` before `tsc` runs, so imports from `#site/content` don't produce TypeScript errors.
 - The CSS isolation spike is time-boxed: create the `(playground)` route group, apply `all: initial` + `isolation: isolate` + `@layer playground`. **Spike verification must include**: (1) a plain div with conflicting colors/fonts (proves basic `all: initial` works), (2) a shadcn/ui Button or Card rendered inside the playground container (proves shared components work after the reset — specifically that CSS custom properties like `--background` and `--foreground` are either re-established by a playground base stylesheet or unnecessary), (3) Tailwind utility classes applied inside the playground container (proves utilities work within `@layer playground`). Test in both themes (light and dark) and in both dev and production builds. A plain-div-only test provides false confidence — the real question is whether shared components survive the CSS reset. **Spike failure path**: if `all: initial` + `@layer playground` does not work acceptably, the playground defaults to iframe-only isolation. Spec 8's scope reduces to: manifest system, dynamic imports, iframe embed routes, and gallery page. Same-page rendering is cut.
-- Establish the metadata/SEO convention: title template (e.g., `"Page Title | matthew-field.ca"`), default OG image in `public/images/`, `generateMetadata()` in page files. All downstream specs follow this pattern.
+- Establish the metadata/SEO convention: title template (e.g., `"Page Title | matthewfield.ca"`), default OG image in `public/images/`, `generateMetadata()` in page files. All downstream specs follow this pattern.
 - Spec 1 is the largest spec by far (foundation work is inherently front-loaded). Recommended implementation order within spec 1: (a) scaffolding + CI/CD, (b) CSS isolation spike + Velite pipeline + pages schema, (c) layouts + theme toggle + metadata convention, (d) landing page + hero cards. The spike runs before the CSS architecture is finalized so its findings inform layout and theme decisions in step (c) rather than potentially invalidating them. Note: these are a suggested sequence, not hard gates — spec 1 is one deliverable.
 
 ---
@@ -226,7 +226,7 @@ These were evaluated during decomposition and resolved:
 
 ## Open Questions
 
-1. **Deployment strategy**: When should the custom domain (matthew-field.ca) point to the new site? Options with tradeoffs:
+1. **Deployment strategy**: When should the custom domain (matthewfield.ca) point to the new site? Options with tradeoffs:
    - **(a)** Point at spec 1 deploy. Public sees placeholder pages. Forces real-world testing but exposes "coming soon" pages to recruiters.
    - **(b)** Point after spec 2 (professional profile). The primary business value (employer inbound funnel) is live. Remaining placeholders are secondary sections. Likely the best balance.
    - **(c)** Point after all content specs are complete. No placeholders visible, but delays all real-world testing.

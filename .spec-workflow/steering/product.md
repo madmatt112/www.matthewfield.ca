@@ -2,7 +2,7 @@
 
 ## Product Purpose
 
-matthew-field.ca is a personal website for Matthew Field, an infrastructure/platform/DevOps engineer. It replaces an existing WordPress.com site with a modern, markdown-driven, developer-owned site. It serves as a professional presence, a showcase for projects and open-source contributions, a blog, a curated resource directory, and a playground for small-web experiments.
+matthewfield.ca is a personal website for Matthew Field, an infrastructure/platform/DevOps engineer. It replaces an existing WordPress.com site with a modern, markdown-driven, developer-owned site. It serves as a professional presence, a showcase for projects and open-source contributions, a blog, a curated resource directory, and a playground for small-web experiments.
 
 ## Target Users
 

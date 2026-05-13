@@ -3,7 +3,7 @@
 ## Directory Organization
 
 ```
-matthew-field.ca/
+matthewfield.ca/
 ├── content/                        # MDX source files (Velite input)
 │   ├── blog/                       # Blog posts
 │   │   └── my-post.mdx

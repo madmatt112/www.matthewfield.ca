@@ -21,7 +21,7 @@ type SiteConfig = {
 export const siteConfig: SiteConfig = {
   name: "Matthew Field",
   description: "Infrastructure/Platform/DevOps engineer",
-  url: "https://matthew-field.ca",
+  url: "https://matthewfield.ca",
   ogImage: "/images/og-default.png",
   navItems: [
     { label: "Professional Profile", href: "/profile" },

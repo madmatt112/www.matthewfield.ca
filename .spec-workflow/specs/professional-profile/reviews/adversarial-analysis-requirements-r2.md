@@ -153,7 +153,7 @@ Resend's sandbox domain (`onboarding.resend.dev`) is explicitly for development.
 - Producer metadata that flags it as non-transactional to major mail providers
 
 **Concrete scenario**: a Senior Engineering Recruiter at a Fortune-100 uses a corporate email gateway (Mimecast, Proofpoint, Microsoft Defender for Office 365). The gateway applies DMARC enforcement, checks `From` alignment against SPF/DKIM. Mail sent from `onboarding.resend.dev` as `From: matthew@onboarding.resend.dev` or `From: Matthew Field <matthew@onboarding.resend.dev>` will either:
-- Fail DMARC alignment for `matthew-field.ca` if the `From` is spoofed to look like Matthew's domain
+- Fail DMARC alignment for `matthewfield.ca` if the `From` is spoofed to look like Matthew's domain
 - Land in quarantine or spam as a disposable-domain signal
 - Be stripped entirely on aggressive configurations
 
@@ -381,11 +381,11 @@ Req 4.8 requires 44×44 CSS px interactive targets. `react-obfuscate` renders it
 
 ### 9.1 Req 6.2 "canonical href='/profile'" may be ignored by search engines `[Novel]`
 
-`<link rel="canonical" href="/profile">` — relative path. Google and Bing both recommend absolute URLs for canonical (`https://matthew-field.ca/profile`). Some rankers treat relative canonical as weak signal or ignore it entirely.
+`<link rel="canonical" href="/profile">` — relative path. Google and Bing both recommend absolute URLs for canonical (`https://matthewfield.ca/profile`). Some rankers treat relative canonical as weak signal or ignore it entirely.
 
 Next.js App Router metadata supports `metadataBase` + `alternates.canonical` as a relative path, but the emitted HTML will be absolute if `metadataBase` is set. Spec doesn't require `metadataBase` — it's likely set in site-foundation (verify), but if the absolute/relative emission is broken, Req 6.2's intent fails.
 
-**Fix**: Req 6.2 SHALL read "set `metadata.alternates.canonical = '/profile'` (Next.js resolves via `metadataBase` to the absolute production URL)." Also add a Playwright assertion that the rendered `<link rel="canonical">` is an absolute URL starting with `https://matthew-field.ca`.
+**Fix**: Req 6.2 SHALL read "set `metadata.alternates.canonical = '/profile'` (Next.js resolves via `metadataBase` to the absolute production URL)." Also add a Playwright assertion that the rendered `<link rel="canonical">` is an absolute URL starting with `https://matthewfield.ca`.
 
 ### 9.2 `siteConfig.links.email` plaintext in source repo `[Novel]`
 

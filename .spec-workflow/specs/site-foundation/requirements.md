@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Site foundation establishes the complete development and deployment infrastructure for matthew-field.ca — a markdown-driven, statically-generated personal website replacing the existing WordPress.com site. This spec delivers the project scaffolding, build pipeline, CI/CD, content processing, site shell (layout, navigation, theme toggle), landing page, and a CSS isolation spike that determines the playground's architectural approach. It is the largest spec by scope because all downstream specs depend on the toolchain, conventions, and infrastructure established here.
+Site foundation establishes the complete development and deployment infrastructure for matthewfield.ca — a markdown-driven, statically-generated personal website replacing the existing WordPress.com site. This spec delivers the project scaffolding, build pipeline, CI/CD, content processing, site shell (layout, navigation, theme toggle), landing page, and a CSS isolation spike that determines the playground's architectural approach. It is the largest spec by scope because all downstream specs depend on the toolchain, conventions, and infrastructure established here.
 
 ## Alignment with Product Vision
 
@@ -154,7 +154,7 @@ This spec directly supports every product principle and business objective by pr
 
 #### Acceptance Criteria
 
-1. WHEN any page renders THEN it SHALL include a `<title>` following the template pattern (e.g., "Page Title | matthew-field.ca").
+1. WHEN any page renders THEN it SHALL include a `<title>` following the template pattern (e.g., "Page Title | matthewfield.ca").
 2. WHEN the site is deployed THEN a default Open Graph image SHALL be available in `public/images/` for pages that don't specify their own. Minimum dimensions: 1200×630 pixels. Format: PNG or JPG.
 3. WHEN a page component is created THEN it SHALL export a `generateMetadata()` function following the established convention.
 4. WHEN the site is built THEN an XML sitemap SHALL be generated and available at `/sitemap.xml`.

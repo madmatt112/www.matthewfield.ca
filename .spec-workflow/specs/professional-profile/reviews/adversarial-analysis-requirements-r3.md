@@ -170,7 +170,7 @@ The real gap is in **test coverage**, not in the policy. The CSP verification te
 
 ### 10. react-obfuscate pre-click screen-reader state — **real a11y defect, narrow** **[Novel]**
 
-`react-obfuscate` renders an `<a>` with obfuscated content (typically reversed string, optionally with some interstitial characters) until clicked, at which point it replaces content with the real `mailto:`. Before click, a screen reader reads the reversed/garbled characters aloud — e.g., for `hello@matthew-field.ca`, the rendered pre-click string might be `ac.dleif-wehttam@olleh`, which a screen reader enunciates as nonsense syllables with no indication that it is an interactive email reveal.
+`react-obfuscate` renders an `<a>` with obfuscated content (typically reversed string, optionally with some interstitial characters) until clicked, at which point it replaces content with the real `mailto:`. Before click, a screen reader reads the reversed/garbled characters aloud — e.g., for `hello@matthewfield.ca`, the rendered pre-click string might be `ac.dleif-wehttam@olleh`, which a screen reader enunciates as nonsense syllables with no indication that it is an interactive email reveal.
 
 Req 4.7 applies to form controls. The obfuscated email is not a form control; it's a link. Req 2.3 requires 44×44 tap target but no accessible name. Req 4.9 covers contrast but not accessible naming.
 
@@ -184,7 +184,7 @@ Impact: a screen-reader user navigates to the obfuscated email element and hears
 
 Req 3.6 prescribes `p=none` at launch, tightening to `p=quarantine`/`p=reject` "only after observing clean alignment in DMARC reports for at least two weeks." No mechanism enforces the tightening. Calendar reminder? CI check? None specified.
 
-Impact: `p=none` means Matthew's domain permits spoofed mail (From: `matthew-field.ca`) to be delivered to recipients. An attacker spoofing Matthew to a recruiter gets their mail delivered. Residual risk for however long Matthew doesn't get around to tightening.
+Impact: `p=none` means Matthew's domain permits spoofed mail (From: `matthewfield.ca`) to be delivered to recipients. An attacker spoofing Matthew to a recruiter gets their mail delivered. Residual risk for however long Matthew doesn't get around to tightening.
 
 Is this requirements-level? Arguably yes — the spec's own security posture decays over time with no enforcement. But proposing a CI check that reads DMARC aggregate reports from S3/Postmark is heavy infrastructure for a personal site.
 

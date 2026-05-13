@@ -1,4 +1,4 @@
-# Relume Prompts for matthew-field.ca
+# Relume Prompts for matthewfield.ca
 
 Generated 2026-03-23. Use these as the project-level and per-page prompts in Relume's sitemap generator.
 

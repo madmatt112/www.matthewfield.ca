@@ -92,7 +92,7 @@ Cross-reference Req 3.11's env-scoping table (requirements.md:97–100):
 
 > If `Origin` header present and mismatched → 403.
 
-**Failure scenario**: A preview deploy at `https://matthew-field-ca-git-feat-profile-mcf.vercel.app` serves the form. User submits. Browser sends `Origin: https://matthew-field-ca-git-feat-profile-mcf.vercel.app`. Server reads `process.env.NEXT_PUBLIC_SITE_URL = 'https://matthew-field.ca'` (production value, leaked via "All Environments" or never re-scoped). Mismatch → 403. Form silently fails on every preview. Smoke test passes because the wrapper script sets `NEXT_PUBLIC_SITE_URL=http://localhost:3013` (design line 461), exercising the localhost-origin code path only.
+**Failure scenario**: A preview deploy at `https://matthew-field-ca-git-feat-profile-mcf.vercel.app` serves the form. User submits. Browser sends `Origin: https://matthew-field-ca-git-feat-profile-mcf.vercel.app`. Server reads `process.env.NEXT_PUBLIC_SITE_URL = 'https://matthewfield.ca'` (production value, leaked via "All Environments" or never re-scoped). Mismatch → 403. Form silently fails on every preview. Smoke test passes because the wrapper script sets `NEXT_PUBLIC_SITE_URL=http://localhost:3013` (design line 461), exercising the localhost-origin code path only.
 
 **This is a hidden production-only assumption.** Two correct fixes, neither in the design:
 
@@ -103,16 +103,16 @@ Either is ~10 lines. The design's "single origin string" (line 258) is the wrong
 
 ### 2.2 The smoke test does NOT verify the production CSRF defense
 
-The wrapper exports `NEXT_PUBLIC_SITE_URL=http://localhost:3013` (design line 461). Playwright runs the form. Browser sends `Origin: http://localhost:3013`. Match → allow. **The test exercises only the localhost-origin acceptance path.** The production-origin code (which is what runs in production) is never executed in CI. If a future refactor changes `process.env.NEXT_PUBLIC_SITE_URL` lookup to (say) a hardcoded `https://matthew-field.ca`, the smoke test still passes (because localhost-origin matches whatever the code reads, by virtue of being equal to the env value the test sets). **The CSRF defense has zero CI coverage of the actual production path.**
+The wrapper exports `NEXT_PUBLIC_SITE_URL=http://localhost:3013` (design line 461). Playwright runs the form. Browser sends `Origin: http://localhost:3013`. Match → allow. **The test exercises only the localhost-origin acceptance path.** The production-origin code (which is what runs in production) is never executed in CI. If a future refactor changes `process.env.NEXT_PUBLIC_SITE_URL` lookup to (say) a hardcoded `https://matthewfield.ca`, the smoke test still passes (because localhost-origin matches whatever the code reads, by virtue of being equal to the env value the test sets). **The CSRF defense has zero CI coverage of the actual production path.**
 
-Mitigation the design didn't propose: a Vitest-level integration test that constructs a `Request` with `Origin: 'https://attacker.example'` and `process.env.NEXT_PUBLIC_SITE_URL = 'https://matthew-field.ca'`, asserts 403. This is ~5 lines added to the route-handler unit-test suite (design line 432) and closes the gap without any Playwright complexity.
+Mitigation the design didn't propose: a Vitest-level integration test that constructs a `Request` with `Origin: 'https://attacker.example'` and `process.env.NEXT_PUBLIC_SITE_URL = 'https://matthewfield.ca'`, asserts 403. This is ~5 lines added to the route-handler unit-test suite (design line 432) and closes the gap without any Playwright complexity.
 
 ### 2.3 The both-absent fallback is a real attacker affordance — observable nowhere
 
 Design line 504: "near-impossible from a real browser submitting the actual form." Correct for *real browsers*. Irrelevant for *attackers*, who don't use browsers. Curl, requests, fetch from a script — all can omit both Origin and Referer trivially:
 
 ```bash
-curl -X POST https://matthew-field.ca/api/contact \
+curl -X POST https://matthewfield.ca/api/contact \
   -H "Content-Type: application/json" \
   --data '{"name":"a","email":"a@b.com","message":"...10+ chars..."}'
 ```
@@ -399,17 +399,17 @@ Per Velite v0.3.x source, single-doc collections emit the parsed object directly
 
 The design says "actual URL/email values are filled in during the implementation task; design only fixes the shape." (line 339)
 
-This is design-correct (shape vs values is a fair separation), but **the design does not call out**: the per-address mail-provider filter that defends the alias must be in place *before the first commit lands*. GitHub Code Search indexes commits within minutes. Once `siteConfig.links.email = "hello@matthew-field.ca"` lands on `main`, that string is searchable globally; spammers get the alias before the production deploy completes.
+This is design-correct (shape vs values is a fair separation), but **the design does not call out**: the per-address mail-provider filter that defends the alias must be in place *before the first commit lands*. GitHub Code Search indexes commits within minutes. Once `siteConfig.links.email = "hello@matthewfield.ca"` lands on `main`, that string is searchable globally; spammers get the alias before the production deploy completes.
 
 Mitigation (~5 minutes of work, missing from the design):
-- Set up the alias (`hello@matthew-field.ca` → forwarder rule + filter) at the mail provider FIRST.
+- Set up the alias (`hello@matthewfield.ca` → forwarder rule + filter) at the mail provider FIRST.
 - THEN commit the value.
 
 The design's "Implementation Sequencing & Risk Notes" (line 533) lists the same-commit constraint, the DNS prerequisite, the wrapper-script-before-tests order — but **does not list the mail-filter prerequisite**. Add it.
 
 ### 9.2 Rotation: previous alias persists in git history
 
-Design doesn't address. Acceptable residual — once `hello@matthew-field.ca` is exhausted, a `git revert` of the commit that introduced it doesn't remove it from history. Matthew rotates to `matthew@...`, the old alias keeps receiving spam to a now-unmonitored address.
+Design doesn't address. Acceptable residual — once `hello@matthewfield.ca` is exhausted, a `git revert` of the commit that introduced it doesn't remove it from history. Matthew rotates to `matthew@...`, the old alias keeps receiving spam to a now-unmonitored address.
 
 A design-time mitigation: env-driven alias (`siteConfig.links.email = process.env.NEXT_PUBLIC_CONTACT_EMAIL`) — the value is in Vercel env vars, not git history. Rotation = update the env var, redeploy. **But this breaks the public-source-tree commitment** (Req 2.7 / 2.8) and adds an env-var-required-to-build constraint to a string that's structurally a config value. Tradeoff favors current design: accept the residual (rotation is rare, and `git filter-repo` is the nuclear option if it ever matters).
 
@@ -453,7 +453,7 @@ Tied to §3.1's broader concern: the 503 + `Retry-After: 60` contract is unreach
 
 ### 10.5 Origin-check production path not covered
 
-§2.2 above. The smoke test only exercises localhost-origin. A unit test asserting `Request` with foreign Origin → 403 is missing. The design's unit-test list (line 432) lists "mismatched Origin → 403" — actually this IS covered. Good. Re-reading line 432: "oversize body → 413; mismatched Origin → 403; ...". So the route-handler unit test does cover it. The gap is that the production-origin *value* isn't fixed in the test (it's whatever `process.env.NEXT_PUBLIC_SITE_URL` is at test time). If the env isn't explicitly set in the test, the assertion is meaningless. **Pin: the unit test sets `process.env.NEXT_PUBLIC_SITE_URL = 'https://matthew-field.ca'` and constructs requests with `Origin: 'https://attacker.example'` to exercise the production-origin code path.**
+§2.2 above. The smoke test only exercises localhost-origin. A unit test asserting `Request` with foreign Origin → 403 is missing. The design's unit-test list (line 432) lists "mismatched Origin → 403" — actually this IS covered. Good. Re-reading line 432: "oversize body → 413; mismatched Origin → 403; ...". So the route-handler unit test does cover it. The gap is that the production-origin *value* isn't fixed in the test (it's whatever `process.env.NEXT_PUBLIC_SITE_URL` is at test time). If the env isn't explicitly set in the test, the assertion is meaningless. **Pin: the unit test sets `process.env.NEXT_PUBLIC_SITE_URL = 'https://matthewfield.ca'` and constructs requests with `Origin: 'https://attacker.example'` to exercise the production-origin code path.**
 
 ---
 
@@ -461,7 +461,7 @@ Tied to §3.1's broader concern: the 503 + `Retry-After: 60` contract is unreach
 
 ### Top 6 risks/gaps (likelihood × blast radius)
 
-1. **Preview-deploy origin-check 403 silent failure** (§2.1, §2.2). Vercel preview deploys at `*.vercel.app` send `Origin: https://abc.vercel.app`; route handler reads `process.env.NEXT_PUBLIC_SITE_URL = 'https://matthew-field.ca'` (production value, leaked or never re-scoped because Req 3.11's env table doesn't include `NEXT_PUBLIC_SITE_URL`); mismatch → 403; every preview submission silently fails. Smoke test passes because the wrapper sets `NEXT_PUBLIC_SITE_URL=http://localhost:3013`, exercising the localhost-origin code path only. Production-origin code has zero CI coverage. *Likelihood: certain on first preview deploy.* *Blast radius: the entire pre-merge QA process is broken — Matthew sees 403s, debugs the form, doesn't notice it's only the env scoping.*
+1. **Preview-deploy origin-check 403 silent failure** (§2.1, §2.2). Vercel preview deploys at `*.vercel.app` send `Origin: https://abc.vercel.app`; route handler reads `process.env.NEXT_PUBLIC_SITE_URL = 'https://matthewfield.ca'` (production value, leaked or never re-scoped because Req 3.11's env table doesn't include `NEXT_PUBLIC_SITE_URL`); mismatch → 403; every preview submission silently fails. Smoke test passes because the wrapper sets `NEXT_PUBLIC_SITE_URL=http://localhost:3013`, exercising the localhost-origin code path only. Production-origin code has zero CI coverage. *Likelihood: certain on first preview deploy.* *Blast radius: the entire pre-merge QA process is broken — Matthew sees 403s, debugs the form, doesn't notice it's only the env scoping.*
 
 2. **Resend SDK timeout `Promise.race` does not abort the underlying socket; 503 + `Retry-After: 60` contract is unreachable** (§3.1, §10.4). The Resend SDK does not expose a per-call timeout that aborts the in-flight HTTPS request. `Promise.race` against `setTimeout(9000)` only abandons the outer promise; the socket stays alive until Vercel's 10s function cap fires SIGTERM and emits 504. Req 3.8's structured "503 + `Retry-After: 60`" response is never produced in production; the user sees a Vercel-formatted 504. The unit test exercises the timeout path with a mocked SDK that DOES produce a clean rejection at 9s, so the test passes — production fails. *Likelihood: any time Resend is slow or the request times out.* *Blast radius: degraded UX during any Resend partial outage; worse, the design's confidence in the timeout contract is misplaced and propagates to the spec.*
 

@@ -82,9 +82,9 @@ Req 3.13's smoke test asserts payload shape including `subject`, but **no requir
 
 ### 3. Vendor-side semantics: Resend / DMARC / DKIM alignment
 
-Req 3.6 enumerates SPF, DKIM, and DMARC requirements. It says "DMARC: a TXT record at `_dmarc.matthew-field.ca` with at minimum `v=DMARC1; p=none; ...`". It does NOT specify alignment mode.
+Req 3.6 enumerates SPF, DKIM, and DMARC requirements. It says "DMARC: a TXT record at `_dmarc.matthewfield.ca` with at minimum `v=DMARC1; p=none; ...`". It does NOT specify alignment mode.
 
-- Attack the alignment gap. DMARC requires DKIM domain alignment (or SPF, but with `p=none` we're permissive anyway). Resend signs DKIM with a CNAME pointing into your domain (`resend._domainkey.matthew-field.ca` → Resend-managed key). Default DMARC alignment is "relaxed," which makes this work. If anyone adds `adkim=s` (strict) to the DMARC record, mail bounces.
+- Attack the alignment gap. DMARC requires DKIM domain alignment (or SPF, but with `p=none` we're permissive anyway). Resend signs DKIM with a CNAME pointing into your domain (`resend._domainkey.matthewfield.ca` → Resend-managed key). Default DMARC alignment is "relaxed," which makes this work. If anyone adds `adkim=s` (strict) to the DMARC record, mail bounces.
 - Probe the launch-prerequisite enforcement. The spec says "DNS verification is a launch prerequisite" but no CI gate verifies SPF/DKIM/DMARC actually resolve from public DNS. Manual checkbox = potential for shipping a broken funnel.
 - Examine the post-launch DMARC tightening. Req 3.6 says "Matthew SHALL set a 14-day post-launch calendar reminder." What enforces this? What's the failure mode if Matthew misses it? Spec acknowledges as residual risk; surface whether the residual is correctly priced.
 
@@ -115,7 +115,7 @@ Req 3.5 step (d) reads `parsed.url_secondary` "off the parsed object." Req 3.5 s
 
 ### 7. Preview-deploy semantics: canonical URL, env vars, mock Resend
 
-Req 6.3 asserts `<link rel="canonical">` starts with `https://matthew-field.ca/`. `metadataBase` is hardcoded to that production URL.
+Req 6.3 asserts `<link rel="canonical">` starts with `https://matthewfield.ca/`. `metadataBase` is hardcoded to that production URL.
 
 - Surface the implication: on every preview deploy, the canonical points to production. If a stakeholder shares a preview URL for review, search engines (or anyone clicking) get redirected via SEO signals to production — which doesn't have the preview's content. Confusing for QA review even if technically correct for SEO.
 - Probe the Req 3.6 sandbox/preview path: "preview and local-development `from` address MAY use Resend's sandbox domain." But preview deploys DO need a `from` address — is it expected to be wired via Vercel preview env vars? The spec says "from is env-driven" but doesn't say how preview vs. production env splits work. If a preview deploy accidentally uses the production `from`, real mail goes from previews — possibly to Matthew's real inbox.
@@ -141,7 +141,7 @@ Req 1.5 says "rendered by the `/profile` page component in a fixed position adja
 
 NFR Performance says "No layout shift from obfuscation reveal or form state changes — the contact section reserves its vertical space up front."
 
-- Probe the horizontal axis. `react-obfuscate` renders an obfuscated string (e.g., `ac.dleif-wehttam@olleh`) until clicked, then replaces with `mailto:hello@matthew-field.ca`. The two strings are different widths.
+- Probe the horizontal axis. `react-obfuscate` renders an obfuscated string (e.g., `ac.dleif-wehttam@olleh`) until clicked, then replaces with `mailto:hello@matthewfield.ca`. The two strings are different widths.
 - On narrow viewports (mobile), the width swap shifts surrounding text. CLS metrics measure shift over time — a click-triggered reveal is "user input within 500ms" which Web Vitals excludes from CLS, BUT the user-perceived experience is still jarring.
 - Demand the spec address horizontal reservation (e.g., `min-width` matching the longer revealed string) OR explicitly accept the horizontal shift as out-of-scope.
 

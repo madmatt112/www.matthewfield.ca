@@ -1,4 +1,4 @@
-# Visual Design Tools & Resources for matthew-field.ca
+# Visual Design Tools & Resources for matthewfield.ca
 
 Research conducted 2026-03-23 to help bootstrap the visual design process for the website rebuild. Matthew is an infrastructure engineer, not a designer — these tools and resources are selected to help a developer create a professional, consistent visual design without deep design experience.
 

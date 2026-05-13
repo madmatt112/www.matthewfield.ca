@@ -8,7 +8,7 @@
       "timestamp": "2026-03-23T19:42:41.473Z",
       "trigger": "initial",
       "approvalId": "approval_1774294961461_4yxhefiue",
-      "approvalTitle": "Product steering document - matthew-field.ca"
+      "approvalTitle": "Product steering document - matthewfield.ca"
     },
     {
       "version": 2,
@@ -16,7 +16,7 @@
       "timestamp": "2026-03-23T20:31:40.352Z",
       "trigger": "revision_requested",
       "approvalId": "approval_1774294961461_4yxhefiue",
-      "approvalTitle": "Product steering document - matthew-field.ca"
+      "approvalTitle": "Product steering document - matthewfield.ca"
     },
     {
       "version": 3,
@@ -24,7 +24,7 @@
       "timestamp": "2026-03-23T20:37:45.771Z",
       "trigger": "revision_requested",
       "approvalId": "approval_1774297951176_wqyxju0gg",
-      "approvalTitle": "Product steering document v2 - matthew-field.ca"
+      "approvalTitle": "Product steering document v2 - matthewfield.ca"
     },
     {
       "version": 4,
@@ -32,7 +32,7 @@
       "timestamp": "2026-03-23T20:50:31.737Z",
       "trigger": "approved",
       "approvalId": "approval_1774299029655_y4bi0u4fr",
-      "approvalTitle": "Product steering document v3 - matthew-field.ca"
+      "approvalTitle": "Product steering document v3 - matthewfield.ca"
     }
   ]
 }

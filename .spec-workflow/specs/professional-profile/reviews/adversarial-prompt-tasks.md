@@ -37,7 +37,7 @@ Cross-check requirements.md and design.md against the 24-task list. Surface ever
 - **Req NFR-Usability mobile name/email side-by-side at `sm:` breakpoint, stacking below** — is this in any task or just absorbed into "task 17 implement the form"?
 - **Req NFR-Performance no vertical layout shift** — explicitly called out for the contact section reserving vertical space. Any task addressing this?
 - **Req 1.5 headshot responsive layout** — design defers stacking/side-by-side to design phase (already done), but does any task verify the responsive layout actually works at narrow + wide breakpoints?
-- **Req 6.3 Playwright asserts `<link rel="canonical">` is an absolute URL starting with `https://matthew-field.ca/`**. Tasks 22/23 are the new E2E files. Does either include this assertion? If not, the requirement has no enforcement.
+- **Req 6.3 Playwright asserts `<link rel="canonical">` is an absolute URL starting with `https://matthewfield.ca/`**. Tasks 22/23 are the new E2E files. Does either include this assertion? If not, the requirement has no enforcement.
 - **Req 4.10 axe `region` rule + `role="status"` mounted inside `<main>`** — task 17 mentions ARIA roles but does any task explicitly verify the status region is inside the `<main>` landmark (Req 4.1)?
 - **Req NFR-Observability `contact_submit_success` CustomEvent** — task 17 fires it, but is there any task that verifies it fires in the E2E suite?
 - **Req 3.10 logging discipline** — "no `console.*` with input fields, no error messages containing user input". The unit tests in tasks 10/12 should assert this. Do they?

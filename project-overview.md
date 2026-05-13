@@ -1,6 +1,6 @@
 My personal website. I'm
   an infrastructure/platform/DevOps engineer. I have a website currently hosted at
-  https://www.matthew-field.ca and I want to build a replacement. I don't want to bring any of the
+  https://www.matthewfield.ca and I want to build a replacement. I don't want to bring any of the
   contents or structure from the existing website over as part of this rebuild. If I decide I want
   some existing content brought over, I'll do it myself after the replacement website is built and
   ready to host it.

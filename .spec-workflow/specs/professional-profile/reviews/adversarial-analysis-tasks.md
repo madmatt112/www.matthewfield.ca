@@ -118,7 +118,7 @@ Req 1.5 explicitly defers stacking/side-by-side to the design phase (now decided
 
 ### NO TASK asserts `<link rel="canonical">` is absolute (Req 6.3)
 
-Req 6.3: "The Playwright smoke test SHALL assert that the rendered `<link rel="canonical">` on `/profile` is an absolute URL starting with `https://matthew-field.ca/`." Neither task 22 (contact-form.test.ts) nor task 23 (contact-csp-axe.test.ts) includes this assertion. The task bodies focus on form behavior, CSP, and a11y; canonical-URL assertion is orphaned. **Minimum addition**: a single `await expect(page.locator('link[rel="canonical"]').getAttribute('href')).toMatch(/^https:\/\/matthew-field\.ca\//)` in task 22 or a new dedicated SEO test file.
+Req 6.3: "The Playwright smoke test SHALL assert that the rendered `<link rel="canonical">` on `/profile` is an absolute URL starting with `https://matthewfield.ca/`." Neither task 22 (contact-form.test.ts) nor task 23 (contact-csp-axe.test.ts) includes this assertion. The task bodies focus on form behavior, CSP, and a11y; canonical-URL assertion is orphaned. **Minimum addition**: a single `await expect(page.locator('link[rel="canonical"]').getAttribute('href')).toMatch(/^https:\/\/matthew-field\.ca\//)` in task 22 or a new dedicated SEO test file.
 
 ### NO TASK verifies `role="status"` mounts inside `<main>` (Req 4.10 + Req 4.1)
 
@@ -288,7 +288,7 @@ Per §2 above: Req 3.6 mandates a 14-day post-launch calendar reminder. No task.
 - **New Task B**: Add `@lhci/cli` GitHub Actions workflow targeting the Vercel preview URL. Satisfies Req-NFR-Performance.
 - **New Task C**: Install and configure `rehype-slug` in Velite's MDX options. Satisfies Req 1.11.
 - **New Task D**: Production-env runtime guard in `mail.ts` rejecting `RESEND_FROM === 'onboarding@resend.dev'` in `VERCEL_ENV === 'production'`. Satisfies Req 3.6 regression-protection.
-- **New Task E**: E2E assertion that `<link rel="canonical">` on `/profile` is absolute and starts with `https://matthew-field.ca/`. Satisfies Req 6.3.
+- **New Task E**: E2E assertion that `<link rel="canonical">` on `/profile` is absolute and starts with `https://matthewfield.ca/`. Satisfies Req 6.3.
 - **New Task F**: E2E assertion that `contact_submit_success` CustomEvent fires on success path. Satisfies Req-NFR-Observability.
 - **New Task G**: E2E or build-output assertion that `/contact` appears in the generated `sitemap.xml`. Satisfies Req 5.6.
 - **New Task H**: E2E assertion that the production CSP response header contains `form-action 'self'`. Satisfies Req-NFR-Security CSP clause (currently undefended).

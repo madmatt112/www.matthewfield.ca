@@ -90,7 +90,7 @@ Playground items are self-contained interactive experiments living under `/playg
 - **Hosting**: Vercel (Hobby tier). Zero-config Next.js deployment — SSG, SSR, API routes, and edge functions all work out of the box. Free tier provides 100GB bandwidth and 1M edge requests/month, well beyond personal site needs.
 - **Preview Deploys**: Automatic per-PR preview deployments via Vercel's GitHub integration.
 - **Production Deploy**: Automatic on push/merge to main.
-- **Domain**: Custom domain (matthew-field.ca) pointed to Vercel via DNS. Existing registrar unchanged.
+- **Domain**: Custom domain (matthewfield.ca) pointed to Vercel via DNS. Existing registrar unchanged.
 
 ## Technical Requirements & Constraints
 

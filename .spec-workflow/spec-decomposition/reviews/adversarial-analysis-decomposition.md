@@ -148,7 +148,7 @@ For a single developer doing specs sequentially, this is fine — Matthew will k
 Each page needs: `<title>`, `<meta name="description">`, Open Graph tags (og:title, og:description, og:image, og:url). Next.js App Router handles this via `export const metadata` or `generateMetadata()` in page files. But there's no convention for:
 - Where the default OG image lives.
 - Whether each content type generates its own OG image or uses a site-wide default.
-- What the title template is (`"Post Title | matthew-field.ca"` vs `"Post Title — Matthew Field"`).
+- What the title template is (`"Post Title | matthewfield.ca"` vs `"Post Title — Matthew Field"`).
 - Whether pages export static metadata or dynamic `generateMetadata`.
 
 For a personal site, this is low risk — Matthew will set it up in spec 1 and follow the pattern. But if spec 1 doesn't establish the metadata pattern (and it's not mentioned in spec 1's scope), each spec will reinvent it. **Spec 1 should include a metadata convention** — even if it's just "use `generateMetadata()` with this title template and this default OG image."
@@ -247,7 +247,7 @@ Placing it as spec 8 (last in recommended order) means:
 ### 4. No metadata/SEO convention established early
 
 **Specs affected**: 2, 3, 5, 6, 7, 8.
-**Failure scenario**: Spec 2 uses `export const metadata = { title: "Profile | matthew-field.ca" }`. Spec 3 uses `generateMetadata()` with `title: { template: "%s — Matthew Field" }`. Spec 5 uses yet another pattern. By the time all specs land, the site has inconsistent titles, missing OG images on some pages, and no unified metadata approach. Fixing it requires touching every page file.
+**Failure scenario**: Spec 2 uses `export const metadata = { title: "Profile | matthewfield.ca" }`. Spec 3 uses `generateMetadata()` with `title: { template: "%s — Matthew Field" }`. Spec 5 uses yet another pattern. By the time all specs land, the site has inconsistent titles, missing OG images on some pages, and no unified metadata approach. Fixing it requires touching every page file.
 **Severity**: Medium. Fixable but tedious. Could be prevented by 10 minutes of convention-setting in spec 1.
 
 ### 5. Playground architectural risks discovered at spec 8

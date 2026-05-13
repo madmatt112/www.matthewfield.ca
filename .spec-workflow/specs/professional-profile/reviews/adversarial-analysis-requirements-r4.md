@@ -61,7 +61,7 @@ Resend's HTTP API likely sanitizes; their server-side mail construction is unlik
 
 **Finding 3.1 — DMARC alignment mode unspecified; relaxed is the default and works, but nothing in the spec defends against `adkim=s` being added later. (Compounding)**
 
-Req 3.6 enumerates SPF, DKIM, DMARC posture but doesn't name the alignment mode. DMARC default is **relaxed** (subdomain CNAME-based DKIM aligns to the parent domain), which is what makes Resend's `resend._domainkey.<subdomain>` setup work. If anyone — Matthew six months from now, or a security-hardening PR — adds `adkim=s` (strict) to the DMARC TXT record, mail starts bouncing because Resend's DKIM is signed for `resend._domainkey.matthew-field.ca` and strict alignment requires the d= tag to match the From: domain exactly.
+Req 3.6 enumerates SPF, DKIM, DMARC posture but doesn't name the alignment mode. DMARC default is **relaxed** (subdomain CNAME-based DKIM aligns to the parent domain), which is what makes Resend's `resend._domainkey.<subdomain>` setup work. If anyone — Matthew six months from now, or a security-hardening PR — adds `adkim=s` (strict) to the DMARC TXT record, mail starts bouncing because Resend's DKIM is signed for `resend._domainkey.matthewfield.ca` and strict alignment requires the d= tag to match the From: domain exactly.
 
 Remedy: spec should explicitly note the relaxed-alignment requirement and add a "do not change" annotation to the DMARC clause. One sentence; prevents a self-inflicted future outage.
 
@@ -69,13 +69,13 @@ Remedy: spec should explicitly note the relaxed-alignment requirement and add a 
 
 Memory acknowledges this as unresolved. The spec says "DNS verification is a launch prerequisite" but nothing enforces it. Concrete failure: Matthew launches, traffic arrives, all delivered mail goes to spam due to misconfigured DMARC, recruiters never hear back, Matthew sees no submissions in his inbox and assumes the site is just not getting traffic. This is the **#1 inbound-funnel-killer** and the spec depends on Matthew remembering to do a manual check.
 
-Escalation: this should be a CI preflight. Concretely — a job that runs `dig +short TXT _dmarc.matthew-field.ca` and `dig +short CNAME resend._domainkey.matthew-field.ca` against a public resolver and fails the deploy if either record is absent or fails a regex check. This is ~20 lines of bash; the spec deferring it to a manual checklist is dramatically over-pricing the cost of automation against the cost of a silent funnel outage.
+Escalation: this should be a CI preflight. Concretely — a job that runs `dig +short TXT _dmarc.matthewfield.ca` and `dig +short CNAME resend._domainkey.matthewfield.ca` against a public resolver and fails the deploy if either record is absent or fails a regex check. This is ~20 lines of bash; the spec deferring it to a manual checklist is dramatically over-pricing the cost of automation against the cost of a silent funnel outage.
 
 **Finding 3.3 — DMARC tightening reminder has no failure-mode mitigation. (Compounding)**
 
-Req 3.6 makes the 14-day post-launch tightening Matthew's calendar duty and accepts "failure to tighten" as a residual risk. Concrete failure: Matthew misses the reminder, DMARC stays at `p=none` indefinitely, spoofed `From: matthew-field.ca` mail keeps reaching recipients (low-cost spoofing because there's no rejection signal), eventually some scammer abuses it to phish someone in Matthew's network → reputational damage and a spam-folder reputation cliff for the domain.
+Req 3.6 makes the 14-day post-launch tightening Matthew's calendar duty and accepts "failure to tighten" as a residual risk. Concrete failure: Matthew misses the reminder, DMARC stays at `p=none` indefinitely, spoofed `From: matthewfield.ca` mail keeps reaching recipients (low-cost spoofing because there's no rejection signal), eventually some scammer abuses it to phish someone in Matthew's network → reputational damage and a spam-folder reputation cliff for the domain.
 
-Spec accepts the residual; that's defensible. But the residual is mispriced — it's not just "DMARC stays permissive," it's "DMARC stays permissive *forever* unless Matthew manually intervenes." A dead-man's-switch option exists: a scheduled CI job (GitHub Actions monthly cron) that opens a GitHub issue on day 30 if `_dmarc.matthew-field.ca` still resolves to `p=none`. ~15 lines of YAML. Spec should at minimum acknowledge this option exists.
+Spec accepts the residual; that's defensible. But the residual is mispriced — it's not just "DMARC stays permissive," it's "DMARC stays permissive *forever* unless Matthew manually intervenes." A dead-man's-switch option exists: a scheduled CI job (GitHub Actions monthly cron) that opens a GitHub issue on day 30 if `_dmarc.matthewfield.ca` still resolves to `p=none`. ~15 lines of YAML. Spec should at minimum acknowledge this option exists.
 
 ---
 
@@ -199,9 +199,9 @@ Remedy: one breakpoint line. e.g., "stacked vertically below `sm:`, headshot to 
 
 **Finding 10.1 — `react-obfuscate` reveal swaps text width on click; horizontal CLS not addressed. (Compounding)**
 
-NFR Performance reserves vertical space. Horizontal reservation is not mentioned. `react-obfuscate` typical pre-click value is the reversed-string `ac.dleif-wehttam@olleh` (~22 chars); revealed value is `mailto:hello@matthew-field.ca` rendered as `hello@matthew-field.ca` (~22 chars). Counts roughly the same — so width swap is small in this specific case. Not a critical finding; partially mitigates itself.
+NFR Performance reserves vertical space. Horizontal reservation is not mentioned. `react-obfuscate` typical pre-click value is the reversed-string `ac.dleif-wehttam@olleh` (~22 chars); revealed value is `mailto:hello@matthewfield.ca` rendered as `hello@matthewfield.ca` (~22 chars). Counts roughly the same — so width swap is small in this specific case. Not a critical finding; partially mitigates itself.
 
-But: if Matthew renames the alias to a different length (e.g., `m@matthew-field.ca` post-launch), the reveal will swap to a wider/narrower string and shift surrounding inline content. On mobile narrow viewports this can shift the SocialLinks component a few pixels at click-time.
+But: if Matthew renames the alias to a different length (e.g., `m@matthewfield.ca` post-launch), the reveal will swap to a wider/narrower string and shift surrounding inline content. On mobile narrow viewports this can shift the SocialLinks component a few pixels at click-time.
 
 Web Vitals excludes user-input shifts within 500ms from CLS — Lighthouse won't flag it. But the user-perceived experience is jarring.
 

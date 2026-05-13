@@ -2,7 +2,7 @@
 
 ## Overview
 
-Site-foundation delivers the complete development infrastructure and site shell for matthew-field.ca. This is a greenfield implementation — there is no existing codebase to integrate with. The design covers: project scaffolding, CI/CD pipeline, Velite content pipeline, site layout with navigation, dark/light theme toggle, landing page with hero cards, placeholder pages, custom 404, global styles via shadcn/ui defaults, metadata/SEO conventions, CSS isolation spike for the playground route group, testing infrastructure, CSP headers, and font loading.
+Site-foundation delivers the complete development infrastructure and site shell for matthewfield.ca. This is a greenfield implementation — there is no existing codebase to integrate with. The design covers: project scaffolding, CI/CD pipeline, Velite content pipeline, site layout with navigation, dark/light theme toggle, landing page with hero cards, placeholder pages, custom 404, global styles via shadcn/ui defaults, metadata/SEO conventions, CSS isolation spike for the playground route group, testing infrastructure, CSP headers, and font loading.
 
 All downstream specs depend on the toolchain, conventions, and infrastructure established here.
 
@@ -491,7 +491,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: {
     default: "Matthew Field",
-    template: "%s | matthew-field.ca",
+    template: "%s | matthewfield.ca",
   },
   description: "Infrastructure/Platform/DevOps engineer...",
   openGraph: {
@@ -512,7 +512,7 @@ export function generateMetadata(): Metadata {
 }
 ```
 
-All downstream page components follow this pattern. The title template appends `| matthew-field.ca` automatically.
+All downstream page components follow this pattern. The title template appends `| matthewfield.ca` automatically.
 
 ### XML Sitemap
 

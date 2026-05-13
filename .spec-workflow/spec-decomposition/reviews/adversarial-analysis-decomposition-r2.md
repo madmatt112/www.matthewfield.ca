@@ -286,7 +286,7 @@ The correct justification: "Both are trivially small. Neither has enough complex
 ### 2. Content migration strategy is completely unaddressed
 
 **Affected specs**: 1, 3, 5, potentially all.
-**Failure scenario**: Spec 1 deploys the new site to matthew-field.ca. The old WordPress.com site had blog posts indexed by Google. Those URLs now 404. Search traffic to existing content drops to zero. Months later, Matthew decides he wants to preserve those posts — now requiring retroactive WordPress export, HTML-to-MDX conversion, frontmatter mapping, image migration, and redirect rules. Work that would have been a straightforward spec becomes a disruptive retrofit across an already-built site.
+**Failure scenario**: Spec 1 deploys the new site to matthewfield.ca. The old WordPress.com site had blog posts indexed by Google. Those URLs now 404. Search traffic to existing content drops to zero. Months later, Matthew decides he wants to preserve those posts — now requiring retroactive WordPress export, HTML-to-MDX conversion, frontmatter mapping, image migration, and redirect rules. Work that would have been a straightforward spec becomes a disruptive retrofit across an already-built site.
 **Severity**: High if the WordPress site has meaningful content. Zero if starting fresh. The decomposition addresses neither case, which is the actual problem — not the answer, but the absence of the question.
 **Classification**: Novel.
 
