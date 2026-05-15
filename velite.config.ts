@@ -1,3 +1,5 @@
+import { execFileSync } from "node:child_process";
+import rehypeSlug from "rehype-slug";
 import { defineConfig, defineCollection, s } from "velite";
 
 // Typed content collections for the site. Downstream specs extend this file
@@ -21,6 +23,36 @@ const pages = defineCollection({
     .transform((data) => ({ ...data, slug: data.slug.replace(/^pages\//, "") })),
 });
 
+const profile = defineCollection({
+  name: "Profile",
+  pattern: "profile.mdx",
+  single: true,
+  schema: s
+    .object({
+      title: s.string(),
+      description: s.string(),
+      headline: s.string(),
+      location: s.string(),
+      availability: s.string(),
+      headshot: s.image().optional(),
+      body: s.mdx(),
+    })
+    .transform((data, { meta }) => {
+      const filePath = meta.path;
+      const out = execFileSync("git", ["log", "-1", "--follow", "--format=%cI", "--", filePath], {
+        encoding: "utf8",
+      }).trim();
+      if (!out) {
+        throw new Error(
+          `[velite/profile] git log returned empty for ${filePath}. ` +
+            `This typically indicates a shallow clone — ensure 'git fetch --deepen=1000' ` +
+            `runs before velite build (see vercel.json buildCommand).`,
+        );
+      }
+      return { ...data, updatedAt: out };
+    }),
+});
+
 // YAML collection pattern — uncomment and adapt when a downstream spec needs
 // structured data instead of MDX prose.
 //
@@ -42,5 +74,8 @@ export default defineConfig({
     base: "/static/",
     clean: true,
   },
-  collections: { pages },
+  collections: { pages, profile },
+  mdx: {
+    rehypePlugins: [rehypeSlug],
+  },
 });

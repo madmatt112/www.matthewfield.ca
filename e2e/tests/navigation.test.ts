@@ -7,6 +7,11 @@ import { siteConfig } from "../../src/config/site";
 // phone-sized viewport representative of the target audience.
 const MOBILE_VIEWPORT = { width: 375, height: 667 };
 
+// /profile is no longer a placeholder — replaced by the professional-profile
+// spec (its h1 is the Velite-sourced headline, not the nav label). All other
+// nav targets still render the placeholder shell with `name === item.label`.
+const navItemsWithLabelH1 = siteConfig.navItems.filter((item) => item.href !== "/profile");
+
 test.describe("desktop navigation", () => {
   for (const item of siteConfig.navItems) {
     test(`clicking ${item.label} navigates to ${item.href}`, async ({ page }) => {
@@ -16,13 +21,17 @@ test.describe("desktop navigation", () => {
       await nav.getByRole("link", { name: item.label }).click();
 
       await expect(page).toHaveURL(item.href);
-      await expect(page.getByRole("heading", { level: 1, name: item.label })).toBeVisible();
+      if (item.href === "/profile") {
+        await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      } else {
+        await expect(page.getByRole("heading", { level: 1, name: item.label })).toBeVisible();
+      }
     });
   }
 });
 
 test.describe("placeholder pages", () => {
-  const placeholderRoutes = siteConfig.navItems.filter((item) => item.href !== "/playground");
+  const placeholderRoutes = navItemsWithLabelH1.filter((item) => item.href !== "/playground");
 
   for (const item of placeholderRoutes) {
     test(`${item.href} renders placeholder with "under construction" text`, async ({ page }) => {

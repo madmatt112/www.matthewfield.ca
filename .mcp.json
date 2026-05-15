@@ -2,11 +2,8 @@
   "mcpServers": {
     "spec-workflow": {
       "type": "stdio",
-      "command": "node",
-      "args": [
-        "/home/mcf/reference/spec-workflow-mcp/dist/index.js",
-        "/home/mcf/repo/matthew-field.ca"
-      ],
+      "command": "npx",
+      "args": ["-y", "@madmatt112org/spec-workflow-mcp@latest", "/home/mcf/repo/matthew-field.ca"],
       "env": {}
     }
   }

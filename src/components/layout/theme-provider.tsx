@@ -3,6 +3,12 @@
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import type { ComponentProps } from "react";
 
+export const THEME_STORAGE_KEY = "theme";
+
 export function ThemeProvider({ children, ...props }: ComponentProps<typeof NextThemesProvider>) {
-  return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
+  return (
+    <NextThemesProvider storageKey={THEME_STORAGE_KEY} {...props}>
+      {children}
+    </NextThemesProvider>
+  );
 }

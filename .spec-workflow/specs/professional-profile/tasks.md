@@ -2,7 +2,7 @@
 
 ## Phase 0: Operational prerequisites (run before any code commit referencing the alias)
 
-- [ ] 1. [MANUAL] Provision contact alias + mail-provider filter
+- [x] 1. [MANUAL] Provision contact alias + mail-provider filter
   - Files: none (mail provider dashboard / DNS host)
   - Provision the contact alias (e.g. `hello@matthewfield.ca`) at the upstream mail provider and configure the forwarder rule + spam/sender filter for the alias.
   - This MUST complete before task 3 lands on `main`. GitHub Code Search indexes commits within minutes; once `siteConfig.links.email` is committed, the address is searchable globally before the production deploy completes.
@@ -10,7 +10,7 @@
   - _Requirements: Design §Implementation Sequencing & Risk Notes — "Mail-provider filter prerequisite"_
   - _Prompt: Role: Operator with access to the upstream mail provider for matthewfield.ca | Task: Create the contact alias the spec will reference and configure the inbound filter so spam/forged-sender messages are quarantined before reaching Matthew's primary inbox. Verify by sending a test message to the alias from a personal account and confirming it lands in the expected destination | Restrictions: Do not commit any code referencing the alias value until this task is verified complete; do not weaken the existing primary-inbox filtering | Success: Test email to the alias is delivered correctly; provider filter visibly active in dashboard; ready to commit the alias value to siteConfig in task 3_
 
-- [ ] 2. [MANUAL] DNS records for Resend (SPF, DKIM, DMARC) + Resend domain verification
+- [x] 2. [MANUAL] DNS records for Resend (SPF, DKIM, DMARC) + Resend domain verification
   - Files: none (DNS host + Resend dashboard)
   - Add SPF/DKIM/DMARC records per Resend's domain-verification flow; verify the domain in the Resend dashboard.
   - Preview deploys may continue to use Resend's sandbox `from` (`onboarding@resend.dev`) until this is complete; production cutover is blocked on verification.
@@ -20,7 +20,7 @@
 
 ## Phase 1: Site config, env, CSP, and dependency scaffolding
 
-- [ ] 3. Extend `siteConfig` with `links` field
+- [x] 3. Extend `siteConfig` with `links` field
   - File: `src/config/site.ts`
   - Add a `links: { linkedin: string; github: string; email: string }` field to the `SiteConfig` type and the `siteConfig` value. Fill in the actual LinkedIn URL, GitHub URL, and the alias provisioned in task 1.
   - Existing fields (`name`, `description`, `url`, `ogImage`, `navItems`, `heroCards`) MUST be untouched.
@@ -29,7 +29,7 @@
   - _Requirements: Req 2.7, Req 5.3; Design §Module: src/config/site.ts (extended)_
   - _Prompt: Role: TypeScript developer extending a typed config module | Task: Add the links field per the design's site-config block — type-first on SiteConfig, then populate the value with real LinkedIn URL, GitHub URL, and the provisioned alias | Restrictions: Do not touch other fields; do not introduce a barrel/index re-export; do not place the alias value in the codebase before task 1 is complete | Success: tsc --noEmit passes; `siteConfig.links.linkedin`, `siteConfig.links.github`, and `siteConfig.links.email` resolve to the expected strings; existing imports of siteConfig still compile_
 
-- [-] 4. Add `form-action 'self'` to the CSP directives in `next.config.ts`
+- [x] 4. Add `form-action 'self'` to the CSP directives in `next.config.ts`
   - File: `next.config.ts`
   - Append `"form-action 'self'"` to the `cspDirectives` array. Path-scoping rule unchanged. `connect-src 'self'` is already present and covers the JS-submit path.
   - Purpose: Cross-origin defense-in-depth for the form (XSS-injection scenario), per design §Module: next.config.ts.
@@ -37,7 +37,7 @@
   - _Requirements: Req-NFR-Security CSP clause; Design §Module: next.config.ts (extended)_
   - _Prompt: Role: Developer modifying CSP for a Next.js app | Task: Append the single string `"form-action 'self'"` to the existing cspDirectives array. Do not reorder, do not loosen any other directive | Restrictions: No path-scoping changes; do not add to /playground exclusion. Do not adjust connect-src — already covers the JS fetch path | Success: existing CSP smoke test (e2e/tests/csp.test.ts) still passes; new directive appears in response headers for /profile and /contact_
 
-- [ ] 5. Add `vercel.json` with shallow-clone remedy
+- [x] 5. Add `vercel.json` with shallow-clone remedy
   - File: `vercel.json` (new, project root)
   - Content: `{ "buildCommand": "git fetch --deepen=1000 || git fetch --unshallow || true && pnpm build" }`
   - Purpose: Ensure the Velite `profile` transform's `git log -1 --format=%cI` returns non-empty on Vercel (Req 1.4). Three-step fallback per design.
@@ -46,7 +46,7 @@
   - _Requirements: Req 1.4 transform-failure clause; Design §Module: vercel.json_
   - _Prompt: Role: DevOps engineer configuring Vercel build behavior | Task: Create vercel.json at the project root with the exact buildCommand string from the design. The three-step fallback (--deepen=1000 / --unshallow / || true) is intentional — copy verbatim | Restrictions: Single-key file; do not add other Vercel config; do not reformat the buildCommand string | Success: vercel.json exists at the project root with the documented buildCommand string verbatim (character-for-character match to the design); `jq -r .buildCommand vercel.json` returns the string with no escaping artifacts; no other keys present_
 
-- [ ] 6. Document Resend env vars in `.env.example`
+- [x] 6. Document Resend env vars in `.env.example`
   - File: `.env.example` (existing or new — verify in repo)
   - Add commented entries: `RESEND_API_KEY=`, `RESEND_FROM=onboarding@resend.dev`, `RESEND_TO=`, `RESEND_BASE_URL=`. Values are not committed; comments document intent per Req 3.11.
   - Purpose: Make the env-var contract discoverable without committing secrets.
@@ -54,15 +54,15 @@
   - _Requirements: Req 3.11; Design §Module: .env.example (extended)_
   - _Prompt: Role: Developer documenting environment variables | Task: Append the four Resend env-var lines per the design block. Use `onboarding@resend.dev` as the documented default for RESEND_FROM (Resend sandbox); leave the others blank | Restrictions: No real API keys; no real recipient address; do not place actual values in this file | Success: .env.example contains all four entries; no secrets committed; new contributors can copy → .env.local and fill in_
 
-- [ ] 7. Update `structure.md` for `vercel.json` (and reserve `scripts/`)
+- [x] 7. Update `structure.md` for `vercel.json` (and reserve `scripts/`)
   - File: `.spec-workflow/steering/structure.md`
   - Add a one-paragraph note documenting the new top-level `vercel.json` as the deployment-config single-file. Reference `scripts/` as the future home for CI/dev wrappers and explicitly note that `scripts/run-e2e.mjs` (the only inhabitant) is created in task 21 — the steering doc anticipates the directory but the reader is told to expect it later.
   - Purpose: Keep structure.md as the SSOT for project organization without lying about a directory that does not yet exist.
   - _Leverage: existing directory-tree section in structure.md_
   - _Requirements: Design §Implementation Sequencing — "structure.md updates"_
-  - _Prompt: Role: Maintainer updating steering docs | Task: Add vercel.json to the directory-tree visualization in structure.md and add a short prose note describing it. Add a forward-reference for scripts/ noting it lands in task 21. Match the existing voice and indentation of the tree | Restrictions: Do not restructure other entries; do not add a scripts/ directory entry to the tree until task 20 lands (or use an explicit "(future)" annotation if added now) | Success: structure.md tree reflects vercel.json; the scripts/ forward-reference is searchable via grep and clearly marked as future_
+  - _Prompt: Role: Maintainer updating steering docs | Task: Add vercel.json to the directory-tree visualization in structure.md and add a short prose note describing it. Add a forward-reference for scripts/ noting it lands in task 21. Match the existing voice and indentation of the tree | Restrictions: Do not restructure other entries; do not add a scripts/ directory entry to the tree until task 21 lands (or use an explicit "(future)" annotation if added now) | Success: structure.md tree reflects vercel.json; the scripts/ forward-reference is searchable via grep and clearly marked as future_
 
-- [ ] 7.1. Install runtime dependencies (zod, react-obfuscate)
+- [x] 7.1. Install runtime dependencies (zod, react-obfuscate)
   - File: `package.json` (modified); lockfile updated.
   - Run `pnpm add zod react-obfuscate` (verify `lucide-react` is already in dependencies from site-foundation; add only if missing). This is the canonical install step for the runtime deps that the API route, mail helper, and contact components consume.
   - Purpose: Consolidate runtime-dep installation into one task so tasks 11/14 and 17 import what already exists rather than each conditionally installing.
@@ -70,7 +70,7 @@
   - _Requirements: Design §Module: src/app/api/contact/route.ts (zod usage); Design §Module: src/components/shared/obfuscated-email.tsx (react-obfuscate usage)_
   - _Prompt: Role: Developer adding runtime deps via pnpm | Task: Add zod and react-obfuscate as runtime dependencies. If lucide-react is missing, add it too | Restrictions: Do not add devDeps here (axe-core/playwright goes in task 7.2); do not add the resend SDK (the mail helper uses bare fetch per design); pin versions only if the existing project pins others | Success: `pnpm install` runs cleanly; `import { z } from 'zod'` and `import Obfuscate from 'react-obfuscate'` both resolve in tsc_
 
-- [ ] 7.2. Install `@axe-core/playwright` as devDependency
+- [x] 7.2. Install `@axe-core/playwright` as devDependency
   - File: `package.json` (modified); lockfile updated.
   - Run `pnpm add -D @axe-core/playwright`. Required by task 23.1's `new AxeBuilder({ page })` usage.
   - Purpose: Without this install, task 23.1's test file does not compile. Surfacing it as its own task makes the dependency explicit.
@@ -78,7 +78,7 @@
   - _Requirements: Req 4.10; Design §Test file: contact-csp-axe.test.ts (now split into 23 / 23.1 / 23.2)_
   - _Prompt: Role: Developer adding a test-only dep via pnpm | Task: Add @axe-core/playwright as a devDependency | Restrictions: devDep only — never moves to runtime deps; do not switch to axe-playwright (different package, different API) | Success: `pnpm install` runs cleanly; `import { AxeBuilder } from '@axe-core/playwright'` resolves in tsc within e2e/_
 
-- [ ] 7.3. Add `@lhci/cli` CI workflow targeting Vercel preview URL
+- [x] 7.3. Add `@lhci/cli` CI workflow targeting Vercel preview URL
   - Files: `.github/workflows/lhci.yml` (new); `lighthouserc.json` or `.lighthouserc.json` (new at project root); `package.json` (add `@lhci/cli` as a devDependency).
   - Workflow trigger: `pull_request` events on the default branch. Job runs after Vercel reports its preview URL (either via `pull_request_target` + the Vercel API, or by polling the GitHub `deployment_status` event — pick whichever the Vercel-Lighthouse integration recommends in current docs).
   - LHCI config: assert four Lighthouse categories (performance, accessibility, best-practices, SEO) on `/profile` and `/contact`. Set `assertions` to `warn` (NOT `error`) for each, so the job is non-blocking. Configure `upload.target = 'temporary-public-storage'` and `githubStatusContextSuffix` so scores post as a PR check + comment.
@@ -89,7 +89,7 @@
 
 ## Phase 2: Velite content pipeline (same-commit constraint)
 
-- [ ] 8. Add `profile` Velite collection + initial `content/profile.mdx` (SAME COMMIT)
+- [x] 8. Add `profile` Velite collection + initial `content/profile.mdx` (SAME COMMIT)
   - Files: `velite.config.ts` (modified), `content/profile.mdx` (new)
   - In `velite.config.ts`, add a `profile = defineCollection({ name: 'Profile', pattern: 'profile.mdx', single: true, schema: ... })` block per design §Module: velite.config.ts. Schema fields: `title`, `description`, `headline`, `location`, `availability`, `headshot` (optional `s.image()`), `body` (`s.mdx()`). Transform: invokes `execFileSync('git', ['log', '-1', '--follow', '--format=%cI', '--', meta.path], ...)`, throws the named error from the design when the output is empty, returns `{ ...data, updatedAt: out }`. Register `profile` in `defineConfig.collections`.
   - Create `content/profile.mdx` with all required frontmatter (title, description, headline, location, availability) and prose body. `headshot` may be omitted on first commit if no headshot is yet selected.
@@ -101,7 +101,7 @@
 
 ## Phase 3: Server modules (mail helper + API route)
 
-- [ ] 9. Implement `src/lib/mail.ts`
+- [x] 9. Implement `src/lib/mail.ts`
   - File: `src/lib/mail.ts` (new)
   - Exports: `type ContactEmailInput = { name; email; message; source: 'profile' | 'contact' | undefined; testId?: string }`, `async function sendContactEmail(input): Promise<void>`. The optional `testId` is forwarded as the outbound `X-Test-Id` request header when present (consumed by task 20's mock; production payloads never include it). Internal `getResendClient()` returns the env tuple `{ apiKey, baseUrl }` cached on `(RESEND_API_KEY, RESEND_BASE_URL)`. Sanity guard: throws synchronously if `apiKey === 'test-key'` AND `baseUrl` resolves to `https://api.resend.com`.
   - Transport: direct `fetch(baseUrl + "/emails", ...)` — NOT the `resend` SDK. Reason in design: SDK does not expose AbortSignal hook. Body shape (per design §Module: src/lib/mail.ts): `from: RESEND_FROM`, `to: RESEND_TO`, `reply_to: input.email`, `subject` is the literal template "Contact form submission from " + (input.source or 'unspecified'), `text` is a multi-line string containing name/email/source/message. `html` MUST NOT be set.
@@ -112,7 +112,7 @@
   - _Requirements: Req 3.6, 3.7, 3.8, 3.10, 3.11, 3.12; Design §Module: src/lib/mail.ts_
   - _Prompt: Role: Backend engineer writing a thin transport helper for Resend over the platform fetch | Task: Implement mail.ts exactly per the design — env-tuple cache, sanity guard, AbortController timeout cleared in finally, named TimeoutError and ResendError classes, the subject template literal, the multi-line text body containing name/email/source/message, and the bare reply_to (attacker-controllable per Req 3.12 — accepted risk because the recipient is Matthew's personal inbox, not a shared listserv) | Restrictions: Do not import the `resend` SDK; do not call console.* with input fields; do not set html on the outbound payload; do not catch errors silently — the route handler is the boundary that maps errors to HTTP responses; do not add console.error from mail.ts on the timeout path (route handler logs, not this module) | Success: Vitest task 10's cases pass; manual fetch interception confirms text contains all four fields, html is absent, reply_to is the bare email; AbortError surfaces as TimeoutError; sanity-guard throws on the (test-key + production base URL) combination_
 
-- [ ] 10. Vitest unit tests for `src/lib/mail.ts`
+- [x] 10. Vitest unit tests for `src/lib/mail.ts`
   - File: `src/lib/mail.test.ts` (new)
   - Test cases per design §Testing Strategy → Unit Testing → mail.ts: subject across the three `source` values; outbound `text` contains name/email/source/message; `html` not set; `reply_to` is the bare email; **testId forwarding** — when `input.testId` is a string, the outbound fetch carries `X-Test-Id: <that value>`; when `input.testId` is undefined, the outbound fetch does NOT include an `X-Test-Id` header; 9-second timeout fires `TimeoutError` when fetch hangs; env-tuple cache rebuilds when `RESEND_BASE_URL` changes between calls; sanity guard throws on (test-key + prod base URL).
   - Logging-discipline assertion: spy on `console.warn`/`console.error` via `vi.spyOn(console, ...)`. Assert that no logged string in any case contains `input.name`, `input.email`, `input.message`, or any substring of `input.source` — Req 3.10 mandates no user-input fields in logs.
@@ -122,7 +122,7 @@
   - _Requirements: Req 3.6, 3.7, 3.8, 3.10; Design §Testing Strategy → Unit Testing → mail.ts_
   - _Prompt: Role: Test engineer specializing in Vitest with fake timers and global stubs | Task: Author the seven cases listed in the design's mail.ts testing block PLUS the logging-discipline assertion. Use vi.stubGlobal for fetch, vi.stubEnv for env, vi.useFakeTimers + vi.advanceTimersByTime(9000) for the timeout case. Restore stubs in afterEach | Restrictions: Do not call the real Resend API; do not import the resend SDK; do not skip the env-tuple-cache case (it guards a subtle bug class); the logging-discipline spy MUST assert across all logged strings, not just the most recent call | Success: All eight cases pass; coverage of the three source variants is explicit; the logging-discipline spy catches any future regression that logs an input field; tests are deterministic with fake timers_
 
-- [ ] 11. Implement `src/app/api/contact/route.ts`
+- [x] 11. Implement `src/app/api/contact/route.ts`
   - File: `src/app/api/contact/route.ts` (new)
   - Export: `async function POST(req: Request): Promise<Response>`. No GET.
   - Pipeline order matches Req 3.5 a–g per design §Module: src/app/api/contact/route.ts:
@@ -141,7 +141,7 @@
   - _Requirements: Req 3.5, 3.6, 3.7, 3.8, 3.10, Req 5.5; Design §Module: src/app/api/contact/route.ts_
   - _Prompt: Role: Backend engineer implementing a single-purpose Next.js Route Handler | Task: Implement the POST handler exactly in the order in the design (size cap → origin/referer → parse → object guard → honeypot → zod → source normalize → mail). The Origin/Referer check is the multi-host accepted-origin set in the design — match all four host classes. The testId forwarding is required for the parallel-safe E2E mock; pass it as an outbound X-Test-Id header on the fetch in mail.ts. zod errors must collapse to first-message-per-field | Restrictions: Do not log user-input fields; do not bypass the size cap by reading req.json() directly (lose the byte-length check); do not let TimeoutError become a 502 (test asserts 503 + Retry-After); do not use `Error` types whose .message contains user input; ensure the sanity-guard 500 surfaces honestly rather than being masked | Success: tasks 12 & 22 pass; manual curl with each branch produces the correct status; production logs contain only sanitized `resend_<code>` strings; the test-id field is stripped from the validated body but forwarded as a header on the outbound fetch_
 
-- [ ] 12. Vitest unit tests for the API route handler
+- [x] 12. Vitest unit tests for the API route handler
   - File: `src/app/api/contact/route.test.ts` (new)
   - Cases per design §Testing Strategy → Unit Testing → route.ts: oversize body → 413; populated honeypot → 200 + `sendContactEmail` NOT called; zod failure on each field → 400 with matching `errors` key; malformed JSON → 400; non-plain-object body (`null`, `[]`, `"string"`, `42`) → 400; happy path → 200 + `sendContactEmail` called once with normalized `source`; **testId forwarded** — request with a string `testId` in the JSON body → `sendContactEmail` called with `input.testId === <that value>`; testId-with-non-string-value → call has `input.testId === undefined`; 503 path asserts BOTH the status AND the `Retry-After: 60` header.
   - Origin-check cases: pin `NEXT_PUBLIC_SITE_URL = 'https://matthewfield.ca'` via `vi.stubEnv`. Cases: matching production origin → continues; foreign origin → 403; `*.vercel.app` wildcard → continues; `localhost` → continues; both-absent → continues.
@@ -154,7 +154,7 @@
 
 ## Phase 4: Theme-provider constant + shadcn primitives
 
-- [ ] 13. Export `THEME_STORAGE_KEY` constant from theme-provider
+- [x] 13. Export `THEME_STORAGE_KEY` constant from theme-provider
   - File: `src/components/layout/theme-provider.tsx`
   - Export a single named constant `THEME_STORAGE_KEY` matching whatever `next-themes` `storageKey` prop the provider currently passes (or the default `'theme'` if none). Use that constant where the provider previously hardcoded the value.
   - Purpose: Eliminate the silent-drift class where E2E dark-theme tests run against a different storage key than production. See design §Test file: contact-csp-axe.test.ts.
@@ -162,7 +162,7 @@
   - _Requirements: Req 4.10 (axe in both themes); Design §Test file: contact-csp-axe.test.ts (storage-key sourcing)_
   - _Prompt: Role: Frontend developer extracting a magic-string into a single shared constant | Task: Add `export const THEME_STORAGE_KEY = '<value>'` near the top of theme-provider.tsx and use it for the next-themes storageKey prop. Same value, just exported | Restrictions: Do not change runtime behavior; do not rename the value the user sees in localStorage (it would invalidate every existing browser's theme preference) | Success: tsc passes; existing theme-toggle still works; E2E test in task 23.1 can import THEME_STORAGE_KEY directly_
 
-- [ ] 14. Install missing shadcn primitives (Input, Textarea, Label)
+- [x] 14. Install missing shadcn primitives (Input, Textarea, Label)
   - Files: `src/components/ui/input.tsx`, `src/components/ui/textarea.tsx`, `src/components/ui/label.tsx` (added by shadcn CLI).
   - Run `pnpm dlx shadcn@latest add input textarea label`. (Runtime deps — zod, react-obfuscate, lucide-react — were installed in task 7.1; this task scope is shadcn primitives only.)
   - Purpose: All shadcn UI primitives `<ContactForm />` consumes must exist before component implementation.
@@ -172,7 +172,7 @@
 
 ## Phase 5: Shared components
 
-- [ ] 15. Implement `<SocialLinks />` (server component)
+- [x] 15. Implement `<SocialLinks />` (server component)
   - File: `src/components/shared/social-links.tsx` (new)
   - Export: `export function SocialLinks(): JSX.Element`. No props.
   - Markup: `<nav aria-label="Social profiles">` containing a `<ul>` with two `<li>`s; each `<a href={siteConfig.links.linkedin|github} rel="noopener external" target="_blank" aria-label="Matthew on LinkedIn|GitHub"><Icon /><span>Label</span></a>` with `inline-flex items-center min-h-11 min-w-11` plus horizontal padding.
@@ -182,7 +182,7 @@
   - _Requirements: Req 4.11 tap-target; Design §Component: `<SocialLinks />`_
   - _Prompt: Role: Frontend developer writing a small server component | Task: Implement social-links.tsx exactly per the design — RSC (no "use client"), nav-with-list semantics, 44px tap-target classes, icon + visible text, target=_blank with rel="noopener external", aria-label distinguishing LinkedIn vs GitHub | Restrictions: Do not pass URLs as props (siteConfig is the SSOT); do not omit rel="noopener" (security); do not size targets via parent CSS — the `<a>` itself owns its tap area; do not add a barrel index.ts | Success: Component renders the two links with correct hrefs from siteConfig; Playwright DOM in task 20 finds them; no layout shift on focus_
 
-- [ ] 16. Implement `<ObfuscatedEmail />` (client component)
+- [x] 16. Implement `<ObfuscatedEmail />` (client component)
   - File: `src/components/shared/obfuscated-email.tsx` (new)
   - Top-level `"use client"` (react-obfuscate is a client library).
   - Export: `export function ObfuscatedEmail(): JSX.Element`.
@@ -193,7 +193,7 @@
   - _Requirements: Req 2.1, 2.2, 2.3, 2.4; Design §Component: `<ObfuscatedEmail />`_
   - _Prompt: Role: Frontend developer wrapping a client-only library with proper a11y semantics | Task: Implement the client component per the design. The wrapper span owns the tap-target sizing — react-obfuscate's own output may shrink to font-size; without the wrapper sizing, the 44px requirement breaks | Restrictions: Top-level "use client" required; do NOT render siteConfig.links.email directly anywhere in JSX (would defeat obfuscation); do NOT skip the aria-label on the wrapper (Req 2.4); do not add a barrel index.ts | Success: SSR HTML for /profile and /contact does not contain the literal email substring (asserted in task 20); click reveals the email; component is keyboard-focusable with visible focus ring inherited from the global theme_
 
-- [ ] 17. Implement `<ContactForm />` core (DOM, state machine, submission, server-error UI)
+- [x] 17. Implement `<ContactForm />` core (DOM, state machine, submission, server-error UI)
   - File: `src/components/shared/contact-form.tsx` (new)
   - Top-level `"use client"`.
   - Export: `export function ContactForm(props: { source?: 'profile' | 'contact' }): JSX.Element`.
@@ -212,7 +212,7 @@
   - _Requirements: Req 3.2, 3.7, 3.8, 4.1, 4.3, 4.4, 4.7, 4.9, 4.11, Req-NFR-Usability sm-breakpoint, Req-NFR-Performance no-layout-shift; Design §Component: `<ContactForm />` + Form-State Machine_
   - _Prompt: Role: Frontend developer implementing the accessible, state-machine-driven core of a form | Task: Implement the form's DOM, state machine, submission pipeline, status-code-to-state mapping, server-error UI, sm-breakpoint responsive layout, 44×44 tap targets, and min-height layout-shift prevention. Tasks 17.1/17.2/17.3 will layer side-effects on top of this core — keep the side-effect call sites empty/no-op placeholders or omit entirely; do not pre-empt those tasks | Restrictions: NEVER use the `disabled` attribute on submit while submitting (Chrome blurs disabled buttons); NEVER position the honeypot via .sr-only or off-screen CSS (Req 3.2 mandates display:none); NEVER add aria-required (Req 4.7); NEVER auto-retry (Req 4.4); the testId field MUST come only from window.__TEST_ID — never from props/forms — to ensure production wire payloads cannot include it; do NOT implement focus management, scrollIntoView, or CustomEvent dispatch here — they are tasks 17.1/17.2/17.3 respectively | Success: Manual submission of all four error classes produces the right state and UI; submit button stays interactive during submitting (aria-disabled, not disabled); double-click submit only fires once via the early-return guard; honeypot prefilled by Playwright still 200s without calling Resend (verified in task 12); name and email render side-by-side at sm: viewport; submit button and inputs clear 44×44 CSS px; no vertical layout shift between idle and success states_
 
-- [ ] 17.1. ContactForm focus management transitions
+- [x] 17.1. ContactForm focus management transitions
   - File: `src/components/shared/contact-form.tsx` (modified — adds focus-management effect)
   - Add the three focus transitions to the `useEffect` keyed on `[attemptId, state.kind]` per design's Form-State Machine block:
     - `submitting → success`: focus the success `<h2 tabIndex={-1}>`.
@@ -224,7 +224,7 @@
   - _Requirements: Req 4.5, 4.6; Design §Form-State Machine — focus transitions_
   - _Prompt: Role: Frontend developer implementing keyboard-a11y side-effects on top of an existing state machine | Task: Add the focus-management effect to contact-form.tsx exactly per the design's three transitions. Each effect reads from refs (or `document.querySelector` scoped to the form) and calls `.focus()` on the right element. Key the effect on `[attemptId, state.kind]` | Restrictions: Do not key the effect on `[state]` (the discriminated union changes identity on every render); do not focus elements that may not be mounted (guard with `if (el)`); do not implement scrollIntoView or CustomEvent here — those are 17.2/17.3; do not change the underlying state machine | Success: Successful submission focuses the success heading; validation failure focuses the first invalid input; server error focuses the role=status region; a second validation failure (same kind transition) re-focuses correctly via the attemptId-keyed re-trigger_
 
-- [ ] 17.2. ContactForm reduced-motion-aware scrollIntoView
+- [x] 17.2. ContactForm reduced-motion-aware scrollIntoView
   - File: `src/components/shared/contact-form.tsx` (modified — adds scrollIntoView call on success transition)
   - On the `submitting → success` transition (the same effect added in 17.1), after focusing the success heading, call `el.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' })` where `prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches` is read at the moment of the call (NOT a state-driven re-render, NOT memoized at mount — the user may toggle the OS setting between page load and submission).
   - The "Sending…" indicator label remains the static text from task 17 — this task does not add an animated spinner. Verified in task 23.2's `animationName === 'none'` assertion.
@@ -233,7 +233,7 @@
   - _Requirements: Req 4.8; Design §Form-State Machine — reduced-motion handling_
   - _Prompt: Role: Frontend developer adding a reduced-motion-aware scroll to a success transition | Task: Add the scrollIntoView call after the success heading is focused. The media query MUST be read at call time, not memoized — reduced-motion is a user setting that can change | Restrictions: Do not use a `behavior: 'smooth'` constant; do not memoize the matchMedia result in a useState/useRef at mount; do not add a spinner animation to the "Sending…" indicator; do not touch the validation-error or server-error transitions | Success: With reduced-motion enabled (OS or DevTools emulation), the scroll uses `behavior: 'auto'`; without, smooth-scroll occurs; toggling between the two between submissions reflects the new value (verified in task 23.2)_
 
-- [ ] 17.3. ContactForm contact_submit_success CustomEvent dispatch
+- [x] 17.3. ContactForm contact_submit_success CustomEvent dispatch
   - File: `src/components/shared/contact-form.tsx` (modified — adds CustomEvent dispatch on success transition)
   - On the `submitting → success` transition (same effect as 17.1/17.2), call `document.dispatchEvent(new CustomEvent('contact_submit_success'))`. No payload — Req-NFR-Observability specifies a fixed identifier, no data.
   - Purpose: Observability hook for a future analytics spec (Req-NFR-Observability). Independent from focus/scroll — a missing CustomEvent dispatch does not break the success UI.
@@ -243,7 +243,7 @@
 
 ## Phase 6: Pages
 
-- [ ] 18. Implement `/profile/page.tsx`
+- [x] 18. Implement `/profile/page.tsx`
   - File: `src/app/(site)/profile/page.tsx` (new or replacing existing placeholder)
   - Server component. `export const dynamic = 'force-static'` (Req 1.9).
   - `generateMetadata()` returns `{ title: profile.title, description: profile.description, alternates: { canonical: '/profile' } }`. Removes any placeholder `robots: { index: false }`.
@@ -255,7 +255,7 @@
   - _Requirements: Req 1.1, 1.5–1.10, 1.12, 1.13, Req 2.5, Req 6.1–6.3; Design §Component: /profile/page.tsx_
   - _Prompt: Role: Next.js App Router developer composing a server-rendered page from typed Velite content | Task: Implement the page exactly per the design — RSC, force-static, max-w-5xl wrapper, headshot via next/image with Velite's blur props, generateMetadata with the canonical alternate, removal of the placeholder noindex, sibling composition of the contact components (NO ContactSection wrapper), tagline pinned to the exact Req 2.5 string | Restrictions: Do not pass a `components` prop to `<MDXContent />` (Req 1.13 — no custom MDX registry); do not wrap the contact components in a single `<ContactSection>` (Req 5.3); do not change container width on /contact's page later (max-w-5xl is profile-only); do not import siteConfig directly (the shared components own that); do not add headshot if profile.headshot is undefined; do not paraphrase the tagline — exact string match including the em-dash (—) and ` :)` smiley | Success: pnpm build succeeds; visiting /profile renders headshot/headline/MDX prose/contact section; the literal tagline string "Shoot me a message — I respond to every human :)" appears verbatim in the rendered HTML; `<head>` shows `<title>...| matthewfield.ca</title>` and the canonical link; no robots: noindex; window['contact_submit_success'] event fires on a real submission; manual viewport check at 320px / 768px / 1280px shows the headshot stacks/side-by-side per design_
 
-- [ ] 19. Implement `/contact/page.tsx`
+- [x] 19. Implement `/contact/page.tsx`
   - File: `src/app/(site)/contact/page.tsx` (new or replacing existing placeholder)
   - Server component. `export const dynamic = 'force-static'`.
   - `generateMetadata()` returns `{ title: 'Contact', description: [static copy distinct from /profile] }`. Removes placeholder `robots: { index: false }` if present.
@@ -267,7 +267,7 @@
 
 ## Phase 7: E2E test harness + tests
 
-- [ ] 20. Implement mock Resend server
+- [x] 20. Implement mock Resend server
   - File: `e2e/fixtures/mock-resend.mjs` (new)
   - Node `http.createServer` listening on `MOCK_PORT` (env). Multi-tenant: partitions recorded calls by the `X-Test-Id` request header (or default `'__untagged__'` bucket).
   - Endpoints per design §Mock Resend server:
@@ -281,7 +281,7 @@
   - _Requirements: Design §Mock Resend server_
   - _Prompt: Role: Test-infra engineer writing a tiny multi-tenant HTTP mock | Task: Implement mock-resend.mjs as a Node http server with the three endpoints. Print "READY" to stdout when listening. Partition recorded calls by X-Test-Id header — concurrent test workers must not see each other's calls | Restrictions: Pure stdlib (no express/fastify); single .mjs file (ESM); do not validate Authorization header (we're not asserting Resend's auth contract); do not log to stdout in a way that pollutes the READY signal | Success: Spawning the mock with MOCK_PORT=12345 prints READY, then `curl -H 'X-Test-Id: a' -X POST localhost:12345/emails -d '{...}'` records under bucket `a` and `curl 'localhost:12345/__state?testId=a'` returns the recorded body_
 
-- [ ] 21. Implement E2E wrapper script + update `package.json` + audit/fix `playwright.config.ts`
+- [x] 21. Implement E2E wrapper script + update `package.json` + audit/fix `playwright.config.ts`
   - Files: `scripts/run-e2e.mjs` (new); `package.json` (modified); `e2e/playwright.config.ts` (modified IF `webServer.env` is a literal object — see audit step below); `.spec-workflow/steering/structure.md` (modified — add `scripts/` to the directory tree now that the directory exists).
   - Wrapper steps per design §Wrapper script:
     1. Allocate ephemeral port via `net.createServer().listen(0)` then close.
@@ -298,7 +298,7 @@
   - _Requirements: Req 3.13; Design §Wrapper script + Pin paragraph_
   - _Prompt: Role: Test-infra engineer wiring CI ordering glue | Task: Implement run-e2e.mjs per the seven steps. Audit the playwright config's webServer.env — if it is set to a literal object, fix it to `{ ...process.env, PORT: '3013' }` in this task (not a follow-up). Update structure.md to add the now-existing scripts/ directory | Restrictions: Do not pass an explicit `env: {...}` option to either spawn (replaces inheritance instead of merging); do not assume the mock starts in less than 100ms — the 5s ceiling is the contract; do not skip cleanup on SIGINT (developers Ctrl-C and orphan processes); do not invoke `playwright test` directly without the config flag; if the playwright config is correct already, document that in the PR description so reviewers know the audit ran | Success: `pnpm test:e2e` boots the mock, then the dev server, then runs all Playwright tests; killing the wrapper with Ctrl-C kills the mock; CI's `pnpm test:e2e` runs to completion and propagates Playwright's exit code; structure.md tree includes scripts/_
 
-- [ ] 22. E2E test: `e2e/tests/contact-form.test.ts`
+- [x] 22. E2E test: `e2e/tests/contact-form.test.ts`
   - File: `e2e/tests/contact-form.test.ts` (new)
   - `beforeEach`: allocate `const testId = randomUUID()`; call `page.addInitScript((id) => { window.__TEST_ID = id; }, testId)`; then POST to the mock URL `http://127.0.0.1:<port>/__reset?testId=<testId>` to zero this test's bucket. The port is derived by parsing `process.env.RESEND_BASE_URL`.
   - For each `path` in `['/profile', '/contact']`:
@@ -316,7 +316,7 @@
   - _Requirements: Req 4.1, Req 5.5, Req 6.3, Req-NFR-Observability, Design §Test file: contact-form.test.ts_
   - _Prompt: Role: E2E test engineer using Playwright with multi-tenant test partitioning | Task: Implement the parameterized test, the SSR-leak guard, the honeypot test, the canonical-URL assertion, the role=status landmark assertion, and the CustomEvent firing assertion exactly per the design + adversarial-review additions. Each test allocates its own UUID and resets only its bucket — fullyParallel: true must remain safe | Restrictions: Do NOT use `test.describe.configure({ mode: 'serial' })` — task 20's tenancy makes it unnecessary; do NOT reset all buckets (would clobber peer workers); do NOT hardcode the mock port — derive from RESEND_BASE_URL; the SSR-leak test must read the SERVER-rendered HTML BEFORE clicking the obfuscated email — clicking causes react-obfuscate to insert the literal email into the DOM, and the test would then fail spuriously; the CustomEvent listener MUST be registered before the submit click (registering after the click misses the event); the canonical regex MUST require the trailing slash to catch a `https://matthewfield.cax` typo class | Success: All test cases pass under fullyParallel; mock state verified per testId; SSR-leak guard catches a regression that accidentally renders siteConfig.links.email directly; canonical assertion catches a regression to a relative-URL canonical; CustomEvent assertion catches a regression that removes the dispatch (task 17.3)_
 
-- [ ] 23. E2E test: `e2e/tests/contact-csp.test.ts` (CSP smoke only)
+- [x] 23. E2E test: `e2e/tests/contact-csp.test.ts` (CSP smoke only)
   - File: `e2e/tests/contact-csp.test.ts` (new — split from the old combined test)
   - CSP smoke: `page.addInitScript` registers `document.addEventListener('securitypolicyviolation', e => window.__cspViolations.push(...))` BEFORE any other script. Visit `/profile` and `/contact`; click `<ObfuscatedEmail />` to trigger the runtime decode; fill and submit the form. Assert `window.__cspViolations.length === 0` AND no console errors of the "blocked by CSP" class.
   - **`form-action 'self'` header assertion**: capture the response on `/profile` and `/contact` navigation; assert `response.headers()['content-security-policy']` contains the literal substring `form-action 'self'`. This is the defense-in-depth coverage for task 4 — without this assertion, removing the directive in a future refactor has no failing test.
@@ -325,7 +325,7 @@
   - _Requirements: Req-NFR-Security CSP clause; Design §Test file: contact-csp-axe.test.ts (CSP slice)_
   - _Prompt: Role: E2E test engineer covering CSP non-violation and CSP-header presence | Task: Implement the CSP smoke + the form-action header assertion in a dedicated file. CSP listener MUST be registered via addInitScript (NOT page.evaluate) so it attaches before the inline-hydration phase. Header assertion reads the navigation response object | Restrictions: Do NOT colocate with axe-core or reduced-motion (deliberate split — see adversarial review); do NOT skip the click on `<ObfuscatedEmail />` in the CSP smoke (the runtime decode is exactly what could trip CSP); do NOT use page.setExtraHTTPHeaders to inject CSP — request headers don't set response CSP (browsers ignore them); do NOT assert the directive via inspecting next.config.ts at test time — that proves the source, not the served header | Success: Test passes against the current implementation; introducing a CSP-violating inline script (deliberate sabotage) makes the test fail; removing `form-action 'self'` from cspDirectives in next.config.ts makes the header assertion fail_
 
-- [ ] 23.1. E2E test: `e2e/tests/contact-axe.test.ts` (axe-core in both themes)
+- [x] 23.1. E2E test: `e2e/tests/contact-axe.test.ts` (axe-core in both themes)
   - File: `e2e/tests/contact-axe.test.ts` (new — split from the old combined test)
   - Run `new AxeBuilder({ page }).withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa']).analyze()` against `/profile` and `/contact` in BOTH light and dark theme — four combinations total.
   - Theme-toggle via `page.addInitScript(({key, theme}) => { localStorage.setItem(key, theme); }, { key: THEME_STORAGE_KEY, theme: 'dark' })` — `import { THEME_STORAGE_KEY } from '@/components/layout/theme-provider'` (named import — task 13's export is `export const`). Default theme run does not set localStorage.
@@ -334,7 +334,7 @@
   - _Requirements: Req 4.10; Design §Test file: contact-csp-axe.test.ts (axe slice)_
   - _Prompt: Role: E2E test engineer running axe-core/playwright in two themes | Task: Implement the four-combination axe pass in a dedicated file. Theme key sourced from the exported constant. axe failures MUST fail the test (no soft-warn) | Restrictions: Do NOT colocate with CSP or reduced-motion (deliberate split); do NOT hardcode 'theme' as the localStorage key (silent-drift risk if provider uses a different key); do not run axe in light theme only — Req 4.10 mandates both | Success: Test passes; introducing a contrast failure in dark theme makes the test fail; running with `--reporter=list` shows four discrete axe runs_
 
-- [ ] 23.2. E2E test: `e2e/tests/contact-reduced-motion.test.ts` (reduced-motion compliance)
+- [x] 23.2. E2E test: `e2e/tests/contact-reduced-motion.test.ts` (reduced-motion compliance)
   - File: `e2e/tests/contact-reduced-motion.test.ts` (new — split from the old combined test)
   - `page.emulateMedia({ reducedMotion: 'reduce' })` BEFORE navigation; submit the form successfully; assert:
     - **No smooth-scroll occurred**: record success heading `getBoundingClientRect().top` immediately on success and 50ms later — must be unchanged (or differ only by sub-pixel jitter).
@@ -346,7 +346,7 @@
 
 ## Phase 8: Final integration
 
-- [ ] 24. Local quality gate + sitemap + headshot viewport verification
+- [x] 24. Local quality gate + sitemap + headshot viewport verification
   - Files: none (verification pass)
   - Run `pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm build && pnpm test:e2e`. All must pass.
   - **Sitemap verification** (Req 5.6 — site-foundation's `src/app/sitemap.ts` is assumed to enumerate `/contact`; verify the assumption holds): after `pnpm build`, read the generated sitemap output (`.next/server/app/sitemap.xml` or the route's response — pick whichever the build emits) and assert `<loc>...contact</loc>` is present. A one-line shell or node check is sufficient — does not need to be its own task.

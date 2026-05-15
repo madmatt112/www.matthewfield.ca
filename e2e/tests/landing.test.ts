@@ -26,7 +26,13 @@ test.describe("landing page hero cards", () => {
       await sections.getByRole("link", { name: card.title }).click();
 
       await expect(page).toHaveURL(card.href);
-      await expect(page.getByRole("heading", { level: 1, name: card.title })).toBeVisible();
+      if (card.href === "/profile") {
+        // /profile is no longer a placeholder — its h1 is the Velite-sourced
+        // headline, not the hero card title.
+        await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      } else {
+        await expect(page.getByRole("heading", { level: 1, name: card.title })).toBeVisible();
+      }
     });
   }
 });

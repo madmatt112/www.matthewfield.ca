@@ -10,6 +10,7 @@ const cspDirectives = [
   "base-uri 'self'",
   "frame-src 'self'",
   "connect-src 'self'",
+  "form-action 'self'",
 ].join("; ");
 
 const nextConfig: NextConfig = {

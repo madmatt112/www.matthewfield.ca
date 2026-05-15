@@ -15,6 +15,16 @@
    prefers-color-scheme and ignores the toggle. */
 @custom-variant dark (&:is(.dark *));
 
+/* Apply the themed background/foreground to <body> so axe-core color-contrast
+   checks see the real cascade in both themes (without this, body falls back
+   to the UA white default and dark-mode text-on-bg ratios are computed
+   against #ffffff). Site-foundation surface; needed for professional-profile
+   task 23.1's axe gate. */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
 /* Maps Tailwind color / radius utilities onto the shadcn/ui tokens declared
    in tokens.css. Regenerate by running
      `npx shadcn@latest init --base radix --preset nova --yes --force`

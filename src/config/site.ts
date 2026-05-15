@@ -16,6 +16,11 @@ type SiteConfig = {
   ogImage: string;
   navItems: NavItem[];
   heroCards: HeroCardConfig[];
+  links: {
+    linkedin: string;
+    github: string;
+    email: string;
+  };
 };
 
 export const siteConfig: SiteConfig = {
@@ -63,4 +68,9 @@ export const siteConfig: SiteConfig = {
       href: "/playground",
     },
   ],
+  links: {
+    linkedin: "https://www.linkedin.com/in/matthewcfield",
+    github: "https://github.com/madmatt112",
+    email: "hello@matthewfield.ca",
+  },
 };

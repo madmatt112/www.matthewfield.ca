@@ -90,9 +90,12 @@ matthewfield.ca/
 │   ├── tests/
 │   ├── fixtures/
 │   └── playwright.config.ts
+├── scripts/                        # CI/dev wrapper scripts
+│   └── run-e2e.mjs                 # E2E runner wrapper: boots mock-resend sidecar, sets env, spawns Playwright
 ├── .velite/                        # Velite build output (gitignored)
 ├── velite.config.ts                # Velite collection schemas
 ├── next.config.ts                  # Next.js configuration (headers, redirects, webpack)
+├── vercel.json                     # Vercel deployment config (build command — single-file)
 ├── tsconfig.json                   # TypeScript config (strict mode, path aliases)
 ├── components.json                 # shadcn/ui CLI configuration
 ├── package.json                    # Dependencies, scripts, packageManager field
@@ -108,6 +111,8 @@ matthewfield.ca/
 ├── .prettierrc                     # Prettier configuration
 └── .gitignore
 ```
+
+**Deployment & scripts:** `vercel.json` at the project root is the single-file home for Vercel deployment configuration — currently just the `buildCommand` that deepens git history so Velite's `profile` transform can resolve a non-empty `updatedAt`. Keep deployment config consolidated here rather than scattering it across other files. `scripts/` is the home for CI/dev wrapper scripts; its first (and, for now, only) inhabitant is `scripts/run-e2e.mjs`, which allocates an ephemeral port, boots the `e2e/fixtures/mock-resend.mjs` sidecar, exports the Resend env vars, and spawns Playwright via `pnpm exec playwright test --config=e2e/playwright.config.ts` (used by `pnpm test:e2e`).
 
 ## Naming Conventions
 

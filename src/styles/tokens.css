@@ -53,7 +53,11 @@
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
+  /* Bumped from upstream shadcn 0.708 to clear WCAG 2 AA 4.5:1 on the dark
+     header background (#3b3b3b). Upstream default gives 4.33:1 against the
+     border-translucent header; raising the lightness fixes the axe-core
+     color-contrast failure caught by professional-profile task 23.1. */
+  --muted-foreground: oklch(0.74 0 0);
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
