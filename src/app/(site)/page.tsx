@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 
+import { AvatarPlaceholder } from "@/components/shared/avatar-placeholder";
 import { HeroCard } from "@/components/shared/hero-card";
 import { siteConfig } from "@/config/site";
 
@@ -14,14 +14,7 @@ export default function HomePage() {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:py-16">
       <section className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:gap-10">
-        <Image
-          src="/images/profile.jpg"
-          alt={`Portrait of ${siteConfig.name}`}
-          width={160}
-          height={160}
-          priority
-          className="rounded-full border border-border object-cover"
-        />
+        <AvatarPlaceholder size={160} label={`Portrait of ${siteConfig.name} (placeholder)`} />
         <div className="flex flex-col gap-3">
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{siteConfig.name}</h1>
           <p className="max-w-2xl text-base text-muted-foreground sm:text-lg">

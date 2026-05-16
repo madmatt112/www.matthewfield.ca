@@ -3,6 +3,7 @@ import Image from "next/image";
 
 import { profile } from "#site/content";
 
+import { AvatarPlaceholder } from "@/components/shared/avatar-placeholder";
 import { ContactForm } from "@/components/shared/contact-form";
 import { MDXContent } from "@/components/shared/mdx-content";
 import { ObfuscatedEmail } from "@/components/shared/obfuscated-email";
@@ -33,7 +34,9 @@ export default function ProfilePage() {
             priority
             className="rounded-full border border-border object-cover"
           />
-        ) : null}
+        ) : (
+          <AvatarPlaceholder size={160} label={`Portrait of ${profile.title} (placeholder)`} />
+        )}
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{profile.headline}</h1>
           <p className="text-sm text-muted-foreground">
