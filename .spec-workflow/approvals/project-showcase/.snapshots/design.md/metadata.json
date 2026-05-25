@@ -1,0 +1,22 @@
+{
+  "filePath": ".spec-workflow/specs/project-showcase/design.md",
+  "currentVersion": 2,
+  "snapshots": [
+    {
+      "version": 1,
+      "filename": "snapshot-001.json",
+      "timestamp": "2026-05-25T21:19:14.173Z",
+      "trigger": "initial",
+      "approvalId": "approval_1779743954155_u5qnragvy",
+      "approvalTitle": "project-showcase design v1"
+    },
+    {
+      "version": 2,
+      "filename": "snapshot-002.json",
+      "timestamp": "2026-05-25T21:50:29.289Z",
+      "trigger": "approved",
+      "approvalId": "approval_1779745787714_8lz4i1syk",
+      "approvalTitle": "project-showcase design v4 (post-r3 adversarial)"
+    }
+  ]
+}
