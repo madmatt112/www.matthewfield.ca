@@ -13,6 +13,7 @@ type SiteConfig = {
   name: string;
   description: string;
   url: string;
+  language: string;
   ogImage: string;
   navItems: NavItem[];
   heroCards: HeroCardConfig[];
@@ -27,6 +28,7 @@ export const siteConfig: SiteConfig = {
   name: "Matthew Field",
   description: "Infrastructure/Platform/DevOps engineer",
   url: "https://matthewfield.ca",
+  language: "en-CA",
   ogImage: "/images/og-default.png",
   navItems: [
     { label: "Professional Profile", href: "/profile" },

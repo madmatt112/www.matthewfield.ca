@@ -1,0 +1,23 @@
+/* Slice: series-badge — owned by Task 18.1
+ *
+ * Visually distinct from <TagChip /> (Req 2.1): TagChip uses a
+ * transparent pill outline (border + bg-background), while
+ * SeriesBadge uses a solid filled pill on the primary token —
+ * different shape weight AND different palette token. The
+ * primary/primary-foreground pair flips between light and dark
+ * themes (near-black-on-near-white in light, near-white-on-near-
+ * black in dark), so the Playwright theme-parity assertion sees
+ * a real computed-color delta. */
+.series-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  letter-spacing: 0.01em;
+}

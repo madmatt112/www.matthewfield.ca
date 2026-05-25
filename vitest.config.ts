@@ -7,10 +7,12 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
+      "#site/content": fileURLToPath(new URL("./.velite", import.meta.url)),
     },
   },
   test: {
     environment: "jsdom",
-    include: ["src/**/*.test.{ts,tsx}"],
+    include: ["src/**/*.test.{ts,tsx,mjs}"],
+    globalSetup: ["./vitest.global-setup.ts"],
   },
 });

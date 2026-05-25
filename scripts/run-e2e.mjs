@@ -99,9 +99,16 @@ async function main() {
     process.exit(143);
   });
 
+  const extraArgs = process.argv.slice(2);
   const playwright = spawn(
     "pnpm",
-    ["exec", "playwright", "test", "--config=e2e/playwright.config.ts"],
+    [
+      "exec",
+      "playwright",
+      "test",
+      "--config=e2e/playwright.config.ts",
+      ...extraArgs,
+    ],
     { stdio: "inherit", cwd: repoRoot },
   );
 

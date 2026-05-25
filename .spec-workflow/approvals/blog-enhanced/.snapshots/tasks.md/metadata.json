@@ -1,0 +1,22 @@
+{
+  "filePath": ".spec-workflow/specs/blog-enhanced/tasks.md",
+  "currentVersion": 2,
+  "snapshots": [
+    {
+      "version": 1,
+      "filename": "snapshot-001.json",
+      "timestamp": "2026-05-20T22:45:06.707Z",
+      "trigger": "initial",
+      "approvalId": "approval_1779317106688_3v81e1c55",
+      "approvalTitle": "blog-enhanced tasks.md v1"
+    },
+    {
+      "version": 2,
+      "filename": "snapshot-002.json",
+      "timestamp": "2026-05-21T16:04:23.386Z",
+      "trigger": "approved",
+      "approvalId": "approval_1779333344008_thjnrimd0",
+      "approvalTitle": "blog-enhanced tasks.md v4 (post-r3 adversarial, FINAL)"
+    }
+  ]
+}

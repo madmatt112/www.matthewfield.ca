@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { SiteSearch } from "@/components/blog/site-search";
 import { DesktopNav, MobileNav } from "@/components/layout/nav";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { siteConfig } from "@/config/site";
@@ -13,6 +14,7 @@ export function Header() {
         </Link>
         <div className="flex items-center gap-2">
           <DesktopNav />
+          <SiteSearch />
           <ThemeToggle />
           <MobileNav />
         </div>

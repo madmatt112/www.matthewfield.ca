@@ -8,6 +8,22 @@ on:
 
 jobs:
   ci:
+    # ---------------------------------------------------------------------
+    # Dual-build CI topology — see design.md "CI build separation" section.
+    #
+    # Build 1 and Build 2 MUST run as two sequential step sequences inside
+    # this single job. Do NOT split into separate jobs (a job split with
+    # actions/cache@v4 would let Build 2 restore Build 1's .velite/ state,
+    # defeating the Req 7.14 draft-isolation guarantee).
+    #
+    # BLOG_INCLUDE_DRAFTS=1 is set ONLY on the "Build 1 (with drafts)"
+    # step env block — NEVER at workflow-level, NEVER at job-level, NEVER
+    # on Build 2's build step.
+    #
+    # Literal step name strings (e.g. "Build 1 (with drafts)") are matched
+    # by scripts/verify-ci-topology.mjs — renames are a breaking change to
+    # be applied to both files in the same PR.
+    # ---------------------------------------------------------------------
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -34,11 +50,11 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      - name: Verify getPublishedPosts callers
+        run: node scripts/verify-getPublishedPosts-callers.mjs
+
       - name: Unit tests
         run: pnpm test
-
-      - name: Build
-        run: pnpm build
 
       - name: Cache Playwright browsers
         id: playwright-cache
@@ -57,5 +73,91 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: pnpm exec playwright install-deps
 
-      - name: E2E tests
+      - name: Verify CI topology
+        run: node scripts/verify-ci-topology.mjs
+        env:
+          BLOG_ENHANCED_CI_LITERALS_REQUIRED: "1"
+
+      - name: Build 1 (with drafts)
+        run: pnpm build
+        env:
+          BLOG_INCLUDE_DRAFTS: "1"
+
+      - name: Touch Build 1 sentinel
+        run: touch .velite/.build1-sentinel
+
+      - name: Run e2e (Build 1)
         run: pnpm test:e2e
+
+      - name: Validate feed (Build 1)
+        run: node scripts/validate-feed.mjs
+        env:
+          NODE_OPTIONS: "--no-warnings=ExperimentalWarning"
+
+      - name: Clean for Build 2
+        if: always()
+        run: rm -rf .velite .next
+
+      - name: Build 2 (production-mode)
+        if: always()
+        run: pnpm build
+
+      - name: Verify production build (Build 2)
+        if: always()
+        run: node scripts/verify-production-build.mjs
+        env:
+          NODE_OPTIONS: "--no-warnings=ExperimentalWarning"
+
+      - name: Pagefind crawl (Build 2)
+        if: vars.PAGEFIND_ENABLED != 'false'
+        run: pnpm build:search
+
+      - name: Verify Pagefind index (Build 2)
+        if: vars.PAGEFIND_ENABLED != 'false'
+        run: node scripts/verify-pagefind-no-drafts.mjs
+
+      - name: Upload Pagefind manifest
+        if: always() && vars.PAGEFIND_ENABLED != 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pagefind-manifest
+          path: public/pagefind/**
+
+      - name: Check Vercel auto-deploy status
+        if: vars.DEPLOY_VIA_CI == 'true'
+        run: node scripts/check-vercel-auto-deploy.mjs
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          MIGRATION_DEADLINE: ${{ vars.MIGRATION_DEADLINE }}
+
+      - name: Vercel build
+        if: vars.DEPLOY_VIA_CI == 'true'
+        run: pnpm exec vercel build --token=${{ secrets.VERCEL_TOKEN }} ${{ github.ref == 'refs/heads/main' && '--prod' || '' }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Verify Pagefind artifact in .vercel/output
+        if: vars.PAGEFIND_ENABLED != 'false' && vars.DEPLOY_VIA_CI == 'true'
+        run: node scripts/verify-pagefind-artifact.mjs
+
+      - name: Vercel deploy (Build 2)
+        id: vercel_deploy
+        if: vars.DEPLOY_VIA_CI == 'true'
+        run: |
+          DEPLOY_URL=$(pnpm exec vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} ${{ github.ref == 'refs/heads/main' && '--prod' || '' }})
+          echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Warn deploying without Pagefind
+        if: always() && vars.PAGEFIND_ENABLED == 'false' && vars.DEPLOY_VIA_CI == 'true'
+        run: node scripts/warn-no-pagefind.mjs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REF: ${{ github.ref }}
+          DEPLOY_URL: ${{ steps.vercel_deploy.outputs.deploy_url }}

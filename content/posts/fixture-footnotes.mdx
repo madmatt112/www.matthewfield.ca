@@ -1,0 +1,20 @@
+---
+title: "Fixture: fixture-footnotes"
+description: "Footnotes fixture — at least three GFM footnote references with matching definitions."
+date: "2026-01-05"
+tags: [fixture, footnotes-test]
+categories: [fixture]
+draft: true
+---
+
+{/* FIXTURE-NOTE: this fixture is referenced by the spec tests; coordinate edits accordingly. */}
+
+GFM footnotes survive a few transformations on their way from markdown to rendered HTML, and a fixture that pins three live references is enough to catch the common regressions.
+
+The remark-gfm plugin parses `[^N]` references into a footnote-reference node[^1] and emits a definitions block at the end of the document. The order of definitions in source does not have to match reference order; the renderer collects them by identifier.
+
+A second reference in the same paragraph[^2] confirms the parser does not collapse adjacent references. The third reference[^3] lands in its own paragraph so the assertion can verify cross-paragraph linkage works too.
+
+[^1]: First footnote definition. Renders as item 1 in the footnotes section.
+[^2]: Second footnote definition. Verifies inline-adjacent references resolve independently.
+[^3]: Third footnote definition. Last in source, last in the rendered list.

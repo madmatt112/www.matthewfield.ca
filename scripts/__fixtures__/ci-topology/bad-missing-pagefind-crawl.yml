@@ -1,0 +1,50 @@
+name: CI
+on:
+  push:
+    branches: [main]
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Verify getPublishedPosts callers
+        run: node scripts/verify-getPublishedPosts-callers.mjs
+      - name: Unit tests
+        run: pnpm test
+      - name: Verify CI topology
+        run: node scripts/verify-ci-topology.mjs
+      - name: Build 1 (with drafts)
+        run: pnpm build
+        env:
+          BLOG_INCLUDE_DRAFTS: "1"
+      - name: Touch Build 1 sentinel
+        run: touch .velite/.build1-sentinel
+      - name: Run e2e (Build 1)
+        run: pnpm test:e2e
+      - name: Validate feed (Build 1)
+        run: node scripts/validate-feed.mjs
+      - name: Clean for Build 2
+        if: always()
+        run: rm -rf .velite .next
+      - name: Build 2 (production-mode)
+        if: always()
+        run: pnpm build
+      - name: Verify production build (Build 2)
+        if: always()
+        run: node scripts/verify-production-build.mjs
+      - name: Verify Pagefind index (Build 2)
+        run: node scripts/verify-pagefind-no-drafts.mjs
+      - name: Upload Pagefind manifest
+        uses: actions/upload-artifact@v4
+      - name: Check Vercel auto-deploy status
+        run: node scripts/check-vercel-auto-deploy.mjs
+      - name: Vercel build
+        run: pnpm exec vercel build --prod
+      - name: Verify Pagefind artifact in .vercel/output
+        run: node scripts/verify-pagefind-artifact.mjs
+      - name: Vercel deploy (Build 2)
+        run: pnpm exec vercel deploy --prebuilt --prod
+      - name: Warn deploying without Pagefind
+        if: failure()
+        run: node scripts/warn-no-pagefind.mjs

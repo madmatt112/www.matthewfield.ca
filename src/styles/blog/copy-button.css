@@ -1,0 +1,72 @@
+/* Slice: copy-button — owned by Task 18.7
+ *
+ * Styles the `<div class="code-block-wrapper" data-code-block="">`
+ * emitted by `rehype-copy-button.ts` (Task 15) plus the
+ * `<button data-copy-button>` it appends. Position: relative wrapper +
+ * absolute button anchored top-right. 2.75rem × 2.75rem = h-11 w-11
+ * (44 CSS px touch target). Uses theme tokens so the per-component
+ * Playwright smoke sees a computed-color delta between light + dark. */
+
+.code-block-wrapper {
+  position: relative;
+  margin: 1rem 0;
+}
+
+.code-block-wrapper > pre {
+  /* leave room for the absolutely-positioned copy button */
+  padding-right: 3.25rem;
+}
+
+[data-copy-button] {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background-color: var(--background);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  font: inherit;
+  line-height: 1;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+
+[data-copy-button]::before {
+  /* Visual label only. Accessible name comes from the button's `aria-label`
+   * (set server-side by rehype-copy-button and updated per-state by the
+   * hydrator); per the accessible-name computation algorithm step 2C,
+   * aria-label supersedes any descendant/pseudo content for AT — so the
+   * visible "Copy" / "Copied" / "Failed" text is not announced twice. */
+  content: "Copy";
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+[data-copy-button][data-copy-state="copied"]::before {
+  content: "Copied";
+}
+
+[data-copy-button][data-copy-state="failed"]::before {
+  content: "Failed";
+}
+
+[data-copy-button]:hover,
+[data-copy-button]:focus-visible {
+  color: var(--foreground);
+  background-color: var(--muted);
+}
+
+[data-copy-button][data-copy-state="copied"] {
+  color: var(--foreground);
+}
+
+[data-copy-button][data-copy-state="failed"] {
+  color: var(--destructive, var(--foreground));
+}

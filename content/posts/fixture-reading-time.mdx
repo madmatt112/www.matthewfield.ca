@@ -1,0 +1,37 @@
+---
+title: "Fixture: fixture-reading-time"
+description: "Reading-time fixture — ≥200 words of prose, both fence flavors, an image with literal alt text, and a GFM table."
+date: "2026-01-03"
+tags: [fixture]
+categories: [fixture]
+draft: true
+---
+
+{/* FIXTURE-NOTE: this fixture is referenced by the spec tests; coordinate edits accordingly. */}
+
+Build-time content pipelines have quietly become one of the more interesting corners of static-site tooling. The premise is simple: take a directory of MDX files, walk them at build time, validate frontmatter against a schema, transform the markdown into HTML, and emit a typed JSON manifest the runtime can consume without ever touching the filesystem. The payoff is a site whose content surface is a compile-time artifact rather than a runtime concern, which is exactly what you want when the deploy target is a CDN edge and the content cadence is measured in weeks, not seconds.
+
+The interesting subtleties live in the seams. Reading-time estimation, for instance, has to decide what counts as a word — does a fenced code block contribute? Most implementations strip code before counting, on the theory that nobody reads a shell snippet at three hundred words per minute. Syndication formats raise their own questions: RSS readers expect absolute URLs, but authors write relative links, so the pipeline has to absolutize during serialization without polluting the on-page HTML. And syntax highlighting wants to run once at build time, dual-themed, so the runtime can pick a theme via CSS without re-tokenizing.
+
+This fixture exists to exercise those seams without ceremony. It carries enough prose to clear the two-hundred-word threshold the reading-time test asserts on, includes both a TypeScript and a shell fence so the highlighter has work to do, drops in a GFM table to confirm the remark-gfm plugin is wired, and references the shared placeholder image so the asset-copy pathway gets touched too. Real fixtures, not gibberish — the prose should survive a casual read without setting off anyone's lorem-ipsum alarm.
+
+## Table
+
+| column-a | column-b |
+| --- | --- |
+| value-a | value-b |
+| value-c | value-d |
+
+## TypeScript
+
+```ts
+const sum = (a: number, b: number) => a + b;
+```
+
+## Shell
+
+```bash
+echo "fixture"
+```
+
+![Placeholder fixture image](./fixture-image.svg)

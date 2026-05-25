@@ -16,7 +16,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
 
 ---
 
-- [ ] 1. Add new runtime/dev dependencies to package.json with exact pins
+- [x] 1. Add new runtime/dev dependencies to package.json with exact pins
   - File: package.json
   - Add devDependencies: `rehype-pretty-code`, `shiki`, `remark-gfm`, `remark-parse`, `remark-mdx`, `unist-util-visit`, `mdast-util-to-string`, `reading-time`, `fast-xml-parser` (exact-pinned), `node-html-parser` (exact-pinned — used by Task 27 body-parity test).
   - Add dependency: `feed` pinned **exactly** as `"4.2.2"` (no caret, no tilde).
@@ -29,7 +29,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: "package.json and .nvmrc pins" section; exact-pin discipline_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Build/DevOps engineer with deep familiarity with pnpm and Node toolchains | Task: Add the listed dependencies to package.json. `feed` MUST be `"4.2.2"` exact; `fast-xml-parser` and `node-html-parser` MUST be exact-pinned at the latest stable. Run `pnpm install` to update the lockfile. Mark in-progress before starting; call log-implementation when done. | Restrictions: No caret/tilde on the three exact-pinned packages. Do not bump existing dependency versions. Do not change `packageManager`. | _Leverage: existing package.json | _Requirements: 1.5, 9.0, 9.4, 11.0 | Success: `pnpm install` succeeds, lockfile updated, `engines.node` present, exact pins verified by grep. Then mark complete after logging._
 
-- [ ] 2. Create build-time helpers under `src/lib/build/`
+- [x] 2. Create build-time helpers under `src/lib/build/`
   - Files: src/lib/build/rehype-absolutize-urls.ts, src/lib/build/word-count.ts
   - `rehypeAbsolutizeUrls({ baseUrl })`: HAST visitor factory that rewrites `<a href>` / `<img src>` relative/root-relative URLs via `new URL(value, baseUrl)`. Stateless instance — closes over `baseUrl` only.
   - `countWordsFromMdast(tree)`: walks mdast, **drops node types `code` (block-level fenced code), `inlineCode` (span-level back-tick spans), AND `html`** (per r3 review Attack Surface 5 — disambiguates the previously-ambiguous "drops code" phrasing). Flattens via `mdast-util-to-string({ includeImageAlt: true })`, returns `text.split(/\s+/).filter(Boolean).length`. The reading-time semantic is "prose word count" — inline `` `foo` `` spans are not prose and excluded; image `alt` text IS prose and included.
@@ -41,7 +41,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: "rehypeAbsolutizeUrls" + "Shared walk extraction" pins (placement moved per r1 review's Attack Surface 5)_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Build-pipeline engineer with expertise in unified/remark/rehype | Task: Implement the two helpers as TypeScript modules under `src/lib/build/`. Both must be importable from `velite.config.ts` (relative path) and from `src/lib/blog.test.ts` (`@/lib/build/...`). Mark in-progress; log-implementation when done. | Restrictions: TypeScript only (.ts), not .mjs. Pure functions only. No per-file mutable state. Splitter regex MUST be exactly `/\s+/` followed by `.filter(Boolean)`. | _Leverage: existing `src/` tsconfig include | _Requirements: 6.1, 6.5, 11.8 | Success: Both helpers exported, type-checked, importable from velite.config.ts and from a test file. Then mark complete after logging._
 
-- [ ] 3. Extend velite.config.ts with shared plugin arrays, `markdown` top-level config, `prettyCodeOptions`
+- [x] 3. Extend velite.config.ts with shared plugin arrays, `markdown` top-level config, `prettyCodeOptions`
   - File: velite.config.ts
   - Add `sharedRemarkPlugins = [remarkGfm]` and `sharedRehypePlugins = [rehypeSlug, [rehypePrettyCode, prettyCodeOptions], rehypeAbsolutizeUrls({ baseUrl: siteConfig.url })]` constants at top.
   - Add `prettyCodeOptions = { theme: { light: "github-light", dark: "github-dark" }, defaultColor: false, keepBackground: false }`.
@@ -56,7 +56,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: "Velite `posts` collection" → key pins → shared plugin constants; "Integration Points" → Velite content pipeline_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Velite/build-pipeline engineer | Task: Extend velite.config.ts per the design's shared-plugin section. Existing `pages` and `profile` collections must keep working. Mark in-progress; log-implementation when done. | Restrictions: Do not modify `pages` or `profile` schemas. Both `mdx` and `markdown` blocks reference the SAME constant arrays (no duplicate plugin instances). Do NOT register `remark-mdx` here — that parser is local to the rejection visitor (Task 4.2). | _Leverage: existing velite.config.ts; rehypeAbsolutizeUrls from task 2 | _Requirements: 9.0, 9.1, 11.8 | Success: `pnpm velite build` completes against existing pages/profile content; shared arrays referenced symmetrically; no TS errors. Then mark complete after logging._
 
-- [ ] 4. Add the `posts` Velite collection (atomic sub-tasks)
+- [x] 4. Add the `posts` Velite collection (atomic sub-tasks)
   - **4.1 Schema fields + slug + `.strict()` + kebab-slug regex**
     - File: velite.config.ts (continue from task 3)
     - Define `posts` collection: `pattern: "posts/*.mdx"`, schema with all fields per design Data Models (title, description, date, tags, categories, updated?, draft default false, series?, seriesOrder?, slug from `s.path()`).
@@ -102,7 +102,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
     - _Design refs: "bodyHtml field" emit; CDATA-collision pin in Error Handling §8_
     - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Velite engineer | Task: Add the dual body/bodyHtml emit, the CDATA substitution applied to bodyHtml ONLY, and register the collection. Mark in-progress; log-implementation when done. | Restrictions: Substitution applied AFTER `s.markdown()` produces the string. Substitution applied to bodyHtml only — `body` (the s.mdx() output) is untouched. Register in defineConfig last. | _Leverage: 4.1-4.3 schema/transform; existing collections wiring | _Requirements: 11.10, 11.0 | Success: bodyHtml string contains `]]]]><![CDATA[>` for any code block containing `]]>`; otherwise unchanged. Collection visible via `#site/content`. Then mark complete._
 
-- [ ] 5. Audit and extend `siteConfig` for RSS channel-metadata fields
+- [x] 5. Audit and extend `siteConfig` for RSS channel-metadata fields
   - File: src/config/site.ts
   - Verify `siteConfig` exposes the fields RSS task 17 will consume: `name` (channel `<title>`), `url` (channel `<link>` and base URL for absolutization), `description` (channel `<description>`), `language` (channel `<language>` — e.g., `"en-CA"`).
   - Add any missing fields. Pin `language: "en-CA"` if absent.
@@ -114,7 +114,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: "siteConfig" entry in Existing Components to Leverage_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Site-config maintainer | Task: Audit siteConfig and add any missing RSS channel-metadata fields. Mark in-progress; log-implementation when done. | Restrictions: Do not change existing field values. Language pinned at `"en-CA"`. | _Leverage: existing src/config/site.ts | _Requirements: 11.0, 11.4 | Success: siteConfig exports name, url, description, language. Then mark complete._
 
-- [ ] 6. Create the three fixture posts + commit a placeholder image asset
+- [x] 6. Create the three fixture posts + commit a placeholder image asset
   - Files: content/posts/fixture-draft-do-not-publish.mdx, content/posts/fixture-code.mdx, content/posts/fixture-reading-time.mdx, content/posts/fixture-image.svg
   - **Image asset**: commit a tiny 1×1 SVG (`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><rect width="1" height="1" fill="#ccc"/></svg>`) at `content/posts/fixture-image.svg` so the velite asset pipeline emits it to `/static/` and fixture image references resolve.
   - All three MDX fixtures: `draft: true`, tag and category `[fixture]`, valid ISO date, title that includes the slug verbatim. Each starts with `<!-- FIXTURE-NOTE: this fixture is referenced by the spec tests; coordinate edits accordingly. -->` (now safe per Task 4.2's HTML-comment carve-out).
@@ -129,7 +129,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: "Test fixtures" + "Slug rename for collision-safety" pin_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Technical writer with MDX/Velite familiarity | Task: Create the three fixture posts AND the placeholder SVG. Mark in-progress; log-implementation when done. | Restrictions: All MDX fixtures MUST have `draft: true`. Draft fixture slug MUST be `fixture-draft-do-not-publish`. No raw HTML other than the FIXTURE-NOTE comment header. Image references use the committed `./fixture-image.svg`. Alt text exactly `Placeholder fixture image`. Frontmatter keys MUST match the Task 4.1 strict schema verbatim (title, description, date, tags, categories, updated?, draft, slug?, series?, seriesOrder?). | _Leverage: content/pages/*.mdx | _Requirements: 6.5, 7.13, 7.14, 9.2, 11.11 | _Depends on: 4.1 (schema must exist before fixtures are validated; per r2 review Attack Surface 1) | Success: `pnpm velite build` accepts all three under the 4.1-built schema, asset emitted to public/static/, rejection visitor does not throw on any fixture. Then mark complete._
 
-- [ ] 6.5. Create `src/lib/blog-errors.ts` — single source of truth for env-var names + operator-facing draft-leak guard messages + the predicate helper
+- [x] 6.5. Create `src/lib/blog-errors.ts` — single source of truth for env-var names + operator-facing draft-leak guard messages + the predicate helper
   - File: src/lib/blog-errors.ts
   - **Required named exports (per r3 review Attack Surface 3 — the helper is load-bearing, not "optional")**:
     - **Env-var-name constants** (closes the Vercel-rename staleness path the design-r3 review flagged):
@@ -147,7 +147,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Depends on: 1_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: TypeScript developer with operational-UX awareness | Task: Create `src/lib/blog-errors.ts` per the v4 design — three env-var-name constants, two message constants composed from those names, and the REQUIRED `checkVercelDraftGuard()` helper. Mark in-progress; log-implementation when done. | Restrictions: NO env-var reads at module top level — helper reads at call time. Constants are plain strings; messages are multi-line template literals with NO leading whitespace per line. Env-var-name literals appear in exactly three places: the three exported constants. The helper is REQUIRED, not optional — Tasks 7 and 16 will import it. | _Leverage: nothing existing | _Requirements: 7.12 | Success: All six exports present (3 env-var names + 2 messages + 1 helper); helper truth table verifiable manually (Task 6.6 automates this). Then mark complete._
 
-- [ ] 6.6. Implement `src/lib/blog-errors.test.ts` — direct truth-table test for `checkVercelDraftGuard()`
+- [x] 6.6. Implement `src/lib/blog-errors.test.ts` — direct truth-table test for `checkVercelDraftGuard()`
   - File: src/lib/blog-errors.test.ts
   - Direct Vitest cases for the helper's behavior:
     - All four "guarded" combinations of `VERCEL × VERCEL_ENV × BLOG_INCLUDE_DRAFTS` that should produce a discriminator, plus a representative sample of "happy-path" combinations that should return `null` (covers the `null` return that Task 22's transitive tests do not exercise directly).
@@ -161,7 +161,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Depends on: 6.5_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: QA/Vitest engineer | Task: Implement the direct truth-table test per the r3 review's Attack Surface 3 closure. Mark in-progress; log-implementation when done. | Restrictions: Env-var mutations scoped via beforeEach/afterEach; reset all three vars between cases. Assert both the discriminators AND the null happy path. | _Leverage: vitest; src/lib/blog-errors.ts | _Requirements: 7.12 | Success: All four guarded combinations produce the expected discriminator; happy-path combinations return null; constant literals match the expected strings. Then mark complete._
 
-- [ ] 7. Implement `src/lib/blog.ts` query layer + types
+- [x] 7. Implement `src/lib/blog.ts` query layer + types
   - File: src/lib/blog.ts
   - Named exports per design: `getPublishedPosts`, `getPostBySlug`, `getPostNeighbors`, `getAllTags`, `getAllCategories`, `getPostsByTag`, `getPostsByCategory`, `formatReadingTime`, `formatPostDate`, `shouldShowUpdatedBadge`, `wordsToReadingTime`, types `Post` / `PostMeta`, plus `__testing.neighbors`.
   - `getPublishedPosts()` reads env vars **at call time** (not module top-level), runs Layer-2 guards via the shared `checkVercelDraftGuard()` helper imported from `src/lib/blog-errors.ts` (Task 6.5): on `production` discriminator → throw with `BLOG_DRAFT_LEAK_GUARD_MSG_PRODUCTION`; on `preview` discriminator → throw with `BLOG_DRAFT_LEAK_GUARD_MSG_PREVIEW`. Multi-line runbook comment above each throw points readers to `src/lib/blog-errors.ts` as the source of truth.
@@ -175,7 +175,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: "src/lib/blog.ts" full section + "Operator-error UX" Layer 2_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Senior TypeScript developer | Task: Implement src/lib/blog.ts per the design and the Task 6.5 shared-constant contract. Mark in-progress; log-implementation when done. | Restrictions: env reads happen INSIDE getPublishedPosts(), not at module top-level. NO consumer outside this module imports `posts` from `#site/content`. Import error messages from `src/lib/blog-errors.ts`; do NOT inline the message strings. | _Leverage: #site/content; Intl APIs; src/lib/blog-errors.ts (Task 6.5) | _Requirements: 2.5, 3.10, 4.5, 5.5, 6.3, 6.4, 7.6, 7.12, 7.14, 8.1 | _Depends on: 4.4, 6.5 | Success: Typecheck passes; all exports present; throws use the shared constants. Then mark complete._
 
-- [ ] 8. Apply ThemeProvider symmetric-class config tweak
+- [x] 8. Apply ThemeProvider symmetric-class config tweak
   - File: src/components/layout/theme-provider.tsx
   - Add `value={{ light: "light", dark: "dark" }}` so `next-themes` writes the `.light` class symmetrically with `.dark`.
   - Ensure `THEME_STORAGE_KEY` is exported.
@@ -186,7 +186,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: "ThemeProvider" entry under Existing Components to Leverage_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: React/next-themes engineer | Task: Apply the symmetric-class tweak. Mark in-progress; log-implementation when done. | Restrictions: Do not change the storage key value or the provider's other attribute props. No new client components. | _Leverage: existing theme-provider.tsx | _Requirements: 9.2 | Success: Existing pages still toggle theme correctly; THEME_STORAGE_KEY export verifiable via grep. Then mark complete._
 
-- [ ] 9. Add Shiki dual-theme CSS cascade to `src/styles/globals.css` (pinned literal target-variable names)
+- [x] 9. Add Shiki dual-theme CSS cascade to `src/styles/globals.css` (pinned literal target-variable names)
   - File: src/styles/globals.css
   - Append the `:root` / `.dark` / `@media (prefers-color-scheme: dark) :root:not(.light):not(.dark)` rules. Variable names: `--shiki-active` / `--shiki-active-bg`.
   - **Pinned target variables (per r1 review Attack Surface 3, breaks the forward-dependency cycle)**: `rehype-pretty-code` with `defaultColor: false` emits `--shiki-light`, `--shiki-dark`, `--shiki-light-bg`, `--shiki-dark-bg` (documented behavior). The cascade maps these directly. **Per r2 review Attack Surface 4**: this is not a "no TODO" claim — Task 28's spot-check IS the deferred verification gate for this pin. Acknowledged. A short comment block in `globals.css` above the cascade names Task 28 as the verifier and instructs the next maintainer to update Task 28's re-run requirements if the pin moves. The structural defense is in Task 28's mandatory re-run of Tasks 24 + 26 when this file changes — not in pretending the pin is unconditionally correct at this task's close.
@@ -198,7 +198,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: "src/styles/globals.css (additions)" section; r1 review Attack Surface 3 reordering_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Front-end engineer with CSS-variable cascade expertise | Task: Append the cascade using the literal target variables `--shiki-light/-dark/-light-bg/-dark-bg` (pinned per r1 review; verification gate is Task 28 per r2 review). Mark in-progress; log-implementation when done. | Restrictions: Do NOT use !important. The @media `:not(.light):not(.dark)` selector MUST be present so the explicit class wins over OS preference. Include the named-verifier comment block pointing readers at Task 28. | _Leverage: tokens.css patterns | _Requirements: 9.2, 9.3 | _Depends on: 8 | Success: Cascade renders the correct theme on the rendered code block in both class-explicit and OS-only paths (verified at Task 28; failure path patches this file and triggers Tasks 24/26 re-run). Then mark complete._
 
-- [ ] 10. Implement blog presentational components
+- [x] 10. Implement blog presentational components
   - Files: src/components/blog/post-card.tsx, src/components/blog/prev-next-nav.tsx, src/components/blog/tag-chip.tsx, src/components/blog/draft-banner.tsx
   - `<PostCard post={post} />`: server component wrapping shadcn `<Card />`, title `<Link>`, lede, formatted date + reading time, tag chips. `<article aria-labelledby={titleId}>`.
   - `<PrevNextNav previous next />`: omits null sides entirely (no disabled links per Req 5.3); returns null when both null; `aria-label`s include neighbor titles.
@@ -212,7 +212,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: "src/components/blog/*.tsx" entries_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: React server-component engineer | Task: Implement the four components. Mark in-progress; log-implementation when done. | Restrictions: NO `"use client"` directives. No new card primitive. PrevNextNav MUST omit null sides entirely. | _Leverage: shadcn Card; tokens | _Requirements: 2.5, 5.0, 5.3, 5.4, 7.7, 13.4 | Success: Components render without errors; touch targets satisfy Req 13.4. Then mark complete._
 
-- [ ] 11. Implement `/blog` index route (replacing placeholder)
+- [x] 11. Implement `/blog` index route (replacing placeholder)
   - File: src/app/(site)/blog/page.tsx
   - Replace `PlaceholderPage` content. Default-exported server component listing `getPublishedPosts()` in reverse-chrono with `<PostCard />`.
   - Remove the existing `robots: { index: false }` override.
@@ -226,7 +226,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: "blog/page.tsx (index)" section_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Next.js App Router engineer | Task: Implement the index route. Mark in-progress; log-implementation when done. | Restrictions: `dynamic = "force-static"` exported. NO direct `#site/content` imports — go through src/lib/blog.ts. Remove existing `robots: { index: false }`. | _Leverage: src/lib/blog.ts | _Requirements: 2.0, 2.9, 7.11a | Success: `/blog` renders with fixtures visible when BLOG_INCLUDE_DRAFTS=1; empty-state visible when env unset. Then mark complete._
 
-- [ ] 12. Implement `/blog/[slug]` post detail route
+- [x] 12. Implement `/blog/[slug]` post detail route
   - File: src/app/(site)/blog/[slug]/page.tsx
   - Async server component, `generateStaticParams()` from `getPublishedPosts()`, `generateMetadata({ params })` per Req 3.6 + `[DRAFT]` title prefix + `robots: noindex,nofollow` for drafts.
   - `export const dynamic = "force-static"`, `export const dynamicParams = false`.
@@ -240,7 +240,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: "blog/[slug]/page.tsx" section_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Next.js App Router + MDX engineer | Task: Implement the post detail route. Mark in-progress; log-implementation when done. | Restrictions: Use `<MDXContent />`. No direct `#site/content` imports. Tag chips through `<TagChip />`. | _Leverage: src/lib/blog.ts; MDXContent | _Requirements: 3.0, 3.6, 3.9, 5.0, 7.7, 7.8, 8.0 | Success: `/blog/fixture-code` renders fully; `/blog/fixture-draft-do-not-publish` shows the banner and [DRAFT] prefix. Then mark complete._
 
-- [ ] 13. Implement taxonomy routes for tags and categories
+- [x] 13. Implement taxonomy routes for tags and categories
   - Files: src/app/(site)/blog/tags/[tag]/page.tsx, src/app/(site)/blog/categories/[category]/page.tsx, src/components/blog/taxonomy-list.tsx
   - Both pages: default-exported server components, `generateStaticParams` from `getAllTags()`/`getAllCategories()`, `generateMetadata` per Req 4.8, `dynamic = "force-static"`, `dynamicParams = false`.
   - Share `<TaxonomyList kind value posts />`.
@@ -251,7 +251,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: "tags/[tag]/page.tsx and categories/[category]/page.tsx" section_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Next.js App Router engineer | Task: Implement both routes + the TaxonomyList component. Mark in-progress; log-implementation when done. | Restrictions: Two route files remain independent (each has its own default export). dynamicParams=false on both. No direct `#site/content` imports. | _Leverage: src/lib/blog.ts; PostCard | _Requirements: 4.0, 4.2, 4.6, 4.8 | Success: `/blog/tags/fixture` and `/blog/categories/fixture` render the three fixtures. Then mark complete._
 
-- [ ] 14. Implement `/feed.xml` RSS 2.0 route handler + dual-assertion launch gate
+- [x] 14. Implement `/feed.xml` RSS 2.0 route handler + dual-assertion launch gate
   - Files: src/app/feed.xml/route.ts, src/app/feed.xml/route.test.ts
   - `GET()` returns RSS 2.0 XML via the `feed` package. Items via `feed.addItem({ link, guid, description, content: post.bodyHtml, date, categories })`. Calls `feed.rss2()`. Response `Content-Type: application/xml; charset=utf-8`.
   - `export const dynamic = "force-static"`.
@@ -266,7 +266,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: "src/app/feed.xml/route.ts" — Launch-gate test pin; r1 review Attack Surface 2 reformulation_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Backend engineer with RSS expertise | Task: Implement the route handler and the dual-assertion launch gate. Mark in-progress; log-implementation when done. | Restrictions: feed@4.2.2 exact. Do NOT re-apply the `]]>` substitution in the route handler (Task 4.4 did it). The launch-gate test MUST include BOTH assertions — raw-string regex for CDATA framing AND parsed-tree with `cdataPropName` for content equality. Each assertion's failure message must name which side caught it. | _Leverage: getPublishedPosts; siteConfig | _Requirements: 11.0, 11.4, 11.5, 11.9, 11.10 | Success: /feed.xml returns valid RSS 2.0 with required channel children; both launch-gate assertions pass. Then mark complete._
 
-- [ ] 15. Extend `src/app/sitemap.ts` with posts/tags/categories
+- [x] 15. Extend `src/app/sitemap.ts` with posts/tags/categories
   - File: src/app/sitemap.ts
   - Append entries from `getPublishedPosts()`, `getAllTags()`, `getAllCategories()` to the existing static array.
   - Post `lastModified = new Date(post.updated ?? post.date)`. Tag/category `lastModified = max(post.date)` over the taxonomy, computed once.
@@ -277,7 +277,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: "src/app/sitemap.ts (extension)" section_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: SEO/Next.js engineer | Task: Extend sitemap. Mark in-progress; log-implementation when done. | Restrictions: Do not change existing static-route entries. No hard-coded host. | _Leverage: src/lib/blog.ts; siteConfig | _Requirements: 12.0, 12.1, 12.2 | Success: Built sitemap.xml contains static routes + new entries when drafts visible. Then mark complete._
 
-- [ ] 16. Extend `next.config.ts` with preview robots header + early stderr env-var guard (shared error constants)
+- [x] 16. Extend `next.config.ts` with preview robots header + early stderr env-var guard (shared error constants)
   - File: next.config.ts
   - At top of module body (before exporting), call `checkVercelDraftGuard()` imported from `src/lib/blog-errors.ts` (Task 6.5). On discriminator `production` → write `BLOG_DRAFT_LEAK_GUARD_MSG_PRODUCTION` to stderr, `process.exit(1)`. On discriminator `preview` → write `BLOG_DRAFT_LEAK_GUARD_MSG_PREVIEW`, `process.exit(1)`.
   - Multi-line runbook comment above the check — references `src/lib/blog-errors.ts` as the source-of-truth message body.
@@ -289,7 +289,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: "next.config.ts (extension)" section + Layer-1 of Operator-error UX + design-r3 launch-verification pattern_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Next.js platform engineer | Task: Extend next.config.ts per the design AND the r2 review's Attack Surface 2 — import the shared constants from Task 6.5 and add the manual Vercel-log surfacing verification to the implementation log. Mark in-progress; log-implementation when done. | Restrictions: Top-level check runs before any export. CSP block untouched. Use stderr+process.exit(1), not throw. Do NOT inline the message strings — import from blog-errors.ts. Vercel-log verification IS part of this task's success — not a future task. | _Leverage: existing headers(); src/lib/blog-errors.ts | _Requirements: 7.7a, 7.12 | _Depends on: 6.5 | Success: Local dev (VERCEL unset) unaffected; misconfigured Vercel-style env vars produce clean stderr diagnostic + non-zero exit; **named error string verified visible in an actual Vercel build log on a deliberately-misconfigured deploy** (implementation log cites the Vercel run URL or copies the log fragment). Then mark complete._
 
-- [ ] 17. Add ESLint chokepoint-bypass rule
+- [x] 17. Add ESLint chokepoint-bypass rule
   - File: eslint.config.mjs
   - Add `no-restricted-imports` override block restricting `"#site/content"` everywhere EXCEPT `src/lib/blog.ts` and `velite.config.ts`. The rule message names `src/lib/blog.ts`.
   - _Leverage: existing flat-config structure_
@@ -298,7 +298,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: "eslint.config.mjs (extension)" section_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Lint/DX engineer | Task: Add the no-restricted-imports override. Mark in-progress; log-implementation when done. | Restrictions: Use per-file override for the exception list. Verify `pnpm lint` passes. | _Leverage: existing eslint.config.mjs | _Requirements: 7.5, 7.14 | Success: A test grep introducing `import { posts } from "#site/content"` outside the exception list fails lint with the helper-redirect message. Then mark complete._
 
-- [ ] 18. Implement `scripts/verify-production-build.mjs`
+- [x] 18. Implement `scripts/verify-production-build.mjs`
   - File: scripts/verify-production-build.mjs
   - Reads fixture-draft slug from `.velite/posts.json`. Globs `.next/server/app/**`, `.next/server/chunks/**`, `.next/static/**`, `out/**` for the slug; any hit fails non-zero with diagnostic.
   - Hit-count gates per the design's "Literal expected-file shapes" list (post-page/taxonomy gates conditional on `.velite/posts.json` content; index/sitemap/feed unconditional). Diagnostics distinguish "skipped (no content)" vs. "failed (content exists, no emit)".
@@ -310,7 +310,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: "scripts/verify-production-build.mjs" full section_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: CI scripting engineer | Task: Implement the script per the design. Banner comment names the sentinel check's actual catch surface per the r1 review (regression-class defense, not topology proof). Mark in-progress; log-implementation when done. | Restrictions: NO hard-coded `.next/` paths — globbing only. Fixture slug read from posts.json. Diagnostics distinguish skipped vs failed gates. | _Leverage: run-e2e.mjs pattern; fs.glob | _Requirements: 7.14 | Success: Manual run against a local Build-2-style output exits 0; planted draft slug fails non-zero with named diagnostic. Then mark complete._
 
-- [ ] 19. Implement `scripts/validate-feed.mjs`
+- [x] 19. Implement `scripts/validate-feed.mjs`
   - File: scripts/validate-feed.mjs
   - Globs `**/server/app/feed.xml/**/*` (no extension filter); identifies XML via content sniff.
   - Parses with `fast-xml-parser`. Asserts: `<rss version="2.0">`, `<channel>` contains required children (`title`, `link`, `description`, `language` — pinned const at top of script), ≥1 `<item>`, first item has `title`, `link`, `guid`, `description`, `pubDate`, `content:encoded`.
@@ -321,7 +321,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: "scripts/validate-feed.mjs" section_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: CI scripting engineer | Task: Implement the script per the design. Mark in-progress; log-implementation when done. | Restrictions: No extension filter on glob — match by content sniff. Required-children list is a const at the top. | _Leverage: fast-xml-parser; run-e2e.mjs pattern | _Requirements: 11.4, 11.5, 11.12 | Success: Manual run against a local Build-1 output exits 0; planted invalid feed missing `<language>` fails with named diagnostic. Then mark complete._
 
-- [ ] 20. Extend `.github/workflows/ci.yml` — dual-build job + step-scoped env vars + literal step `name:` pins
+- [x] 20. Extend `.github/workflows/ci.yml` — dual-build job + step-scoped env vars + literal step `name:` pins
   - File: .github/workflows/ci.yml
   - Single CI job, two sequential build sequences. Top-of-job comment block points readers to the design "CI build separation" section.
   - **Literal step `name:` strings (per r3 review Attack Surface 4 — Task 20.5's verifier matches against these exact strings; renames are a breaking change to be applied to BOTH files in the same PR)**:
@@ -345,7 +345,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Depends on: 18, 19_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: GitHub Actions engineer | Task: Extend ci.yml per v4 — use the exact literal step `name:` strings listed above. Mark in-progress; log-implementation when done. | Restrictions: BLOG_INCLUDE_DRAFTS=1 set ONLY on the `"Build 1 (with drafts)"` step env block. NEVER at workflow-level. NEVER at job-level. NEVER on Build 2's build step. Step names MUST match the literals listed in the task body — Task 20.5's verifier asserts these strings. Do NOT split into separate jobs. Do NOT add actions/cache between builds. | _Leverage: existing ci.yml | _Requirements: 7.14 | Success: PR CI run shows all steps with the pinned literal names; topology pins satisfied; `scripts/verify-ci-topology.mjs` (Task 20.5) exits 0 when run against the resulting ci.yml. Then mark complete._
 
-- [ ] 20.5. Implement `scripts/verify-ci-topology.mjs` + self-tests — mechanical defense for CI topology
+- [x] 20.5. Implement `scripts/verify-ci-topology.mjs` + self-tests — mechanical defense for CI topology
   - Files: scripts/verify-ci-topology.mjs, scripts/verify-ci-topology.test.mjs, scripts/__fixtures__/ci-topology/{good,bad-workflow-env,bad-job-env,bad-build2-env,bad-cleanup-missing-always,bad-sentinel-order,bad-verify-missing}.yml
   - Reads `.github/workflows/ci.yml`, parses with the `yaml` npm package (added to devDeps in Task 1).
   - **Asserts the structural pins (per r1/r2/r3 reviews — pin (a) extended to workflow-level env per r3 Attack Surface 4)**:
@@ -371,7 +371,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Depends on: 1, 20_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: CI tooling engineer | Task: Implement the verifier + the six self-test fixtures per v4. Mark in-progress; log-implementation when done. | Restrictions: Use the `yaml` package for parsing (real YAML semantics — not regex). Missing-step = fatal exit, NOT silent skip. Pin (a) covers BOTH workflow-level and job-level env blocks. Step names MUST match the literals from Task 20 verbatim. Self-test fixtures live in scripts/__fixtures__/ci-topology/. | _Leverage: scripts dir; ci.yml from Task 20 | _Requirements: 7.14 | Success: Verifier exits 0 against the real ci.yml AND against good.yml fixture; exits non-zero with named diagnostic against each of the six bad-*.yml fixtures. Then mark complete._
 
-- [ ] 21. Extend `lighthouserc.js` with four blog URLs + threshold audit
+- [x] 21. Extend `lighthouserc.js` with four blog URLs + threshold audit
   - File: lighthouserc.js
   - Append `/blog`, `/blog/fixture-code`, `/blog/tags/fixture`, `/blog/categories/fixture`.
   - **Threshold audit (per r3 review Attack Surface 6)**: audit the existing `assert.assertions` (or equivalent) and ensure performance, accessibility, best-practices, and SEO all carry `["error", { "minScore": 0.9 }]` (or equivalent). If any are weaker, either tighten in this task OR document in the task body why the lhci-level threshold is intentionally lower than Task 28's spot-check (e.g., flakiness floor). Default action: tighten.
@@ -381,7 +381,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Depends on: 14_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: CI engineer | Task: Append the four URLs AND audit/tighten thresholds to ≥0.9 per the v4 contract. Mark in-progress; log-implementation when done. | Restrictions: Do not change existing URLs. Thresholds: performance/a11y/best-practices/SEO ≥0.9 — if relaxing for flakiness, comment inline naming the relaxation. | _Leverage: lighthouserc.js | _Requirements: 13.5 | Success: lhci config parses; manual lhci run targets all 4 URLs and all four categories enforce ≥0.9 (or document the relaxation). Then mark complete._
 
-- [ ] 22. Implement `src/lib/blog.test.ts` Vitest unit suite
+- [x] 22. Implement `src/lib/blog.test.ts` Vitest unit suite
   - File: src/lib/blog.test.ts
   - Cases per design Testing Strategy → Unit Testing:
     - `getPublishedPosts` env matrix (draft visibility on/off; Layer-2 throws (a) and (b); positive `VERCEL`-unset cases for both production+drafts and preview+no-drafts).
@@ -399,7 +399,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Depends on: 2, 4.4, 6, 7_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: QA/Vitest engineer | Task: Implement the unit suite. Mark in-progress; log-implementation when done. | Restrictions: No fixture-coupled tolerance bands. Env-var mutations scoped via beforeEach/afterEach. Vitest globalSetup runs `pnpm velite build` before tests so `#site/content` resolves. | _Leverage: src/lib/blog.ts; fixtures; countWordsFromMdast | _Requirements: 6.0, 6.5, 7.5, 7.6, 7.12, 8.0 | Success: `pnpm test` passes all cases. Then mark complete._
 
-- [ ] 22.5. Implement synthetic-input unit test for `countWordsFromMdast` (walker-self test)
+- [x] 22.5. Implement synthetic-input unit test for `countWordsFromMdast` (walker-self test)
   - File: src/lib/build/word-count.test.ts
   - **Three SEPARATE Vitest `test()` cases (per r3 review Attack Surface 5 — the v3 phrasing was ambiguous about whether these were one tree or three)**, each with its own pinned mdast fixture built via `unist-builder`'s `u()` helper (added to devDeps in Task 1 if not already pulled transitively by remark — verify and amend Task 1 if necessary). Using `unist-builder` ensures construction produces faithful mdast (`type` + `children`, optional `value`); hand-built object literals risk missing required fields.
     - **Case 1 — "drops code blocks AND inline code (75 words)"**: tree contains: paragraph with 50 single-word `text` children + a fenced `code` block containing 100 words (must be dropped, per Task 2's pinned contract) + a paragraph containing an `inlineCode` span of 20 words (must be dropped, per the r3 review's inlineCode disambiguation) + a heading with 25 words. Assert `countWordsFromMdast(tree) === 75`. Tests the `code` AND `inlineCode` drop contract.
@@ -413,7 +413,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Depends on: 1, 2_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: QA/Vitest engineer with mdast experience | Task: Implement the three test cases per v4 using `unist-builder`. Mark in-progress; log-implementation when done. | Restrictions: Three SEPARATE test cases, not one composed tree. Use `unist-builder.u(...)` for tree construction. Pinned expected counts: 75, 2, 3. Verify vitest include covers the file path BEFORE writing the test. | _Leverage: countWordsFromMdast; unist-builder | _Requirements: 6.4 | Success: All three cases pass; injecting an off-by-one in the walker, or removing the inlineCode drop, fails Case 1. Then mark complete._
 
-- [ ] 23. Implement `src/components/layout/theme-provider.test.ts` storage-key invariant test
+- [x] 23. Implement `src/components/layout/theme-provider.test.ts` storage-key invariant test
   - File: src/components/layout/theme-provider.test.ts
   - Assert `THEME_STORAGE_KEY === 'theme'`.
   - _Requirements: 9.2_
@@ -421,7 +421,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: "THEME_STORAGE_KEY source pin"_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: QA engineer | Task: Add the invariant assertion. Mark in-progress; log-implementation when done. | Restrictions: Single literal assertion. | _Leverage: theme-provider.tsx | _Requirements: 9.2 | Success: vitest passes; renaming the export's value fails this test. Then mark complete._
 
-- [ ] 24. Implement Playwright E2E: axe on 4 blog routes × 2 themes
+- [x] 24. Implement Playwright E2E: axe on 4 blog routes × 2 themes
   - File: e2e/tests/blog-axe.test.ts
   - Reuse contact-axe.test.ts pattern. Four routes × two themes = 8 runs.
   - _Leverage: contact-axe.test.ts; @axe-core/playwright_
@@ -430,7 +430,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: blog-axe.test.ts entry_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: QA/Playwright engineer | Task: Implement the axe suite. Mark in-progress; log-implementation when done. | Restrictions: Exact rule set from contact-axe. | _Leverage: contact-axe.test.ts | _Requirements: 13.2 | Success: All 8 runs pass under Build 1. Then mark complete._
 
-- [ ] 25. Implement Playwright E2E: draft visibility
+- [x] 25. Implement Playwright E2E: draft visibility
   - File: e2e/tests/blog-draft-visibility.test.ts
   - Load `/blog/fixture-draft-do-not-publish`, assert: (a) DraftBanner text visible, (b) `<title>` starts with `[DRAFT]`, (c) slug appears on `/blog` index, (d) `<meta name="robots" content="noindex,nofollow">` present in head.
   - _Requirements: 7.13_
@@ -438,7 +438,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: blog-draft-visibility.test.ts entry_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: QA/Playwright engineer | Task: Implement the draft-visibility suite. Mark in-progress; log-implementation when done. | Restrictions: Exact slug `fixture-draft-do-not-publish`. | _Leverage: Playwright | _Requirements: 7.13 | Success: Passes under Build 1. Then mark complete._
 
-- [ ] 26. Implement Playwright E2E: no-JS + explicit-override theme
+- [x] 26. Implement Playwright E2E: no-JS + explicit-override theme
   - Files: e2e/tests/blog-no-js.test.ts, e2e/tests/blog-shiki-theme.test.ts
   - `blog-no-js`: `javaScriptEnabled: false`, `emulateMedia({ colorScheme: 'dark' })`, load `/blog/fixture-code`, assert code-block effective color matches github-dark plaintext token; inverse for light.
   - `blog-shiki-theme`: JS enabled, `emulateMedia({ colorScheme: 'dark' })`, set `localStorage[THEME_STORAGE_KEY] = 'light'`, reload, assert LIGHT background renders. Inverse run for `colorScheme: 'light'` + storage `'dark'`. Import `THEME_STORAGE_KEY` from `@/components/layout/theme-provider`.
@@ -448,7 +448,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: blog-no-js.test.ts + blog-shiki-theme.test.ts_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: QA/Playwright engineer | Task: Implement both suites. Mark in-progress; log-implementation when done. | Restrictions: JS disabled via context option; import THEME_STORAGE_KEY (no hard-coded string). Computed-style assertions, not screenshots. | _Leverage: existing Playwright config | _Requirements: 9.2, 13.7 | Success: Both pass; intentional cascade regression fails the relevant assertions. Then mark complete._
 
-- [ ] 27. Implement RSS body-parity integration test (pinned `node-html-parser`)
+- [x] 27. Implement RSS body-parity integration test (pinned `node-html-parser`)
   - File: src/app/feed.xml/parity.test.ts
   - Read fixture-code's `bodyHtml` from `#site/content` (already built by Velite at test time).
   - Read the rendered `/blog/fixture-code` HTML from `.next/server/app/.../fixture-code.html` (post-build only — gate the test under `if (!fs.existsSync(...)) test.skip()` so local `pnpm test` without a prior build doesn't error; CI Build 1 always has the file).
@@ -461,7 +461,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: "RSS body parity" pin; r1 review "What's missing" item resolved_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: QA engineer with HTML/DOM diffing expertise | Task: Implement the parity test using node-html-parser. Mark in-progress; log-implementation when done. | Restrictions: Skip cleanly when no build output exists (local `pnpm test` without prior build). Element-shape comparison, not byte equality. Honor the Req 11.10 carve-out. | _Leverage: node-html-parser; #site/content | _Requirements: 11.11 | Success: Parity test green on fixture-code substrate after a build; deliberate divergence (e.g., dropping rehype-slug from the markdown stack) fails it; CI Build 1 runs it. Then mark complete._
 
-- [ ] 28. End-to-end smoke: full local dual-build verification + mandatory re-runs + hex-value capture
+- [x] 28. End-to-end smoke: full local dual-build verification + mandatory re-runs + hex-value capture
   - File: (no new file — verification step, document outcome in the implementation log)
   - Run locally: `BLOG_INCLUDE_DRAFTS=1 pnpm build` → `pnpm test:e2e` → `node scripts/validate-feed.mjs`. Then `rm -rf .velite .next` → `pnpm build` (no env) → `node scripts/verify-production-build.mjs`. Both verify scripts MUST exit 0.
   - Spot-check generated `.next/server/app/feed.xml/...` (Build 1) contains the fixture posts and the absolute-URL'd content; spot-check Build 2 has zero hits on the fixture-draft slug.
@@ -481,7 +481,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Depends on: 27, 28.5_
   - _Prompt: Implement the task for spec blog-core, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Senior engineer | Task: Run both builds locally, run all four verifier scripts, ALWAYS re-run Tasks 24 + 26 and cite JSON results, capture computed hex values from the rendered code block compared against the expected theme hexes, document outcomes. Mark in-progress; log-implementation when done. | Restrictions: Do NOT skip Tasks 24/26 re-runs because "visual inspection looked fine." Do NOT cite "tests passed" — cite JSON `results` fragments. Lighthouse run must show ≥90 across all four categories on all four URLs (Task 21 thresholds enforce this; Task 28 surfaces any regression). | _Leverage: all preceding tasks | _Requirements: All | Success: Both builds pass; verify-production-build.mjs and verify-ci-topology.mjs and verify-requirements-coverage.mjs and verify-task-dependencies.mjs all exit 0; Tasks 24/26 re-run output cited as JSON fragments; computed hex values match github-light/github-dark plaintext; Lighthouse ≥90 across all four categories. Then mark complete._
 
-- [ ] 28.5. Implement mechanical verifiers for the Requirements Coverage Matrix + the Depends-on dependency graph
+- [x] 28.5. Implement mechanical verifiers for the Requirements Coverage Matrix + the Depends-on dependency graph
   - Files: scripts/verify-requirements-coverage.mjs, scripts/verify-task-dependencies.mjs
   - **`scripts/verify-requirements-coverage.mjs`**:
     - Extracts requirement IDs from `.spec-workflow/specs/blog-core/requirements.md` (stable header pattern — pin the regex in the script).
@@ -508,49 +508,77 @@ Inverse mapping from `requirements.md` IDs → covering task(s). Closes r2 revie
 
 ### Req 1 (posts collection)
 - 1.0 — collection exists — **4.1, 4.4**
+- 1.1 — `posts` collection definition + flat pattern — **4.1**
+- 1.2 — required frontmatter fields — **4.1**
+- 1.3 — optional frontmatter fields — **4.1**
 - 1.4 — frontmatter validation — **4.1**
 - 1.5 — build-time emission — **1, 3, 4.4**
 - 1.6 — `.strict()`; no defaults; no silent skip — **4.1**
 - 1.7 — slug derivation — **4.1**
 - 1.8 — empty-collection-safe — **4.4, 7, 11**
-- 1.12 — MDX-expression rejection — **4.2**
+- 1.9 — typed `#site/content` consumption — **4.4, 7, 17**
 
 ### Req 2 (blog index)
 - 2.0 — `/blog` route — **11**
 - 2.1, 2.3, 2.4 — index rendering, reverse-chrono — **11**
+- 2.2 — `dynamic = 'force-static'` — **11**
 - 2.5 — card presentation — **10, 11**
+- 2.6 — `max-w-3xl` container — **11**
 - 2.7, 2.8 — metadata/SEO/canonical/RSS alternate — **11**
 - 2.9 — empty state — **11**
+- 2.10 — remove `robots: { index: false }` placeholder override — **11**
 
 ### Req 3 (post detail)
 - 3.1, 3.2 — `[slug]` route, dynamicParams=false — **12**
 - 3.3, 3.4 — per-post metadata — **12**
+- 3.5 — unknown slug → 404 via dynamicParams=false — **12**
+- 3.6 — `generateMetadata({ params })` shape — **12**
 - 3.7 — raw-HTML / MDX-expression rejection — **4.2**
 - 3.8 — heading anchors — **3 (rehypeSlug in shared rehype array)**
 - 3.9 — build-time failure on render error — **12**
 - 3.10 — `<MDXContent />` reuse — **12**
 
 ### Req 4 (taxonomy)
+- 4.1 — `/blog/tags/[tag]` route — **13**
+- 4.2 — `/blog/categories/[category]` route — **13**
+- 4.3 — `dynamic = 'force-static'` + `dynamicParams = false` + `generateStaticParams` — **13**
+- 4.4 — taxonomy h1 + back link — **13**
 - 4.5 — taxonomy route shapes — **13**
 - 4.6 — kebab-slug regex enforcement + exact error message — **4.1**
+- 4.7 — display=slug casing rationale (enforced by 4.6 regex) — **4.1**
+- 4.8 — taxonomy page metadata — **13**
+- 4.9 — discoverable from post + index pages via tag chips — **10, 11, 12**
 
 ### Req 5 (prev/next)
 - 5.0, 5.5 — `<PrevNextNav />` behavior — **10, 12**
+- 5.1 — footer prev/next links — **10, 12**
+- 5.2 — older/newer sort key — **7**
+- 5.3 — omit absent sides entirely — **10**
+- 5.4 — single-post collapse — **10**
+- 5.6 — accessible name on prev/next links — **10**
 - 5.7 — neighbors computation correctness — **7, 22**
 
 ### Req 6 (reading time)
+- 6.1 — readingTime computed + reading-time pkg — **1, 4.3**
+- 6.2 — default 238 WPM — **4.3**
 - 6.3 — formatter — **7, 22**
 - 6.4 — walker correctness — **2, 22.5**
-- 6.4a — minimum-1-minute clamp — **4.3, 22**
+- 6.4a — shared remark plugin array (parity with page pipeline) — **3, 4.3**
 - 6.5 — reading-time identity / fixture substrate — **6, 22**
+- 6.6 — rendered on index + post via shared formatter — **7, 11, 12**
 
 ### Req 7 (drafts)
 - 7.1 — `draft: true` field — **4.1**
+- 7.2 — env-var-driven inclusion across consumers — **7, 11, 12, 13, 14, 15**
 - 7.3 — env-var-scoping operator-error UX — **6.5, 7, 16**
 - 7.4 — preview-only no-index — **11, 16**
+- 7.5 — single `getPublishedPosts()` chokepoint — **7, 17**
 - 7.6 — call-time env read — **7, 22**
 - 7.7 — draft banner visibility — **10, 25**
-- 7.7a — site-wide preview robots header — **16**
+- 7.8 — `[DRAFT]` title prefix — **12, 25**
+- 7.9 — `dynamicParams=false` keeps drafts unreachable — **12**
+- 7.10 — threat model for preview-deploy drafts (documentation AC — verified by 16's preview robots header + 25's draft-visibility test) — **16, 25**
+- 7.11 — noindex posture (site-wide preview header + per-page draft directive) — **11, 12, 16, 25**
 - 7.12 — Vercel-side guard throw — **6.5, 7, 16**
 - 7.13 — fixture-draft visibility on previews — **6, 25**
 - 7.14 — dual-build draft isolation in CI — **18, 20, 20.5**
@@ -559,34 +587,63 @@ Inverse mapping from `requirements.md` IDs → covering task(s). Closes r2 revie
 - 8.1 — date display formatting — **7, 11, 12**
 - 8.2 — `updated > date` badge — **7, 12, 22**
 - 8.3 — `updated <= date` no badge no failure — **7, 22**
+- 8.4 — no far-future `updated` warning (documentation-only constraint) — **7**
+- 8.5 — absent `updated` → no badge — **7, 12**
+- 8.6 — `en-CA` locale pin — **7**
 
 ### Req 9 (Shiki)
+- 9.1 — `rehype-pretty-code` wired after `rehype-slug` — **3**
 - 9.2 — explicit-override theme parity — **9, 23, 26**
 - 9.3 — dual-theme cascade — **9, 26**
 - 9.4 — unknown language fallback — **3 (prettyCodeOptions defaults)**
+- 9.5 — code-block surface + inline-code styling — **9**
 - 9.6 — token-driven background — **9**
+- 9.7 — token-color override contingency (documentation contingency; github-light/github-dark defaults verified by axe) — **9, 24**
+- 9.8 — copy-to-clipboard out of scope (documentation-only AC; deferred to blog-enhanced) — **9**
 
 ### Req 10 (typography for prose)
 - 10 — `prose prose-lg dark:prose-invert max-w-[75ch]` container — **12**
+- 10.1 — `@tailwindcss/typography` plugin registered — **1, 9**
+- 10.2 — `prose` + `dark:prose-invert` classes — **12**
+- 10.3 — prose container overrides — **9, 12**
+- 10.4 — light/dark contrast — **9, 24**
+- 10.5 — heading anchor IDs do not break typography — **12, 24**
 
 ### Req 11 (RSS feed)
+- 11.1 — `/feed.xml` route handler exists, force-static — **14**
+- 11.2 — `Content-Type: application/xml; charset=utf-8` — **14**
+- 11.3 — uses `feed` npm package, RSS 2.0 — **1, 14**
+- 11.4 — channel metadata composed via siteConfig — **5, 14**
 - 11.5 — `<channel>` required children — **14, 19**
+- 11.6 — full-content `content:encoded` (not just description) — **14**
 - 11.7 — body MDX rejection enforcement (markdown-only feed parity) — **4.2**
 - 11.7a — divergence-surface rejection visitor — **4.2**
 - 11.8 — URL absolutization — **2, 3**
+- 11.9 — Shiki-highlighted code in RSS body — **14**
 - 11.10 — CDATA-collision substitution — **4.4, 14**
 - 11.11 — bodyHtml ↔ page parity — **27**
+- 11.12 — CI feed-validation step — **19, 20**
 - 11.13 — empty-channel-safe — **14**
+- 11.14 — Atom/JSON Feed out of scope (documentation-only AC; RSS 2.0 only per spec) — **14**
 
 ### Req 12 (sitemap)
 - 12 — posts/tags/categories appended to sitemap — **15**
+- 12.1 — sitemap.ts enumerates posts + taxonomy URLs — **15**
+- 12.2 — sitemap `lastModified` per post + taxonomy — **15**
+- 12.3 — draft exclusion via `getPublishedPosts()` — **15**
+- 12.4 — sitemap.ts remains server-side build-time — **15**
 
 ### Req 13 (accessibility, theme, perf verification)
+- 13.1 — WCAG 2.1 AA contrast on text/links/tokens/borders — **24**
 - 13.2 — axe on representative routes × themes — **24**
+- 13.3 — keyboard-navigable tab order — **24**
 - 13.4 — touch-target sizing — **10**
 - 13.5 — Lighthouse ≥90 on four blog URLs — **21, 28**
 - 13.6 — manual theme review — **28**
 - 13.7 — no-JS theme rendering — **26**
+- 13.8 — `prefers-reduced-motion` respected (do-no-harm constraint; blog-core introduces no motion — verified at code review + axe pass) — **24**
 
 ### Coverage audit note
 This matrix is best-effort against the IDs present in `requirements.md`. Per r2 review, any requirement ID not appearing in this matrix is presumed uncovered — implementers MUST flag any such gap before marking Task 28 complete. Reviewers running the coverage audit should grep `requirements.md` for unlisted IDs and demand a task for each.
+
+The mechanical verifier `scripts/verify-requirements-coverage.mjs` (Task 28.5) is the structural defense — it enumerates every AC ID from `requirements.md` and fails CI when an ID is not cited above. Task 28 wires this verifier into its success criterion; the verifier MUST exit 0 before Task 28 can be marked complete.

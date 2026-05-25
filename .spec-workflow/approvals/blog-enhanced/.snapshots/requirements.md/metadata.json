@@ -1,0 +1,22 @@
+{
+  "filePath": ".spec-workflow/specs/blog-enhanced/requirements.md",
+  "currentVersion": 2,
+  "snapshots": [
+    {
+      "version": 1,
+      "filename": "snapshot-001.json",
+      "timestamp": "2026-05-20T18:15:02.738Z",
+      "trigger": "initial",
+      "approvalId": "approval_1779300902711_a7sh9j1ev",
+      "approvalTitle": "blog-enhanced requirements v1"
+    },
+    {
+      "version": 2,
+      "filename": "snapshot-002.json",
+      "timestamp": "2026-05-20T21:37:42.447Z",
+      "trigger": "approved",
+      "approvalId": "approval_1779309486664_rxipmpvtn",
+      "approvalTitle": "blog-enhanced requirements v4 (post-r3 adversarial, FINAL)"
+    }
+  ]
+}

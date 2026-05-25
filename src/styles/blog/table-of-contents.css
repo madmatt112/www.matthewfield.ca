@@ -1,0 +1,45 @@
+/* Slice: table-of-contents — owned by Task 18.6
+ *
+ * Flat <ol> rendered by <TableOfContents />. Entries carry a
+ * `data-depth` attribute (2 | 3); depth-3 entries receive a
+ * Tailwind `ml-4` utility on the component side AND this slice
+ * provides a CSS-only indentation rule so the indentation is
+ * resilient even if utility classes are purged. Link color uses
+ * --foreground / --muted-foreground tokens so the Playwright
+ * theme-parity assertion sees a real computed-color delta. */
+
+.table-of-contents {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--background);
+}
+
+.toc-list {
+  margin: 0;
+  padding: 0 0 0 1.25rem;
+  list-style: decimal;
+}
+
+.toc-entry {
+  margin: 0.25rem 0;
+  color: var(--foreground);
+}
+
+/* CSS-side indentation rule (mirrors the `ml-4` utility on depth-3
+ * entries). The component applies both so the visual indent holds
+ * regardless of Tailwind purge state. */
+.toc-entry[data-depth="3"] {
+  margin-left: 1rem;
+}
+
+.toc-link {
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.toc-link:hover {
+  color: var(--muted-foreground);
+  text-decoration: underline;
+}

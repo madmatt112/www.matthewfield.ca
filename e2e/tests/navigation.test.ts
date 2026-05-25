@@ -7,10 +7,13 @@ import { siteConfig } from "../../src/config/site";
 // phone-sized viewport representative of the target audience.
 const MOBILE_VIEWPORT = { width: 375, height: 667 };
 
-// /profile is no longer a placeholder — replaced by the professional-profile
-// spec (its h1 is the Velite-sourced headline, not the nav label). All other
-// nav targets still render the placeholder shell with `name === item.label`.
-const navItemsWithLabelH1 = siteConfig.navItems.filter((item) => item.href !== "/profile");
+// /profile and /blog are no longer placeholders — /profile is the
+// Velite-sourced professional-profile page, /blog is the live blog index
+// (blog-enhanced/blog-core specs). All other nav targets still render the
+// placeholder shell with `name === item.label`.
+const navItemsWithLabelH1 = siteConfig.navItems.filter(
+  (item) => item.href !== "/profile" && item.href !== "/blog",
+);
 
 test.describe("desktop navigation", () => {
   for (const item of siteConfig.navItems) {

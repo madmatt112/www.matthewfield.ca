@@ -1,0 +1,32 @@
+diff --git a/npm_dist/cjs/ui-core.cjs b/npm_dist/cjs/ui-core.cjs
+index 011700767899989f60c5e213d41cdfdd6c645cef..3477a7bc792ffab9c103178c464ec979840f5ef9 100644
+--- a/npm_dist/cjs/ui-core.cjs
++++ b/npm_dist/cjs/ui-core.cjs
+@@ -5930,7 +5930,8 @@ function instance4($$self, $$props, $$invalidate) {
+     if (!pagefind) {
+       let imported_pagefind;
+       try {
+-        imported_pagefind = await import(`${base_path}pagefind.js`);
++        const __pfUrl = `${base_path}pagefind.js`;
++        imported_pagefind = await import(/* webpackIgnore: true */ /* @vite-ignore */ /* turbopackIgnore: true */ __pfUrl);
+       } catch (e) {
+         console.error(e);
+         console.error([
+diff --git a/npm_dist/mjs/ui-core.mjs b/npm_dist/mjs/ui-core.mjs
+index 3157ce5ecb9a2464570d64111296ae63337aa938..085075287d05cf7685e139e437cded3dd866df13 100644
+--- a/npm_dist/mjs/ui-core.mjs
++++ b/npm_dist/mjs/ui-core.mjs
+@@ -5911,7 +5911,12 @@ function instance4($$self, $$props, $$invalidate) {
+     if (!pagefind) {
+       let imported_pagefind;
+       try {
+-        imported_pagefind = await import(`${base_path}pagefind.js`);
++        // Variable indirection prevents bundlers (Turbopack/Webpack/Vite)
++        // from statically analyzing this server-relative URL at build time.
++        // The runtime browser dynamic import resolves it against the page
++        // origin without invoking eval (CSP-safe).
++        const __pfUrl = `${base_path}pagefind.js`;
++        imported_pagefind = await import(/* webpackIgnore: true */ /* @vite-ignore */ /* turbopackIgnore: true */ __pfUrl);
+       } catch (e) {
+         console.error(e);
+         console.error([

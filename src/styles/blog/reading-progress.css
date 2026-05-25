@@ -1,0 +1,42 @@
+/* Slice: reading-progress — owned by Task 18.5
+ *
+ * Fixed 3px bar across the top of the viewport; fill width
+ * is set inline by the client component. Theme tokens
+ * (--reading-progress-fill) flip between light and dark, so
+ * the Playwright theme-parity assertion sees a real computed-
+ * color delta on the fill element. Reduced-motion swaps the
+ * transition duration to 0ms (Req 5.5). */
+
+:root {
+  --reading-progress-track: transparent;
+  --reading-progress-fill: oklch(0.55 0.2 240);
+  --reading-progress-transition: 100ms ease-out;
+}
+
+.dark {
+  --reading-progress-fill: oklch(0.7 0.16 240);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root,
+  .dark {
+    --reading-progress-transition: 0ms;
+  }
+}
+
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: var(--reading-progress-track);
+  z-index: 50;
+  pointer-events: none;
+}
+
+.reading-progress-fill {
+  height: 100%;
+  background-color: var(--reading-progress-fill);
+  transition: width var(--reading-progress-transition);
+}

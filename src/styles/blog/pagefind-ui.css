@@ -1,0 +1,50 @@
+/* Slice: pagefind-ui — owned by Task 18.9
+ *
+ * Theme-parity overrides for `@pagefind/default-ui`. The package ships its
+ * own CSS-variable surface (`--pagefind-ui-*`) with hardcoded light defaults
+ * baked into `node_modules/@pagefind/default-ui/css/ui.css` at `:root`:
+ *
+ *   --pagefind-ui-primary:    #393939;
+ *   --pagefind-ui-text:       #393939;
+ *   --pagefind-ui-background: #ffffff;
+ *   --pagefind-ui-border:     #eeeeee;
+ *   --pagefind-ui-tag:        #eeeeee;
+ *   --pagefind-ui-font:       system, -apple-system, …;
+ *
+ * We rebind those variables on the `.pagefind-ui` root that the package
+ * mounts onto, mapping them onto the site's shadcn/ui tokens (declared in
+ * src/styles/tokens.css). The package's own selectors consume the rebound
+ * values, so the search dialog inherits site theme parity in both light
+ * and dark without any per-class overrides on the package's internal
+ * `.svelte-*` hashed classes.
+ *
+ * Token map (per design.md "`.pagefind-ui` Tailwind/CSS overrides"):
+ *   --pagefind-ui-font            <- --font-sans (Tailwind font token)
+ *   --pagefind-ui-text            <- oklch(from --foreground l c h)
+ *   --pagefind-ui-background      <- --background
+ *   --pagefind-ui-border          <- --border
+ *   --pagefind-ui-primary         <- oklch(from --primary l c h)
+ *   --pagefind-ui-result-padding  <- 0.75rem
+ *
+ * Dark mode reuses the same mapping — the underlying `--foreground` /
+ * `--background` / `--border` / `--primary` already flip in tokens.css
+ * via the `.dark` class, so cascading them through here gives dark
+ * parity for free. A `.dark .pagefind-ui` reassertion of
+ * `--pagefind-ui-text` is included per the pinned design block.
+ *
+ * CSS-only — no JavaScript. Decoupled from the eight presentational
+ * components (18.1–18.8); Task 19 (`<SiteSearch />`) depends ONLY on
+ * this slice. */
+
+.pagefind-ui {
+  --pagefind-ui-font: var(--font-sans);
+  --pagefind-ui-text: oklch(from var(--foreground) l c h);
+  --pagefind-ui-background: var(--background);
+  --pagefind-ui-border: var(--border);
+  --pagefind-ui-primary: oklch(from var(--primary) l c h);
+  --pagefind-ui-result-padding: 0.75rem;
+}
+
+.dark .pagefind-ui {
+  --pagefind-ui-text: oklch(from var(--foreground) l c h);
+}

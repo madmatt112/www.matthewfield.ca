@@ -10,6 +10,20 @@
    take priority. Do not wrap this import in a @layer declaration. */
 @import "./tokens.css";
 
+/* Blog component slices — owned by Tasks 18.1-18.9.
+   Each slice file is independently editable so the nine 18.x sub-tasks
+   can land in parallel without globals.css merge conflicts. Listed in
+   alphabetical order so re-orderings are obvious in diff. */
+@import "./blog/copy-button.css";
+@import "./blog/footnotes.css";
+@import "./blog/pagefind-ui.css";
+@import "./blog/reading-progress.css";
+@import "./blog/related-posts.css";
+@import "./blog/series-badge.css";
+@import "./blog/series-navigator.css";
+@import "./blog/share-bar.css";
+@import "./blog/table-of-contents.css";
+
 /* Class-based dark mode: next-themes toggles the `dark` class on <html>;
    without this declaration Tailwind v4's `dark:` variant falls back to
    prefers-color-scheme and ignores the toggle. */
@@ -68,4 +82,62 @@ body {
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* Shiki dual-theme cascade (Req 9.2, 9.3, 9.5).
+   rehype-pretty-code with defaultColor:false emits per-span inline styles
+   like `--shiki-light: #abc; --shiki-dark: #def; --shiki-light-bg: #...;
+   --shiki-dark-bg: #...` and leaves color selection to consumer CSS.
+
+   PATCH NOTE (Task 28, 2026-05-20): a prior implementation defined a
+   `--shiki-active` shim variable at `:root` resolving to
+   `var(--shiki-light)`. That failed because `--shiki-light` is set
+   inline on each span — at `:root` it has no value, so the computed
+   `--shiki-active` was empty and spans fell through to inherited prose
+   colors. The fix binds `color` / `background-color` directly to the
+   per-theme variable on the consumer selector, where the inline value
+   is in scope.
+
+   Cascade contract:
+   - Default (no `.dark` / `.light`, no `prefers-color-scheme: dark`):
+     spans use `--shiki-light` (inline).
+   - `.dark` on <html>: explicit user choice — dark variant wins.
+   - `.light` on <html>: explicit user choice — light variant wins.
+   - prefers-color-scheme: dark + neither class set (no-JS /
+     pre-hydration): dark variant. The `:not(.light):not(.dark)` guard
+     ensures explicit user toggle beats OS preference.
+
+   Task 28 confirms the literal target-variable names `--shiki-light`
+   / `--shiki-dark` / `--shiki-light-bg` / `--shiki-dark-bg` against
+   the rendered `/blog/fixture-code` output. If rehype-pretty-code
+   emits different variable names, patch this file AND update Task 28's
+   re-run requirements so the regression check tracks the pin. */
+.prose [data-rehype-pretty-code-figure] pre,
+.prose [data-rehype-pretty-code-figure] code,
+.prose [data-rehype-pretty-code-figure] span,
+[data-rehype-pretty-code-figure] pre,
+[data-rehype-pretty-code-figure] code,
+[data-rehype-pretty-code-figure] span {
+  color: var(--shiki-light);
+  background-color: var(--shiki-light-bg);
+}
+.dark .prose [data-rehype-pretty-code-figure] pre,
+.dark .prose [data-rehype-pretty-code-figure] code,
+.dark .prose [data-rehype-pretty-code-figure] span,
+.dark [data-rehype-pretty-code-figure] pre,
+.dark [data-rehype-pretty-code-figure] code,
+.dark [data-rehype-pretty-code-figure] span {
+  color: var(--shiki-dark);
+  background-color: var(--shiki-dark-bg);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not(.light):not(.dark) .prose [data-rehype-pretty-code-figure] pre,
+  :root:not(.light):not(.dark) .prose [data-rehype-pretty-code-figure] code,
+  :root:not(.light):not(.dark) .prose [data-rehype-pretty-code-figure] span,
+  :root:not(.light):not(.dark) [data-rehype-pretty-code-figure] pre,
+  :root:not(.light):not(.dark) [data-rehype-pretty-code-figure] code,
+  :root:not(.light):not(.dark) [data-rehype-pretty-code-figure] span {
+    color: var(--shiki-dark);
+    background-color: var(--shiki-dark-bg);
+  }
 }

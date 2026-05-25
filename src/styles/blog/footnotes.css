@@ -1,0 +1,64 @@
+/* Slice: footnotes — owned by Task 18.8
+ *
+ * Styles the GFM `<section data-footnotes>` block emitted by `remark-gfm`
+ * (enabled in velite.config.ts via `sharedRemarkPlugins`). The emitted
+ * structure is:
+ *
+ *   <section data-footnotes class="footnotes">
+ *     <h2 class="sr-only" id="footnote-label">Footnotes</h2>
+ *     <ol>
+ *       <li id="user-content-fn-1">
+ *         <p>… <a href="#user-content-fnref-1" data-footnote-backref
+ *                aria-label="Back to reference 1"
+ *                class="data-footnote-backref">↩</a></p>
+ *       </li>
+ *     </ol>
+ *   </section>
+ *
+ * The visible separator (top border) sits above the section. The numbered
+ * list uses smaller body type. Back-reference arrow links inherit theme
+ * tokens so the Playwright theme-parity smoke sees a computed-color delta
+ * between light and dark. CSS-only — no JavaScript. */
+
+[data-footnotes] {
+  margin: 2.5rem 0 0 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+[data-footnotes] ol {
+  margin: 0;
+  padding-left: 1.5rem;
+  list-style: decimal;
+}
+
+[data-footnotes] li {
+  margin: 0.5rem 0;
+}
+
+[data-footnotes] li:target {
+  /* Subtle highlight when navigated to via [^N] reference. */
+  background-color: var(--muted);
+  border-radius: 0.25rem;
+}
+
+[data-footnotes] li > p {
+  margin: 0;
+}
+
+[data-footnotes] a[data-footnote-backref] {
+  margin-left: 0.25rem;
+  color: var(--muted-foreground);
+  text-decoration: none;
+  font-size: 0.9em;
+  line-height: 1;
+}
+
+[data-footnotes] a[data-footnote-backref]:hover,
+[data-footnotes] a[data-footnote-backref]:focus-visible {
+  color: var(--foreground);
+  text-decoration: underline;
+}

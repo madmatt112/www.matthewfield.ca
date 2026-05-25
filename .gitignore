@@ -44,9 +44,29 @@ next-env.d.ts
 # velite
 .velite/
 
+# pagefind index (built by `pnpm build:search`)
+public/pagefind/
+
 # playwright
 /test-results/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
 .spec-workflow/.cache/
+/.playwright-mcp/
+
+# lighthouse-ci report cache (written by `pnpm exec lhci autorun`)
+/.lighthouseci/
+
+# Headless Chrome under WSL+lhci leaks user-data dirs into the cwd using a
+# literal `C:\Users\...\AppData\Local\lighthouse.NNNNNN` path (the upstream
+# Lighthouse default on Windows, dispatched verbatim on Linux). The CI
+# config now pins --user-data-dir via chromeFlags to prevent new leaks;
+# this ignore catches any that slip through if the flag is dropped.
+/C:\\Users\\*
+
+# Claude Code local config
+.claude/
+
+# CI topology runtime state (written by scripts/verify-ci-topology.mjs)
+scripts/__ci-topology-state.txt

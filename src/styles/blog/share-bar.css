@@ -1,0 +1,51 @@
+/* Slice: share-bar — owned by Task 18.4
+ *
+ * Horizontal row of 44×44 (h-11 w-11) icon-only share targets: X,
+ * LinkedIn, mailto, plus the <CopyURLButton /> client island.
+ * Uses --foreground / --muted-foreground / --border tokens so the
+ * Playwright theme-parity assertion sees a real computed-color delta
+ * between light and dark themes. The 2.75rem × 2.75rem sizing locks
+ * in the 44 CSS px touch-target contract (Req 6.6). */
+.share-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.share-bar-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--background);
+  color: var(--muted-foreground);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+
+.share-bar-link:hover,
+.share-bar-link:focus-visible {
+  color: var(--foreground);
+  background-color: var(--muted);
+}
+
+.share-bar-copy[data-copy-state="copied"] {
+  color: var(--foreground);
+}
+
+.share-bar-copy[data-copy-state="failed"] {
+  color: var(--destructive, var(--foreground));
+}
+
+.share-bar-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}

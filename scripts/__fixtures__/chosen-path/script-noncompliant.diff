@@ -1,0 +1,13 @@
+diff --git a/velite.config.ts b/velite.config.ts
+index aaaaaaa..bbbbbbb 100644
+--- a/velite.config.ts
++++ b/velite.config.ts
+@@ -10,6 +10,12 @@ export default defineConfig({
+   collections: { posts },
++  prepare(data) {
++    // Wrong branch: SCRIPT was chosen but a collision-check clause was
++    // added to velite.config.ts. The script + package.json updates are
++    // also missing.
++    for (const p of data.posts) console.log(p.seriesOrder);
++  },
+ });

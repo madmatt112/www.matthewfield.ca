@@ -1,0 +1,56 @@
+---
+title: "Fixture: fixture-toc"
+description: "TOC fixture — exercises rehype-slug, multiple h2/h3 levels, and a duplicate heading for github-slugger collision-suffix coverage."
+date: "2026-01-04"
+tags: [fixture, toc-test]
+categories: [fixture]
+draft: true
+---
+
+{/* FIXTURE-NOTE: this fixture is referenced by the spec tests; coordinate edits accordingly. */}
+
+The table-of-contents extraction step has a few moving pieces worth pinning down with a deterministic fixture. Slug derivation runs through github-slugger, which is stateful per pass and appends a numeric suffix when a heading text collides with an earlier sibling. The rendered TOC should mirror those IDs exactly so anchor links land on the right section, and it should preserve heading order without flattening h3s into h2s.
+
+## Overview
+
+A short orientation paragraph so the first h2 has a body. The TOC fixture intentionally avoids reusing prose from the reading-time fixture — those two test surfaces should not coupling-fail together.
+
+### Why a dedicated fixture
+
+Separating the TOC fixture from the reading-time fixture keeps each Vitest assertion uncoupled from the other's prose. If a copywriting tweak ever needs to land on one, it should not ripple into the other's word count or heading layout.
+
+## Setup
+
+The first Setup heading. After github-slugger processing this becomes id `setup`. A subsequent duplicate `## Setup` lower down should resolve to `setup-1`.
+
+### Prerequisites
+
+A nested h3 under the first Setup. Confirms h3-under-h2 nesting flows through to the TOC tree.
+
+## Architecture
+
+A second top-level section. The TOC should list this in order between Setup and the next h2.
+
+### Components
+
+An h3 sibling chain under Architecture so the TOC has at least one branch with multiple children.
+
+### Data flow
+
+Second h3 under Architecture — kept short, the heading itself is what the assertion cares about.
+
+## Implementation
+
+Middle-of-document h2. The TOC integrity check walks the document top-to-bottom; this heading anchors the middle of that walk.
+
+## Testing
+
+Another h2 — purely structural. The assertion counts h2s and verifies ordering, not content.
+
+## Setup
+
+The duplicate Setup heading. github-slugger should emit `setup-1` here. The TOC entry text remains "Setup" but the anchor differs.
+
+## Conclusion
+
+A final h2 to keep the heading count at the documented minimum.

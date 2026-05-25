@@ -1,0 +1,47 @@
+---
+title: "Fixture: fixture-code"
+description: "Code-fixture used by Shiki dual-theme, body-parity, and absolutization tests."
+date: "2026-01-02"
+tags: [fixture]
+categories: [fixture]
+draft: true
+---
+
+{/* FIXTURE-NOTE: this fixture is referenced by the spec tests; coordinate edits accordingly. */}
+
+## Code fixture overview
+
+This fixture exercises Shiki dual-theme highlighting, URL absolutization, and heading-anchor parity. See the [reading-time fixture](/blog/fixture-reading-time) for the prose-substrate counterpart.
+
+### TypeScript sample
+
+The inline construct `const x = 1` is a one-line `code` span.
+
+```ts
+type Greeting = { kind: "hello"; name: string };
+
+function greet(g: Greeting): string {
+  return `${g.kind}, ${g.name}!`;
+}
+
+const out = greet({ kind: "hello", name: "fixture" });
+console.log(out);
+```
+
+### Shell sample
+
+```bash
+set -euo pipefail
+echo "running fixture-code smoke"
+ls -1 content/posts/ | grep '^fixture'
+```
+
+![Placeholder fixture image](./fixture-image.svg)
+
+## Setup
+
+First Setup heading — slugs to `setup` via rehype-slug.
+
+## Setup
+
+Duplicate Setup heading — github-slugger appends the collision suffix so this resolves to `setup-1`.

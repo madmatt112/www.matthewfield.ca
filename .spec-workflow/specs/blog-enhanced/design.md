@@ -163,7 +163,7 @@ The v1 design's structural decisions (Velite schema extensions, `getVisiblePubli
 - **`scripts/verify-ci-topology.mjs`**: extended to match the seven new step name literals in order.
 - **`scripts/verify-requirements-coverage.mjs`**: extended for the new requirement set (Reqs 0-13).
 - **`lighthouserc.js`**: gains `/blog/fixture-toc` URL and one `total-byte-weight` assertion.
-- **`package.json`**: gains `vercel` (exact-pinned), `pagefind` (exact-pinned), and `@pagefind/default-ui` (or chosen UI package — see Pagefind component decision below). Gains `pnpm build:search` script. **The `start` script keeps `--port 3013` literal** (see Port-constant decision below).
+- **`package.json`**: gains `vercel` (exact-pinned to `54.3.0`), `pagefind` (exact-pinned to `1.5.2`), and `@pagefind/default-ui` (exact-pinned to `1.5.2` — see Pagefind component decision below). Gains `pnpm build:search` script. **The `start` script keeps `--port 3013` literal** (see Port-constant decision below).
 - **`.gitignore`**: gains `public/pagefind/`.
 - **Dependabot**: a new `.github/dependabot.yml` (or existing config extended) routes `vercel` and `pagefind` version bumps to a SEPARATE category that is NOT auto-merged. Manual review required because minor-version bumps can change `--prebuilt` semantics or index format.
 
@@ -763,7 +763,7 @@ After the existing `"Verify production build (Build 2)"` step at `ci.yml:99`, in
 ```
 
 - **Step name match (Req 12.2)**: the literal step name is `Warn deploying without Pagefind` (no colon). The `verify-ci-topology.mjs` script uses literal-substring matching consistent with blog-core's pattern.
-- **`scripts/check-vercel-auto-deploy.mjs` behavior:** calls `GET https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID` with the Bearer token; inspects the `link` block's `productionBranch` and the `autoExposeSystemEnvs` / git-integration auto-deploy toggle (exact JSON field pinned during implementation against the current Vercel API response shape — the v9 endpoint is stable). Behavior:
+- **`scripts/check-vercel-auto-deploy.mjs` behavior:** calls `GET https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID` with the Bearer token; the pinned auto-deploy signal is the **presence of the top-level `project.link` object with a `link.type` string** (`"github"` / `"gitlab"` / `"bitbucket"`). When Vercel's dashboard disconnects the Git integration, `link` is absent (or null). The v9 project response has NO finer-grained "auto deploy on push" toggle field — Git-integration connection is the binary signal. If a future Vercel API revision introduces a per-toggle field (e.g. a `disabled` flag inside `link`), extend the check. Behavior:
   - If `MIGRATION_DEADLINE` is unset AND `DEPLOY_VIA_CI == 'true'`: exit non-zero with the diagnostic from Req 0.3 v4.
   - If `Date.now() <= Date.parse(MIGRATION_DEADLINE)` AND auto-deploys still enabled: print a `::warning::` annotation, exit 0.
   - If `Date.now() > Date.parse(MIGRATION_DEADLINE)` AND auto-deploys enabled: exit non-zero with the "migration grace period expired" diagnostic.
@@ -1434,6 +1434,28 @@ Static identifiers (not credentials). If the GitHub secrets are accidentally del
 | `MIGRATION_DEADLINE` | unset (forces operator to set) | Grace-period deadline for dual auto+CI deploy state | Extend by editing the value |
 
 All three are **variables**, not secrets (boolean toggles + a date; visibility in logs is acceptable). Created/edited via repo Settings → Secrets and variables → Actions → Variables tab.
+
+### Setting `PAGEFIND_ENABLED` and `DEPLOY_VIA_CI` repo variables
+
+This is the operator step that Tasks 23.1–23.3 + Task 14's warn step depend on. Walk-through:
+
+1. Open the repository on GitHub. Navigate **Settings → Secrets and variables → Actions**.
+2. Click the **Variables** tab (NOT the Secrets tab — the Pagefind kill-switch and the deploy-via-CI gate are non-sensitive booleans, visibility in logs is acceptable).
+3. Click **New repository variable**.
+4. For the Pagefind kill-switch: enter `PAGEFIND_ENABLED` in the **Name** field and `true` in the **Value** field. Click **Add variable**. (Default behavior — index built and shipped. Set value to `false` to disable Pagefind crawling AND the deploy step group's search verification.)
+5. For the CI deploy gate: click **New repository variable** again; enter `DEPLOY_VIA_CI` and **leave the value UNSET** (do not create the variable yet) until the Req 0.3 v4 migration cutover. Once you are ready to flip from Vercel auto-deploys to CI-driven deploys, create the variable with value `true`. To roll back, set value to `false` (or delete the variable).
+6. Confirm the resulting UI state matches the text diagram below.
+
+```text
+Repository variables (Settings → Secrets and variables → Actions → Variables)
+┌──────────────────────┬──────────┬──────────────────────────────────────────┐
+│ Name                 │ Value    │ Notes                                    │
+├──────────────────────┼──────────┼──────────────────────────────────────────┤
+│ PAGEFIND_ENABLED     │ true     │ Default. Set to false to kill-switch.    │
+│ DEPLOY_VIA_CI        │ (unset)  │ Create + set to true at cutover.         │
+│ MIGRATION_DEADLINE   │ (unset)  │ ISO date; required when DEPLOY_VIA_CI=true. │
+└──────────────────────┴──────────┴──────────────────────────────────────────┘
+```
 
 ## Non-Functional Requirements compliance
 

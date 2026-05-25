@@ -1,0 +1,52 @@
+/* Slice: series-navigator — owned by Task 18.2
+ *
+ * Above-prose nav listing all posts in a series. The current post
+ * is rendered as <span aria-current="page"> and styled bold + with
+ * a subtle background; other items render as <a> links. The
+ * primary/foreground/muted tokens flip between light and dark
+ * themes, so the Playwright theme-parity assertion sees a real
+ * computed-color delta. */
+.series-navigator {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.series-navigator-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--muted-foreground);
+}
+
+.series-navigator ol {
+  margin: 0;
+  padding-left: 1.25rem;
+  list-style-type: decimal;
+}
+
+.series-navigator li {
+  margin: 0.25rem 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.series-navigator a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.series-navigator a:hover {
+  color: var(--foreground);
+}
+
+.series-navigator [aria-current="page"] {
+  font-weight: 600;
+  color: var(--foreground);
+  text-decoration: none;
+}

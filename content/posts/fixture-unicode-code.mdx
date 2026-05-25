@@ -1,0 +1,19 @@
+---
+title: "Fixture: fixture-unicode-code"
+description: "Code fixture with non-ASCII content used by the safeBodyHtml / RSS strip tests."
+date: "2026-01-03"
+tags: [fixture]
+categories: [fixture]
+draft: true
+---
+
+{/* FIXTURE-NOTE: this fixture is referenced by velite-safe-body-html.test.ts; the non-ASCII payload below is load-bearing — do not strip the sparkle. */}
+
+## Unicode code fixture
+
+The block below contains a non-ASCII character (sparkle) so that a Unicode-naive
+strip in the Velite `safeBodyHtml` transform would be caught.
+
+```ts
+console.log("✨");
+```

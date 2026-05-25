@@ -1,0 +1,27 @@
+---
+title: "Fixture: fixture-search"
+description: "Search smoke-test fixture — published but hidden from lists; contains the canary phrase Pagefind indexes against."
+date: "2026-01-10"
+tags: [search-test]
+categories: [search-fixture]
+draft: false
+hiddenFromLists: true
+---
+
+{/* FIXTURE-NOTE: this fixture is referenced by the spec tests; coordinate edits accordingly. */}
+
+This page is a permanent fixture used by the site's search smoke test. It is published so the static build emits it, but hidden from every listing surface so it does not pollute the blog index, tag pages, RSS, or the sitemap reader's eye.
+
+## Canary phrase
+
+The literal token below is what the Pagefind smoke test greps for in the generated index.
+
+MATTHEWFIELD-SEARCH-SMOKE
+
+## Notes
+
+Only fixture maintainers should touch this file. The canary token is intentionally unique enough that no organic post would contain it by accident.
+
+### Why the page stays published
+
+If this fixture were a draft, the static build would omit it and the search index would never see the canary. Keeping it published while flagged `hiddenFromLists` gives the Pagefind crawl something to index without exposing the page to readers.

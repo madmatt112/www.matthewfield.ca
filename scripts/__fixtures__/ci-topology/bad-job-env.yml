@@ -1,0 +1,29 @@
+name: CI
+on:
+  push:
+    branches: [main]
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    env:
+      BLOG_INCLUDE_DRAFTS: "1"
+    steps:
+      - name: Verify CI topology
+        run: node scripts/verify-ci-topology.mjs
+      - name: Build 1 (with drafts)
+        run: pnpm build
+      - name: Touch Build 1 sentinel
+        run: touch .velite/.build1-sentinel
+      - name: Run e2e (Build 1)
+        run: pnpm test:e2e
+      - name: Validate feed (Build 1)
+        run: node scripts/validate-feed.mjs
+      - name: Clean for Build 2
+        if: always()
+        run: rm -rf .velite .next
+      - name: Build 2 (production-mode)
+        if: always()
+        run: pnpm build
+      - name: Verify production build (Build 2)
+        if: always()
+        run: node scripts/verify-production-build.mjs
