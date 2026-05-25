@@ -57,7 +57,7 @@
     "mdast-util-to-string": "^4.0.0",
     "node-html-parser": "7.1.0",
     "pagefind": "1.5.2",
-    "prettier": "^3.8.2",
+    "prettier": "^3.8.3",
     "reading-time": "^1.5.0",
     "rehype-pretty-code": "^0.14.3",
     "rehype-slug": "^6.0.0",
