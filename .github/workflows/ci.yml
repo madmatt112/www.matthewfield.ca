@@ -13,7 +13,7 @@ jobs:
     #
     # Build 1 and Build 2 MUST run as two sequential step sequences inside
     # this single job. Do NOT split into separate jobs (a job split with
-    # actions/cache@v4 would let Build 2 restore Build 1's .velite/ state,
+    # actions/cache@v5 would let Build 2 restore Build 1's .velite/ state,
     # defeating the Req 7.14 draft-isolation guarantee).
     #
     # BLOG_INCLUDE_DRAFTS=1 is set ONLY on the "Build 1 (with drafts)"
@@ -58,7 +58,7 @@ jobs:
 
       - name: Cache Playwright browsers
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
