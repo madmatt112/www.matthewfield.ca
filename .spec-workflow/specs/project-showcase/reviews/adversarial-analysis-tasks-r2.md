@@ -1,0 +1,103 @@
+# Adversarial Analysis — project-showcase/tasks.md (v2)
+
+Senior delivery lead review. Primary attack surface: atomicity, ordering, coverage.
+Document was rewritten post-r1: Tasks 8/28 split, Tasks 6+7 paired-merge, DAG diagram added, coverage matrix legend [I/V/P/D], skip-if-absent escapes for 25/26/27, type-correctness test for Req 1.9, etc. Most r1 findings are explicitly closed in the v2 revision history. I therefore concentrate on novel and compounding failure modes that the v2 rewrite either introduced or did not eliminate.
+
+---
+
+## Targets attacked
+
+### Target 1 — Paired-merge contract (Tasks 6+7) is policy without enforcement (**Compounding** — extends r1 Target 1)
+
+The v2 rewrite "closes" the r1 finding by bundling 6 and 7 into a paired-merge contract. Both task bodies pin: "may not land in separate commits/PRs; mark both [x] in the same log-implementation call." This is documentation, not enforcement.
+
+- Challenge the claim that a prose contract binds two checkboxes. `log-implementation` accepts whatever task IDs the implementer passes. Nothing prevents the implementer from logging only Task 6, opening a PR with only Task 6's test file, and watching CI go red on main. The "paired-merge" pin is a request, not a gate.
+- Stress-test the rollback path. If Task 7's `next.config.ts` edits land and the contract test (Task 6) is missing — or vice versa — Task 14 still passes (Task 14's chokepoint scanner does not assert Task 6's contract exists). The first signal of a broken pair is the next contributor running `pnpm test` cold and getting a failure they have to diagnose from scratch.
+- Stress-test the "PR with paired commits" allowance. The contract reads "same commit (or PR with paired commits)." Two commits in one PR can be reverted independently with `git revert <sha>`. A post-merge revert of Task 7's commit alone — for any reason — restores the "red test on main" failure mode the contract claims to prevent. The contract addresses merge-time but not revert-time.
+- Reject the framing that the paired-merge contract closes r1 Target 1. The r1 finding said "nothing in this document binds Task 6's commit to Task 7's commit." V2 added prose binding them. The mechanism remains: implementer discipline, not a tool gate. A pre-commit hook checking that both 6 and 7's artefacts are in the same change is the only true closure.
+- Compounding consequence: if a future spec adopts the same "paired-merge" pattern under the implementation log convention, the precedent is established that prose pins suffice. This propagates the fragility.
+
+### Target 2 — Task 14 has thirteen sub-cases and is now the heaviest task in the document (**Novel**)
+
+Task 14 (`src/lib/projects.test.ts`) accumulated all of v2's verification additions: split Case 5 into 5a/5b, new Case 12 (expectTypeOf for Req 1.9), new Case 13 (negative grep for Req 1.5). Total: 13 sub-cases (numbered 1–4, 5a, 5b, 6–13) covering 18 requirement IDs.
+
+- Challenge the claim that this is one task. By the v2 rewrite's own logic — Task 8 was split because it spanned 4 reviewer profiles and 16 requirement IDs — Task 14 now spans at least 4 reviewer profiles (filter-behavior QA, guard-throw QA, type-system author, AST/regex maintenance for canary sentinels) and 18 requirement IDs. The decomposition rule the v2 rewrite established for Task 8 demands the same treatment for Task 14, but Task 14 was left as one checkbox.
+- Stress-test the "atomic checkbox" reviewer experience. A reviewer reading Task 14's prompt now has to verify: sort logic, draft-filter behavior, guard-throw enumeration (looks-like-prod across 3 env states), guard-no-throw enumeration (3 env states), cache invalidation, cache memoization, scanner correctness against canary, regex sentinels against canary text, empty-state via `vi.mock`, allowlist self-test, three `expectTypeOf` assertions, AND a negative-grep against `velite.config.ts` for git-derived `updated`. Mark-as-done becomes hard to ground in concrete evidence.
+- Stress-test the cross-file coupling in Case 13. The negative-grep regex `/git[- ]?log|git\.log\(|simple-git|require\(['"]git['"]\)/` enumerates four bypass patterns. The regex misses: `child_process.execSync("git log ...")`, `import("simple-git")`, `import gitlog from "git-log-fast"` (different package name), `await import(["git", "log"].join("-"))` (computed string). A future contributor adding git-derived `updated` via any of these escapes the assertion. Case 13 is a fig-leaf verifier.
+- Stress-test Case 9's regex-sentinel maintenance. The case asserts "for each of the 17 documented shapes, a pinned regex matches its expected line." When Task 12's canary fixture is extended (e.g. when Velite adds a sub-path export and the scanner gains an 18th shape — Author doc §9 explicitly contemplates this upgrade path), Task 14 Case 9 must update in the same PR. There is no mechanism enforcing that pair-update beyond a one-line restriction in the prompt ("updating the canary requires updating the regex list in the same PR"). This is the same enforcement-by-prose pattern that r1 Target 1 flagged in 6+7.
+- Challenge the Case 12 `expectTypeOf` claim. `expectTypeOf<Project["cover"]>().toMatchTypeOf<{ src: string; width: number; height: number }>()` is a STRUCTURAL match — `toMatchTypeOf` (subtype) passes for any superset. If Velite changes `Image` to add a required `format: "png" | "jpg"` field, the assertion still passes because `{ src, width, height }` is still a subtype of the new shape. The assertion does not catch a Velite output-shape REGRESSION; it only catches a wholesale property removal. Use `toEqualTypeOf` (exact match) or accept the limited signal.
+
+### Target 3 — Skip-if-absent escapes (Tasks 25/26/27 + Task 9) introduce a silent-CI failure mode (**Novel**)
+
+V2 added `test.skip()` gates to Tasks 9, 25, 26, 27 keyed on `fs.existsSync(".velite/projects.json")`. Rationale: local `pnpm test:e2e` without prior `pnpm velite build` should not crash. CI always has the file after Build 1.
+
+- Challenge the assumption "CI always has the file after Build 1." If CI's build step fails (e.g. velite throws on the fixture cover), the test step still runs — and silently skips. The CI run reports "0 failures" because all four skip-keyed tests evaluated `existsSync(...) === false` and called `test.skip()`. The build failure becomes the only signal, but the test report does not show "expected tests missing." Result: a CI green-when-broken window.
+- Stress-test the dual-build CI integration. Build 1 produces `.velite/projects.json` and runs the four tests. Build 2 runs with `PROJECTS_INCLUDE_DRAFTS` unset — does it re-run velite, or reuse Build 1's `.velite/`? The dual-build topology from blog-core (cited in Component 9) re-runs `pnpm build` for each flavor; each flavor has its own `.velite/`. If Build 2's velite step is silently elided (e.g. due to a future caching optimization), Build 2's tests skip silently and the draft-handling assertions (Task 27's Build-2 branch) never execute.
+- Stress-test the test report's signal-to-noise. Vitest and Playwright both report skipped tests but the report aggregator (CI summary view, Slack notification, GitHub status check) typically collapses "skipped" into "passed." A reviewer scanning a PR for green CI does not see the skip. The intentional skip becomes operationally indistinguishable from "test ran and passed."
+- Reject the "mirrors Task 9's existing escape" rationale. Task 9 has the same flaw; v2 propagated it to three more tests. The fix is not more skips — it is a CI-only gate that fails-loud when `.velite/projects.json` is absent (e.g., a separate `pretest:ci` script that asserts the file exists), with the `test.skip()` reserved for local development behind an explicit `process.env.CI !== "true"` guard.
+
+### Target 4 — Task 28.4 cadence-tracker is a forward-looking commitment masquerading as a checkbox (**Compounding** — extends r1 Target 3 cadence)
+
+V2 split Task 28's cadence concern into 28.4. The task body offers three options (A: GitHub issue; B: calendar; C: a script). Marking [x] requires "the chosen mechanism exists" — a tracker creation event, not a tracker FIRING.
+
+- Challenge the claim that creating a tracker satisfies the cadence. The cadence is "Lighthouse re-runs after every Nth published project." Marking 28.4 [x] when the tracker exists asserts nothing about whether the tracker will fire when the 3rd published project lands — Option A (GitHub issue) has no built-in firing mechanism; Option B (calendar) depends on Matthew's calendar discipline; Option C (a script) only fires if it's wired into CI or a git hook, which the task body does NOT mandate. The r1 finding said "the [x] would be a lie about the future." V2's response is to ship a different lie: a [x] that asserts the tracker EXISTS but not that it WORKS.
+- Stress-test Option C's preconditions. The script "emits a warning if `count % 3 === 0` and the most recent commit doesn't touch `docs/projects-showcase-lighthouse-runs.md`." This requires (i) the script to be invoked — by what? a pre-commit hook? CI? a manual call? — and (ii) `docs/projects-showcase-lighthouse-runs.md` to exist or be created. Task 28.4 does not create that log file, does not wire the script into any hook, and does not specify the invocation path. Option C is sketched, not implementable as-written.
+- Stress-test the Req 12 link. Req 12 says the Lighthouse check re-runs after every Nth project; the v2 spec carries that forward. Task 28.4 marks [x] without committing to a specific cadence-firing mechanism — the implementer picks Option A/B/C at implementation time. This means the spec is shippable without resolving WHICH mechanism Req 12 is satisfied by. The matrix entry "12.0 (Lighthouse cadence pin) — 28.4 [I] (tracker)" credits an implementation but the implementation choice is unbounded.
+- Compounding: Option A (GitHub issue) is the "preferred" option but tying spec acceptance to a single GitHub issue introduces dependence on a service outside the repo. If the issue is closed or the repo is migrated, the cadence signal vanishes silently — same failure mode as the skip-if-absent escapes in Target 3.
+
+### Target 5 — Task 19's fixture is the single point of failure for six downstream tasks (**Novel** — sharpens r1 Target 4)
+
+Task 19 creates the fixture project (`content/projects/fixture-placeholder.mdx` + cover). Six tasks depend on its specific body contents: Task 9 (output shape), Task 25 (gallery E2E reads `.velite/projects.json`), Task 26 (layout measurements against wide media), Task 27 (draft handling), Task 28.1 (smoke), Task 28.2 (screenshot of wide media). r1 Target 4 surfaced this; v2 did not split the fixture.
+
+- Challenge the claim that one fixture serves six tasks well. Task 26 needs: a wide `<img>`, a wide `<table>`, a wide `<pre>`, an inline SVG with `viewBox`, AND a narrow `<p>` sibling. Task 28.2 needs the same. Task 25 needs reverse-chronological ordering — so it needs at least TWO entries on `/projects` to validate "reverse-chrono" (one entry trivially passes any sort). Task 19 ships ONE fixture project. Task 25's "reverse-chronological" assertion against a one-entry array is degenerate and the task body does not state how to handle this.
+- Stress-test the iframe-vs-svg deferred decision. Task 19's body says "if Playwright's headless browser blocks `about:blank` iframes by default, switch to a second SVG; document the choice in the implementation log." Task 26 references the same deferred choice with "or use a `<svg viewBox>` if iframe is impractical." Task 28.2 says nothing about it. If Task 19 ships with two SVGs (no iframe), Task 26's "iframe rendered height > 0 (aspect-ratio rule working)" assertion has no substrate — the rule is untested. The spec ships with the iframe carve-out in CSS (`.projects-article .prose iframe { aspect-ratio: 16/9; }`) verified by NOTHING.
+- Stress-test the fixture's `draft: true` choice. Task 27 needs the fixture to be a draft (to verify Build-2 404s). Task 28.2 needs to render the fixture (so Build-1 with `PROJECTS_INCLUDE_DRAFTS=1`). Task 25's "reverse-chronological grid" assertion under Build 2 (no drafts) has ZERO cards on `/projects` — the gallery shows the empty state, not a grid. Task 25 cannot meaningfully verify the gallery's reverse-chrono behavior in Build 2; it can only do so in Build 1. The task body does not partition assertions by build flavor for this case.
+- Challenge the "publish a second non-draft fixture" omission. Adding a second fixture with `draft: false` would: (i) give Task 25 a non-degenerate sort case in BOTH builds, (ii) verify Task 8.4's draft-warning counts (the count assertion in Task 28.1 expects 1 — would need to expect a specific value with both fixtures). The decision is invisible in v2; the tasks ship with a single-fixture assumption that breaks Task 25's sort claim under Build 2.
+
+### Target 6 — Tasks 17 + 18 are an implementation/test pair without a recursion stop (**Novel**)
+
+Task 17 authors `docs/projects-authoring.md` with 10 sections in the order Req 11.1 lists. Task 18's structural test asserts those 10 headings appear in document order. The structural test reads `docs/projects-authoring.md` via `fs.readFileSync` — it does NOT read `requirements.md`. The pinned heading strings live in BOTH `requirements.md` and `Task 17's task body`.
+
+- Challenge the bi-directional coupling. If Req 11.1's heading strings change (say, a future spec revision relaxes §3's wording), THREE places must update in lockstep: requirements.md, Task 17's task body (which lists the headings), AND Task 18's test (which encodes them as assertion strings). The spec has no mechanism — automated or prose — pinning these three to a single source of truth.
+- Stress-test the test's actual claim. Task 18 asserts each heading "appears as a `##` heading (exact-match)." If Task 17 writes the heading as `## §1 Quick start — copy this MDX file` (with em-dash) but Task 18's assertion uses an ASCII hyphen, the test fails on cosmetic punctuation. The task body does not pin the dash style. Author doc §6 mentions inline SVG `viewBox`; the doc's `<!--` HTML comments may or may not be there. The structural test is brittle by construction.
+- Reject the "documentation-only AC mechanically verifiable" framing. The matrix marks Req 11.3 as `[V]` because Task 18 verifies. But what Task 18 verifies is HEADING PRESENCE — a structural fact a one-line lint could also check. It does NOT verify the §6 / §9 v4 additions are present (Task 17's bullet list calls these out; Task 18 ignores them). If a future contributor strips the §9 "Documented bypasses" block, the test still passes. The verification claim is overstated.
+- Challenge the "Task 18 NOT scanning doc contents" pin (Component 13 v4 — Attack 8 doc-walk false-positive risk closure). The closure prevents scanning the doc for `#site/content` references that might false-positive. Fine. But the closure ALSO prevents any content assertions, leaving the test as a heading-presence smoke. The matrix should mark this as `[V — structural only]`, not the unqualified `[V]` shown.
+
+---
+
+## Top 5 risks / gaps
+
+1. **Paired-merge contract for 6+7 is policy-without-enforcement.** A revert of Task 7's commit alone restores the red-on-main window the contract claims to prevent. A pre-commit/PR-time check that asserts both task IDs are touched in the same change is the only true closure. As-is, v2 patched the prose but not the mechanism. (Compounding r1 Target 1.)
+
+2. **Task 14 is the new Task 8 — overloaded and under-decomposed.** 13 sub-cases, 4 reviewer profiles, 18 requirement IDs in one checkbox. The same decomposition rule that split Task 8 demands splitting Task 14. The Case 13 negative grep misses at least four bypass patterns (`execSync("git log ...")`, computed-string imports, etc.). The Case 12 `expectTypeOf` uses `toMatchTypeOf` (subtype) for cover, which silently passes through Velite supertype additions.
+
+3. **Skip-if-absent escapes create a CI-green-when-broken window.** If `pnpm velite build` silently fails in CI, the four `test.skip()`-keyed tests (Tasks 9, 25, 26, 27) skip clean and the CI summary collapses "skipped" into "passed." Move the existence-check to a fail-loud `pretest:ci` script; reserve `test.skip()` for `process.env.CI !== "true"`.
+
+4. **Task 28.4 cadence-tracker [x] does not commit to a firing mechanism.** Marking complete asserts a tracker exists, not that it will fire when the 3rd project lands. Option C (script) is sketched without a hook or invocation path. The implementer picks A/B/C at implementation time — Req 12's cadence is satisfied by an unbounded choice.
+
+5. **Task 19's single fixture cannot serve all six downstream tasks coherently.** Task 25's reverse-chrono assertion is degenerate with one entry. Task 26's iframe assertion has no substrate if the deferred iframe→SVG decision goes SVG. Task 28.2 renders only in Build 1. Add a second non-draft fixture (and update Task 28.1's draft-warning count from "1" to a calculated value).
+
+---
+
+## Top 3 conclusions to challenge or reverse
+
+1. **Reverse the "paired-merge contract" framing as r1 Target 1 closure.** The v2 revision history claims the contract closes r1 Target 1. It does not — it documents the requirement but does not enforce it. Either accept the residual risk explicitly (and remove the "closes r1 Target 1" claim from the revision history) or add a pre-commit hook / GitHub Action that fails when only one of {Task 6 test file, Task 7 next.config.ts edits} is present in a change.
+
+2. **Decompose Task 14 by reviewer profile, not by sub-case enumeration.** Three child tasks: (14.1) sort + filter + cache (Cases 1–7), (14.2) chokepoint scanner + canary regex (Cases 8–11), (14.3) type-system + negative-grep contracts (Cases 12–13). Each has a distinct reviewer profile and Case 13's bypass enumeration becomes its own focused review surface where the four missing patterns surface naturally.
+
+3. **Reverse the skip-if-absent pattern's expansion.** v2 propagated Task 9's existing escape to Tasks 25, 26, 27 — extending a flawed mechanism to three more places. Instead, gate the escape on `process.env.CI !== "true"` so CI fails loud while local development still works.
+
+---
+
+## What's missing — work before acting on this document
+
+- **A mechanical enforcement layer for the 6+7 paired-merge contract.** Either a pre-commit hook checking both files coexist in the staged diff, or a CI job that fails when only one is modified relative to `main`. Prose pins do not gate `git revert`.
+- **Decomposition of Task 14 into 14.1/14.2/14.3** following the same logic that split Task 8 in v2. Updated dependency edges + coverage list per child.
+- **Tightening of Case 13's negative-grep regex** to include `child_process.execSync(... git ...)`, computed-string `import(...)`, `simple-git` direct-call patterns, and the `git-log`/`git-log-fast`-family package names. Or — better — replace the negative grep with a positive type assertion that `updated` is a schema-derived field (no transform-side derivation).
+- **Tightening of Case 12's `toMatchTypeOf` to `toEqualTypeOf`** for `Project["cover"]`, OR a comment explaining the deliberate looseness with a pointer to Task 9's runtime shape assertion as the regression catcher.
+- **A CI-only fail-loud gate** for `.velite/projects.json` absence (e.g., `pretest:ci` step), with `test.skip()` reserved for local dev.
+- **A firing-mechanism commitment in Task 28.4.** Pick one of A/B/C and commit to it; do not defer to implementation. If Option C, specify the hook (pre-commit? GitHub Action on push to main?) and create the log file (`docs/projects-showcase-lighthouse-runs.md`) as a sibling task or a sub-step of 28.4.
+- **A second non-draft fixture project** to give Task 25's sort assertion a non-degenerate case in Build 2 AND to test the multi-draft-warning emit count in Task 28.1.
+- **A `[V — structural only]` or `[V — partial]` marker in the matrix legend** for Req 11.3 to reflect that Task 18 verifies heading presence, not content. Apply the same partial-V marker to any other AC where the verifier is mechanical-but-shallow.
+- **A single-source-of-truth pin for Req 11.1's heading strings.** Either Task 17 imports them from a constants file that Task 18's test also imports, or accept the triple-copy (requirements.md + Task 17 body + Task 18 test) and add an explicit cross-reference contract.
+- **A test that asserts the four `test.skip()` calls don't silently swallow CI failures.** A meta-test that runs in CI and asserts `test.skip()` was NOT invoked on the four affected suites — catches the green-when-broken regression.
