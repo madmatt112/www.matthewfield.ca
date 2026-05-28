@@ -779,7 +779,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Testing Strategy → E2E → Lighthouse manual; r1 Target 3 hard-gate closure_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: Senior engineer | Task: Run Lighthouse against both URLs and apply the hard gate. Mark in-progress; log-implementation when done. | Restrictions: HARD GATE — do NOT mark [x] if ANY of the 8 scores is `<90`. Opening a follow-up does NOT satisfy the gate. Document all 8 scores as a table in the implementation log. Cite Lighthouse JSON result IDs. | _Leverage: lighthouserc.js; Build 1 state | _Requirements: 12.0 | Success: All 8 scores ≥90; table in implementation log; JSON IDs cited. Then mark complete after logging._
 
-- [-] 28.4. Lighthouse re-verification cadence — script + log + CI-integrated step (v4 — hardened per r3 Target 3)
+- [x] 28.4. Lighthouse re-verification cadence — script + log + CI-integrated step (v4 — hardened per r3 Target 3)
   - Files: scripts/check-lighthouse-cadence.mjs, docs/projects-showcase-lighthouse-runs.md, .github/workflows/ci.yml (modify — add a cadence step at the end of the existing CI job; v4 drops the separate `lighthouse-cadence.yml`)
   - **v4 trigger change (closes r3 Target 3)**: v3's separate workflow firing on `push to main` paths fired on EVERY mdx edit (typos, body changes, slug renames), degrading the signal. v4 collapses the cadence check into the EXISTING CI workflow as a final step after Build 2, AND adds `workflow_dispatch` for on-demand checks. The cadence alert appears in the normal CI build run.
   - **Artefact 1 — `scripts/check-lighthouse-cadence.mjs`** (v4 — fixture-exclusion + cleaner count substrate):
