@@ -54,24 +54,25 @@ const currentCount = projects.filter(
   (p) => !p.draft && !/^fixture-/.test(p.slug),
 ).length;
 
-// Parse the most-recent run entry's published-count line from the runs log.
+// Parse the latest run entry's published-count line from the runs log.
 // Format pinned in docs/projects-showcase-lighthouse-runs.md:
 //   - Published projects at run time: N
-// We take the FIRST such line in the file (run entries are appended in
-// reverse-chronological order: Run 1 — launch is the latest entry until a
-// new run is added above it). To be robust to either ordering, we instead
-// take the LAST occurrence — runs appended at the bottom of the file are
-// then the latest. The runs-log heading discipline appends Run K above the
-// previous entry, so "first occurrence" is the latest. We match that style.
+// Ordering contract: new run entries are APPENDED AT THE BOTTOM of the file
+// (per the doc's instruction "a new run entry MUST be added below before the
+// build can go green again"). The parser therefore takes the LAST matching
+// line — using `match()` (which returns the first match) silently couples
+// lastCount to the launch entry forever and prevents the guard from clearing
+// after its first fire.
 let lastCount = 0;
 if (existsSync(RUNS_LOG)) {
   const logText = readFileSync(RUNS_LOG, "utf-8");
-  const match = logText.match(/^-\s*Published projects at run time:\s*(\d+)\s*$/m);
-  if (match) {
-    lastCount = Number.parseInt(match[1], 10);
+  const matches = [...logText.matchAll(/^-\s*Published projects at run time:\s*(\d+)\s*$/gm)];
+  const lastMatch = matches.at(-1);
+  if (lastMatch) {
+    lastCount = Number.parseInt(lastMatch[1], 10);
     if (!Number.isFinite(lastCount) || lastCount < 0) {
       fail(
-        `parsed invalid last_count (${match[1]}) from ${path.relative(repoRoot, RUNS_LOG)}.`,
+        `parsed invalid last_count (${lastMatch[1]}) from ${path.relative(repoRoot, RUNS_LOG)}.`,
       );
     }
   } else {
@@ -86,7 +87,12 @@ if (existsSync(RUNS_LOG)) {
 const delta = currentCount - lastCount;
 const nextCheckAt = lastCount + CADENCE_N;
 
-if (delta >= CADENCE_N && currentCount % CADENCE_N === 0) {
+// Trigger on delta alone — gating on absolute-count modulo silently skips
+// batch-adds that bypass a multiple (e.g. 4 projects added at once with
+// lastCount=0: delta=4 ≥ 3, but 4 % 3 === 1 → no trigger). Req 12.0 asks for
+// re-verification every CADENCE_N projects; `delta >= CADENCE_N` is the
+// faithful expression of that intent.
+if (delta >= CADENCE_N) {
   console.error(
     `[lighthouse-cadence] CADENCE TRIGGER — ${currentCount} published projects ` +
       `(fixtures excluded), last Lighthouse run at ${lastCount}. ` +
