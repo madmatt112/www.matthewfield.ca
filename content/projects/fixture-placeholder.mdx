@@ -1,0 +1,35 @@
+---
+title: "Fixture: project placeholder"
+description: "Draft fixture project exercising the wide-media substrate used by layout-measurement and reverse-chronological sort tests."
+summary: "Draft fixture with image, code, table, and SVG substrate."
+date: "2026-05-25"
+cover: "./fixture-placeholder-cover.png"
+coverAlt: "Steel-blue vertical gradient placeholder cover image used by the draft fixture project."
+tags: []
+status: "active"
+draft: true
+---
+
+## Overview
+
+This narrow paragraph exists so that layout-measurement tests have a non-wide
+content block to compare against the wide-media substrate below.
+
+## Wide-media substrate
+
+<img src="./fixture-placeholder-cover.png" alt="wide media test image" />
+
+```ts
+type Fixture = { kind: "placeholder"; wide: true };
+
+const sample: Fixture = { kind: "placeholder", wide: true };
+```
+
+| Column A | Column B |
+| -------- | -------- |
+| cell 1   | cell 2   |
+| cell 3   | cell 4   |
+
+<svg viewBox="0 0 100 50" width="100" height="50">
+  <rect x="0" y="0" width="100" height="50" fill="steelblue" />
+</svg>

@@ -19,5 +19,11 @@ export function checkVercelDraftGuard(): { kind: "production" | "preview" } | nu
   if (vercel !== "1") return null;
   if (env === "production" && drafts === "1") return { kind: "production" };
   if (env === "preview" && drafts !== "1") return { kind: "preview" };
+  const isLooksLikeProd =
+    drafts === "1" &&
+    env !== "production" &&
+    env !== "preview" &&
+    env !== "development";
+  if (isLooksLikeProd) return { kind: "production" };
   return null;
 }

@@ -97,4 +97,27 @@ describe("blog-errors", () => {
       expect(checkVercelDraftGuard()).toBeNull();
     });
   });
+
+  describe("checkVercelDraftGuard looks-like-prod backport (Task 4)", () => {
+    it("returns null when VERCEL=1, VERCEL_ENV=development, BLOG_INCLUDE_DRAFTS=1 (no-regression: development is exempt)", () => {
+      process.env.VERCEL = "1";
+      process.env.VERCEL_ENV = "development";
+      process.env.BLOG_INCLUDE_DRAFTS = "1";
+      expect(checkVercelDraftGuard()).toBeNull();
+    });
+
+    it("returns {kind: 'production'} when VERCEL=1, VERCEL_ENV='', BLOG_INCLUDE_DRAFTS=1 (looks-like-prod fires)", () => {
+      process.env.VERCEL = "1";
+      process.env.VERCEL_ENV = "";
+      process.env.BLOG_INCLUDE_DRAFTS = "1";
+      expect(checkVercelDraftGuard()).toEqual({ kind: "production" });
+    });
+
+    it("returns {kind: 'production'} when VERCEL=1, VERCEL_ENV='staging', BLOG_INCLUDE_DRAFTS=1 (looks-like-prod fires)", () => {
+      process.env.VERCEL = "1";
+      process.env.VERCEL_ENV = "staging";
+      process.env.BLOG_INCLUDE_DRAFTS = "1";
+      expect(checkVercelDraftGuard()).toEqual({ kind: "production" });
+    });
+  });
 });

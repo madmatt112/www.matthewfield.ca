@@ -1,0 +1,41 @@
+/*
+ * projects.css — anchored wide-media escape for project article content
+ *
+ * Containing-block math:
+ *   - `position: relative` on `.projects-article` makes it the containing
+ *     block for absolutely/relatively positioned descendants.
+ *   - Descendants with `position: relative` reference their static
+ *     position within `.projects-article`; `left: 50%` shifts each
+ *     element's left edge to the centerline of the article column.
+ *   - `transform: translateX(-50%)` then re-centers the element around
+ *     that centerline, so it grows symmetrically outward.
+ *   - `width: min(var(--outer-width), 100vw - 2rem)` clamps the resulting
+ *     width to the outer container's content width on `lg`+ viewports
+ *     (64rem cap), or to the viewport minus a 1rem gutter on each side
+ *     when the viewport is narrower. Below `lg`, the prose column is
+ *     already as wide as the outer container, so the "escape" is a
+ *     visual no-op.
+ *
+ * `<figure>` is deliberately excluded from the wide-media selector so
+ * image-with-caption renders as a wide image paired with a narrow
+ * caption inside the prose column.
+ */
+
+.projects-article {
+  --outer-width: 64rem;
+  position: relative;
+}
+.projects-article .prose :is(img, picture, video, pre, table, iframe, svg) {
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(var(--outer-width), 100vw - 2rem);
+  max-width: none;
+}
+.projects-article .prose iframe {
+  aspect-ratio: 16 / 9;
+  height: auto;
+}
+.projects-article .prose svg {
+  height: auto;
+}

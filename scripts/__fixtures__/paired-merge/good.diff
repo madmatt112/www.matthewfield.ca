@@ -1,0 +1,4 @@
+src/__tests__/next-config-imports.test.ts
+next.config.ts
+src/lib/project-errors.ts
+src/lib/blog-errors.ts

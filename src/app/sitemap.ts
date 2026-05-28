@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { siteConfig } from "@/config/site";
 import { getVisiblePublishedPosts } from "@/lib/blog";
 import { getAllTags, getAllCategories } from "@/lib/blog-taxonomy";
+import { getPublishedProjects } from "@/lib/projects";
 
 const routes = [
   "/",
@@ -57,5 +58,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: new Date(categoryMax.get(category) ?? new Date().toISOString()),
   }));
 
-  return [...staticEntries, ...postEntries, ...tagEntries, ...categoryEntries];
+  const projectEntries = getPublishedProjects().map((project) => ({
+    url: new URL(`/projects/${project.slug}`, siteConfig.url).toString(),
+    lastModified: new Date(project.updated ?? project.date),
+  }));
+
+  return [...staticEntries, ...postEntries, ...tagEntries, ...categoryEntries, ...projectEntries];
 }

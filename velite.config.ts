@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import fs from "node:fs";
 import path from "node:path";
 import remarkGfm from "remark-gfm";
 import remarkParse from "remark-parse";
@@ -7,12 +8,13 @@ import rehypeSlug from "rehype-slug";
 import rehypePrettyCode from "rehype-pretty-code";
 import { unified } from "unified";
 import { visit } from "unist-util-visit";
-import { defineConfig, defineCollection, s } from "velite";
+import { assets, defineConfig, defineCollection, s } from "velite";
 import { siteConfig } from "@/config/site";
 import { rehypeAbsolutizeUrls } from "./src/lib/build/rehype-absolutize-urls";
 import { rehypeCopyButton } from "./src/lib/build/rehype-copy-button";
 import { countWordsFromMdast } from "./src/lib/build/word-count";
 import { KNOWN_FIXTURE_SLUGS, derivePostSlug } from "./src/lib/build/derive-post-slug.mjs";
+import { checkProjectHeadings } from "./src/lib/build/check-project-headings";
 
 // Typed content collections for the site. Downstream specs extend this file
 // by adding more collections (blog, projects, etc.) following the `pages`
@@ -242,18 +244,175 @@ const posts = defineCollection({
     }),
 });
 
-// YAML collection pattern — uncomment and adapt when a downstream spec needs
-// structured data instead of MDX prose.
-//
-// const projects = defineCollection({
-//   name: "Project",
-//   pattern: "projects/*.yml",
-//   schema: s.object({
-//     name: s.string(),
-//     url: s.string().url(),
-//     description: s.string(),
-//   }),
-// });
+// Project link sub-schema (Component 1 v4 — Model 2). The `url` field is
+// validated in two stages per Req 5.2: (a) Zod's `.url()` parser, (b) a
+// `.refine()` step that re-parses with `new URL(url)` and restricts the
+// protocol to `http:` / `https:`. The `kind` enum's rejection message is
+// the exact string mandated by Req 5.1 — author-guidance contract.
+const linkSchema = s
+  .object({
+    kind: s
+      .enum(["demo", "repo", "docs", "package", "writeup"], {
+        errorMap: (issue, ctx) => {
+          if (issue.code === "invalid_enum_value") {
+            return {
+              message: `links[<i>].kind '${String(issue.received)}' is not in {demo,repo,docs,package,writeup}; omit 'kind' for a label-only entry with no icon.`,
+            };
+          }
+          return { message: ctx.defaultError };
+        },
+      })
+      .optional(),
+    label: s.string().min(1).max(60),
+    url: s
+      .string()
+      .url()
+      .refine(
+        (value) => {
+          try {
+            const parsed = new URL(value);
+            return parsed.protocol === "http:" || parsed.protocol === "https:";
+          } catch {
+            return false;
+          }
+        },
+        { message: "url must use http: or https: protocol" },
+      ),
+  })
+  .strict();
+
+// `projects` collection (Component 1 v4). Defined here but NOT yet registered
+// in `defineConfig` — Task 8.4 registers after the transform chain in
+// Tasks 8.2/8.3/8.4 is complete. Transform body is identity-only at this
+// stage; later tasks extend the pipeline.
+const projects = defineCollection({
+  name: "Project",
+  pattern: "projects/*.mdx",
+  schema: s
+    .object({
+      title: s.string().min(1).max(120),
+      description: s.string().min(50).max(160),
+      summary: s.string().min(30).max(140),
+      date: s.isodate(),
+      cover: s.image(),
+      coverAlt: s.string().min(1).max(250),
+      tags: s.array(s.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)).max(8).default([]),
+      status: s.enum(["active", "archived", "concept"]).default("active"),
+      ogImage: s.image().optional(),
+      updated: s.isodate().optional(),
+      draft: s.boolean().default(false),
+      slug: s.path(),
+      featured: s.boolean().default(false),
+      links: s.array(linkSchema).max(6).optional(),
+      body: s.mdx(),
+    })
+    .strict()
+    .transform((data, { meta }) => {
+      // Component 1 v4 — transform pipeline steps 1-4. Steps 5 (heading hygiene)
+      // and 6 (draft-warning emit) are added by Tasks 8.3 and 8.4 respectively.
+      const fileRel = `content/projects/${path.basename(meta.path)}`;
+
+      // Step 1 — Strip `projects/` prefix from slug (and trailing `/index.mdx`
+      // or `.mdx`). Mirrors the `pages` collection's slug-strip pattern.
+      const slug = data.slug
+        .replace(/^projects\//, "")
+        .replace(/\/index\.mdx$/, "")
+        .replace(/\.mdx$/, "");
+
+      // Step 2 — Cover validation. Velite has already resolved data.cover into
+      // its Image shape ({ src, width, height, ... }). Map the public src back
+      // to the on-disk source path via velite's `assets` Map (key is the
+      // hashed filename portion, value is the absolute source path).
+      const COVER_WARN_BYTES = 500 * 1024; // 500 KB soft warning
+      const COVER_FAIL_BYTES = 1024 * 1024; // 1 MB hard fail
+      const COVER_MIN_WIDTH = 1200;
+      const COVER_MIN_HEIGHT = 800;
+
+      const coverAssetKey = data.cover.src.replace(/^\/static\//, "");
+      const coverDiskPath = assets.get(coverAssetKey);
+      if (coverDiskPath == null) {
+        throw new Error(
+          `[velite/projects] ${fileRel}: cover-asset-unresolved — could not map ${data.cover.src} to an on-disk path via velite's assets map for slug '${slug}'`,
+        );
+      }
+      const coverSize = fs.statSync(coverDiskPath).size;
+      if (coverSize >= COVER_FAIL_BYTES) {
+        throw new Error(
+          `[velite/projects] ${fileRel}: cover-too-large — '${slug}' cover is ${coverSize} bytes (>= ${COVER_FAIL_BYTES} byte hard-fail threshold)`,
+        );
+      }
+      if (coverSize >= COVER_WARN_BYTES) {
+        console.warn(
+          `[velite/projects] ${fileRel}: cover-large — '${slug}' cover is ${coverSize} bytes (>= ${COVER_WARN_BYTES} byte soft-warn threshold)`,
+        );
+      }
+      if (data.cover.width < COVER_MIN_WIDTH || data.cover.height < COVER_MIN_HEIGHT) {
+        throw new Error(
+          `[velite/projects] ${fileRel}: cover-too-small — '${slug}' cover is ${data.cover.width}x${data.cover.height} (< required ${COVER_MIN_WIDTH}x${COVER_MIN_HEIGHT})`,
+        );
+      }
+
+      // Step 3 — ogImage validation (when present). Width >= 1200 px; aspect in
+      // [1.72, 2.10]. When absent for a non-draft project, emit an INFO log
+      // naming the slug and stating the site-default fallback applies.
+      const OG_MIN_WIDTH = 1200;
+      const OG_ASPECT_MIN = 1.72;
+      const OG_ASPECT_MAX = 2.1;
+      if (data.ogImage != null) {
+        if (data.ogImage.width < OG_MIN_WIDTH) {
+          throw new Error(
+            `[velite/projects] ${fileRel}: ogImage-too-narrow — '${slug}' ogImage is ${data.ogImage.width}px wide (< required ${OG_MIN_WIDTH}px)`,
+          );
+        }
+        const aspect = data.ogImage.width / data.ogImage.height;
+        if (aspect < OG_ASPECT_MIN || aspect > OG_ASPECT_MAX) {
+          throw new Error(
+            `[velite/projects] ${fileRel}: ogImage-bad-aspect — '${slug}' ogImage aspect ratio ${aspect.toFixed(3)} (${data.ogImage.width}x${data.ogImage.height}) is outside the required [${OG_ASPECT_MIN}, ${OG_ASPECT_MAX}] range`,
+          );
+        }
+      } else if (data.draft !== true) {
+        console.info(
+          `[velite/projects] ${fileRel}: ogImage absent for non-draft project '${slug}' — site-default OG image fallback applies`,
+        );
+      }
+
+      // Step 4 — Links uniqueness per recognized `kind`. linkSchema already
+      // validates each entry; this check enforces at most one entry per kind
+      // across the array. Entries with no `kind` (label-only) are exempt.
+      if (data.links != null) {
+        const seenKinds = new Set<string>();
+        for (const link of data.links) {
+          if (link.kind == null) continue;
+          if (seenKinds.has(link.kind)) {
+            throw new Error(
+              `[velite/projects] ${fileRel}: links-duplicate-kind — '${slug}' has more than one link with kind '${link.kind}'; each recognized kind may appear at most once`,
+            );
+          }
+          seenKinds.add(link.kind);
+        }
+      }
+
+      // Step 5 — Heading hygiene (Component 2 v4 / Reqs 6.9.a/6.9.b/6.9.c).
+      // AST-only walk via remark-parse + remark-gfm + remark-mdx; rejects
+      // h1 (mdast + mdxJsx), depth >= 4 unless PROJECTS_ALLOW_H4=1, and
+      // enforces h2-first + no-deeper-level-skip on the mdast heading
+      // sequence. Throws ProjectHeadingHygieneError on failure.
+      checkProjectHeadings({ content: meta.content ?? "", path: fileRel });
+
+      // Step 6 — Draft-warning emit (Risk 3 reversal).
+      // Single-process pin: velite runs once per build in one Node process; one emit per draft
+      // per build is sufficient. If a future velite upgrade introduces worker-thread isolation
+      // for transforms, this pin breaks silently (each worker emits its own warning per draft).
+      // Rollback signal: the upgrade-gate test at src/__tests__/velite-output-shape.test.ts
+      // (Task 9) plus the integration assertion in Task 28.1 will detect the regression —
+      // count of emitted warnings will exceed the count of draft fixtures.
+      if (data.draft === true && process.env.PROJECTS_INCLUDE_DRAFTS === "1") {
+        console.error(`[velite/projects] PROJECTS_INCLUDE_DRAFTS=1 — including draft project: ${slug}`);
+      }
+
+      return { ...data, slug };
+    }),
+});
 
 export default defineConfig({
   root: "content",
@@ -263,7 +422,7 @@ export default defineConfig({
     base: "/static/",
     clean: true,
   },
-  collections: { pages, profile, posts },
+  collections: { pages, profile, posts, projects },
   mdx: {
     remarkPlugins: sharedRemarkPlugins,
     rehypePlugins: sharedRehypePlugins,

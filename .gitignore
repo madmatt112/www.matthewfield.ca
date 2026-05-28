@@ -70,3 +70,4 @@ public/pagefind/
 
 # CI topology runtime state (written by scripts/verify-ci-topology.mjs)
 scripts/__ci-topology-state.txt
+.codeindex/

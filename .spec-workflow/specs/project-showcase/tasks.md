@@ -72,7 +72,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
 
 ---
 
-- [ ] 1. Pin Velite with exact-patch operator in package.json
+- [x] 1. Pin Velite with exact-patch operator in package.json
   - File: package.json
   - Locate the existing `velite` entry under `dependencies` (added by blog-core's task 1). Rewrite the version specifier as an EXACT patch version (no `^`, no `~`, no `*`, no range). The literal patch version is resolved at implementation time against the latest published `0.3.x` patch; record the resolved string in the implementation log.
   - Do NOT add a `pnpm` block / `pnpm.overrides` / `overrides`. The exact-patch pin in `dependencies` plus the committed `pnpm-lock.yaml` plus CI's `pnpm install --frozen-lockfile` IS the enforcement (Design Component 17 v4 — Risk 2 reversal).
@@ -84,7 +84,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 17 v4; Steering "Velite API verification" → Version pin (v4 — simplified)_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: Build/DevOps engineer with pnpm familiarity | Task: Convert the existing `velite` dependency specifier to an exact patch version (no caret/tilde/range). Resolve the literal at the latest published `0.3.x` patch at implementation time. Do NOT add a `pnpm` / `pnpm.overrides` block. Run `pnpm install`. Mark in-progress before starting; call log-implementation when done. | Restrictions: Exact-patch operator only. No range/caret/tilde. No overrides block. Do not modify other dependencies' specifiers. | _Leverage: existing package.json | _Requirements: 1.11 | Success: `grep -E '"velite":\s*"[0-9]+\.[0-9]+\.[0-9]+"' package.json` matches (no `^`/`~`); `pnpm install --frozen-lockfile` succeeds; lockfile commit reflects the pin. Then mark complete after logging._
 
-- [ ] 2. Create `src/lib/format-date.ts` (shared formatter)
+- [x] 2. Create `src/lib/format-date.ts` (shared formatter)
   - File: src/lib/format-date.ts
   - Export a single helper:
     ```ts
@@ -103,7 +103,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 4 v4_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: TypeScript developer | Task: Create the shared formatter module. Replace the inline `postDateFormatter` in `src/lib/blog.ts` with `export const formatPostDate = formatContentDate;` re-exported from this module (Task 3 finishes that step — do NOT touch blog.ts in this task beyond a no-op import sketch if useful, the migration is Task 3's body). Mark in-progress; log-implementation when done. | Restrictions: One `Intl.DateTimeFormat` instance at module scope. Locale pinned to `en-CA`. No timezone option (en-CA default is UTC-correct for ISO date strings). Function shape `(iso: string) => { datetime: string; display: string }` exactly. | _Leverage: existing en-CA formatter pattern in blog.ts | _Requirements: 9.1, 9.2, 9.3, 9.4 | Success: Module type-checks; both `datetime` and `display` are strings; calling with a valid ISO date produces a human-readable `display` and an unchanged `datetime`. Then mark complete after logging._
 
-- [ ] 3. Migrate `src/lib/blog.ts` to consume the shared formatter
+- [x] 3. Migrate `src/lib/blog.ts` to consume the shared formatter
   - File: src/lib/blog.ts (modify existing)
   - Replace the existing module-scope `postDateFormatter` constant + `formatPostDate` function literal with:
     ```ts
@@ -119,7 +119,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 4 v4 — "Migration" pin_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: TypeScript developer | Task: Migrate blog.ts to re-export `formatContentDate` as `formatPostDate`. Mark in-progress; log-implementation when done. | Restrictions: `export const formatPostDate = formatContentDate;` exactly — no wrapper function. Remove the now-dead `postDateFormatter` constant. Do not modify other exports. Other consumers of `formatPostDate` (e.g. PostCard) must continue to type-check unchanged. | _Leverage: format-date.ts | _Requirements: 9.2 | Success: `pnpm typecheck` passes; `formatPostDate === formatContentDate` holds in a manual REPL probe; existing blog tests still pass. Then mark complete after logging._
 
-- [ ] 4. Backport looks-like-prod narrowing to `src/lib/blog-errors.ts`
+- [x] 4. Backport looks-like-prod narrowing to `src/lib/blog-errors.ts`
   - File: src/lib/blog-errors.ts (modify existing)
   - Bring `checkVercelDraftGuard` in line with the narrowed predicate from Component 5:
     - Existing behaviour: production-with-drafts and preview-without-drafts return discriminators; everything else returns `null`. (Verify against current source.)
@@ -133,7 +133,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 5 logic block; "Modified library module" in Project Structure_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: TypeScript developer | Task: Add the looks-like-prod narrowing branch to blog-errors's checkVercelDraftGuard. Mark in-progress; log-implementation when done. | Restrictions: Do not change the production or preview branches' return shapes. The new branch returns `{ kind: "production" }`. `VERCEL_ENV === "development"` with drafts MUST NOT trigger any throw — narrowing explicitly excludes that env. Read env vars at call time only — no module-top-level reads. | _Leverage: existing blog-errors.ts | _Requirements: 7.3 | Success: A test (Task 15) verifies the four guard branches AND that `VERCEL_ENV=development + BLOG_INCLUDE_DRAFTS=1` returns null (no throw). Then mark complete after logging._
 
-- [ ] 5. Create `src/lib/project-errors.ts` (draft-leak guard)
+- [x] 5. Create `src/lib/project-errors.ts` (draft-leak guard)
   - File: src/lib/project-errors.ts
   - Exported surface (verbatim names):
     - `PROJECTS_DRAFT_FLAG_VAR_NAME = "PROJECTS_INCLUDE_DRAFTS"` (string constant)
@@ -149,7 +149,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 5 v4_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: TypeScript developer with operational-UX awareness | Task: Create `src/lib/project-errors.ts` per the v4 design — three constants + the helper. Mark in-progress; log-implementation when done. | Restrictions: NO env reads at module top-level — helper reads at call time. Constants are plain strings; messages are multi-line template literals with NO leading whitespace per line. Helper is REQUIRED (Tasks 7 and 10 import it). Looks-like-prod branch excludes `development` env. | _Leverage: pattern from src/lib/blog-errors.ts | _Requirements: 7.3, 7.6.b, 7.6.c, 7.6.d | Success: All four exports present; helper truth table verifiable manually (Task 14 automates this). Then mark complete after logging._
 
-- [ ] 6. Add `src/__tests__/next-config-imports.test.ts` (contract test) — **paired-merge with Task 7**
+- [x] 6. Add `src/__tests__/next-config-imports.test.ts` (contract test) — **paired-merge with Task 7**
   - File: src/__tests__/next-config-imports.test.ts
   - **PAIRED-MERGE CONTRACT (v2 — closes r1 Target 1)**: Tasks 6 and 7 MUST land in the **same commit (or PR with paired commits)**. The contract test asserts the import surface Task 7 wires up — neither task is mergeable without the other present. Implementation log workflow: implement Task 7's `next.config.ts` edits first locally, then add this test, then commit BOTH changes (and any required project-errors / blog-errors edits from Tasks 4, 5 if not yet on main) in a single commit. Mark BOTH tasks [x] in the same `log-implementation` call. Rationale: a red test on main between merges poisons `git bisect` and gives a false signal to anyone running the suite in that window. Either-task-without-the-other reverts to a coherent state; a half-landed pair does not.
   - Vitest suite asserting (per Component 15 v4 — new test):
@@ -165,7 +165,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 15 v4 — new contract test; r1 Target 1 closure_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: QA/Vitest engineer | Task: Implement the contract test per the design as part of the paired-merge with Task 7. Mark in-progress; log-implementation when done — BOTH 6 and 7 marked [x] in the same log call. | Restrictions: Use dynamic `await import()` of the next.config module — NOT `require`. Verify `process.env.VITEST === "true"` as an explicit precondition. Assert `mod.default` is defined (Next config is the default export). All three names from each error module asserted by `typeof` (function vs. string). Do NOT commit this test without Task 7's `next.config.ts` edits in the same commit/PR. | _Leverage: vitest globals; existing test config | _Requirements: 7.4, 7.3 | Success: Tests pass on the paired-merge commit; manually breaking either error module's export name (e.g. renaming `PROJECTS_DRAFT_LEAK_GUARD_MSG_PRODUCTION`) fails the relevant assertion with a clean diagnostic. Then mark BOTH 6 and 7 complete after logging._
 
-- [ ] 7. Extend `next.config.ts` — DRY `runDraftGuard` + VITEST gate + projects guard + `console.error` — **paired-merge with Task 6**
+- [x] 7. Extend `next.config.ts` — DRY `runDraftGuard` + VITEST gate + projects guard + `console.error` — **paired-merge with Task 6**
   - File: next.config.ts (modify existing)
   - **PAIRED-MERGE CONTRACT (v2 — closes r1 Target 1)**: Tasks 6 and 7 MUST land in the **same commit (or PR with paired commits)**. See Task 6's contract block for full rationale. Mark BOTH tasks [x] in the same `log-implementation` call.
   - Imports added at the top (Component 15 v4 snippet — verbatim):
@@ -205,7 +205,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 15 v4 — top-level wiring + DRY helper + console.error; r1 Target 1 closure_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: Next.js platform engineer | Task: Extend next.config.ts per Component 15 v4. Mark in-progress; log-implementation when done. | Restrictions: VITEST gate is a single module-level constant — read once, no per-invocation re-read. `runDraftGuard` is the ONLY emit/exit path — no inline `process.stderr.write` or `process.exit(1)` outside the helper. Both guards invoked in the same module-body position. Imports go at the top BEFORE the existing config-default export. | _Leverage: existing next.config.ts; src/lib/blog-errors.ts; src/lib/project-errors.ts | _Requirements: 7.2.b, 7.3 | Success: Task 6's contract test passes; `pnpm typecheck` clean; a deliberate `VERCEL=1 + VERCEL_ENV=production + PROJECTS_INCLUDE_DRAFTS=1` invocation under non-test env writes the named-message to stderr and exits 1. Then mark complete after logging._
 
-- [ ] 6.5. Implement `scripts/verify-paired-merge.mjs` + wire into CI — mechanical enforcement of the 6+7 paired-merge contract (v4 — hardened per r3 Target 1)
+- [x] 6.5. Implement `scripts/verify-paired-merge.mjs` + wire into CI — mechanical enforcement of the 6+7 paired-merge contract (v4 — hardened per r3 Target 1)
   - Files: scripts/verify-paired-merge.mjs, scripts/verify-paired-merge.test.mjs, scripts/__fixtures__/paired-merge/{good,bad-only-test,bad-only-config,bad-only-project-errors,bad-only-blog-errors,good-revert,bad-revert-partial}.diff, .github/workflows/ci.yml (modify — add a `verify-paired-merge` step)
   - Closes **r2 Target 1** (paired-merge prose-without-enforcement) with a true tool gate AND addresses **r3 Target 1** by extending the tracked SET to include `blog-errors.ts`, handling revert-shaped HEAD commits, naming all missing paths in diagnostics, and pinning event-trigger semantics.
   - **Script logic** (CI-side, fail-loud):
@@ -232,7 +232,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: r3 Target 1 closure_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: CI tooling engineer | Task: Implement the v4 paired-merge verifier + seven-fixture self-test suite + CI wiring per r3 Target 1 closure. Mark in-progress; log-implementation when done. | Restrictions: NO external dependencies beyond Node built-ins + `git` subprocess. Tracked SET has FOUR files (v4). Pair rule is all-or-none across the four. Revert-shape detection: HEAD message starts with `Revert ` (with quote-tolerance). Diagnostic names ACTUALLY MISSING files (computed from diff ∩ tracked-set), NOT a hard-coded subset. Step name `"Verify paired-merge for 6+7"` MUST appear in ci.yml verbatim. Banner comment documents merge-queue / squash-merge semantics. | _Leverage: scripts/ patterns from blog-core | _Requirements: 7.4 | Success: Verifier exits 0 against `good.diff`; exits non-zero against each of the six `bad-*.diff` / `good-revert.diff` fixtures with diagnostics naming the actually-missing paths; CI step is present in ci.yml. Then mark complete after logging._
 
-- [ ] 8.1. Add the `projects` Velite collection — schema + `linkSchema` + `.strict()`
+- [x] 8.1. Add the `projects` Velite collection — schema + `linkSchema` + `.strict()`
   - File: velite.config.ts (modify existing)
   - Define `projects` collection with `pattern: "projects/*.mdx"`. Schema per Component 1 v4 verbatim:
     - `title` (1–120), `description` (50–160), `summary` (30–140), `date` (`s.isodate()`), `cover` (`s.image()`), `coverAlt` (1–250), `tags` (array of kebab-slug strings, max 8, default `[]`), `status` (enum default `active`), `ogImage` optional, `updated` optional ISO date, `draft` boolean default `false`, `slug` from `s.path()`, `featured` boolean default `false`, `links` array of `linkSchema` max 6 optional, `body` from `s.mdx()`.
@@ -247,7 +247,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 1 v4 — schema block_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: Velite/Zod schema engineer | Task: Add the projects collection schema (no transform body beyond identity). Mark in-progress; log-implementation when done. | Restrictions: `.strict()` mandatory. Exact Req 5.1 error-message string for `kind` violations. Do NOT register in `defineConfig` yet — 8.4 registers after transform chain is complete. | _Leverage: posts collection schema pattern | _Requirements: 1.1, 1.2, 1.3, 1.4, 1.6, 1.7, 5.1, 5.2, 5.8 | Success: Schema compiles; strict mode rejects unknown frontmatter keys (verifiable later by 8.2 fixture). Then mark complete._
 
-- [ ] 8.2. Implement the `projects` collection transform pipeline — slug strip + cover validation + ogImage validation + links uniqueness
+- [x] 8.2. Implement the `projects` collection transform pipeline — slug strip + cover validation + ogImage validation + links uniqueness
   - File: velite.config.ts (continue from 8.1)
   - Inside the `.transform((data, { meta }) => …)` callback, execute steps 1–4 from Component 1 v4 transform pipeline (step 5 — heading hygiene — lives in 8.3; step 6 — draft-warning emit — lives in 8.4):
     1. Strip `projects/` prefix from `slug` (and trailing `/index.mdx` / `.mdx`).
@@ -261,7 +261,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 1 v4 — Transform step 1–4_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: Velite plugin author | Task: Implement transform steps 1-4. Mark in-progress; log-implementation when done. | Restrictions: Steps run in the order listed. Cover validation uses Velite's resolved `Image` width/height + file-size lookup. ogImage info log uses `console.info` (NOT `console.error` — info, not warning). Links uniqueness check: at most one entry per recognized `kind`. | _Leverage: 8.1 schema | _Requirements: 1.4, 1.6, 3.1, 3.2, 5.1, 5.7 | Success: A fixture with a 500-byte cover fails the dim check; an 800 KB cover prints a soft warning; two `kind: "demo"` links fail. Then mark complete._
 
-- [ ] 8.3. Implement `checkProjectHeadings(meta)` heading-hygiene helper inside `velite.config.ts`
+- [x] 8.3. Implement `checkProjectHeadings(meta)` heading-hygiene helper inside `velite.config.ts`
   - File: velite.config.ts (continue from 8.2 — add helper, invoke as transform step 5)
   - Sibling helper (per Component 2 v4 verbatim):
     - Parse `meta.content` with `unified().use(remarkParse).use(remarkGfm).use(remarkMdx).parse(...)`. The AST walk is the SOLE inspection mechanism — no regex pass over the raw source text (v2 — reword closes r1 Target 2 inconsistency). The helper re-parses the raw content via `remark-mdx` because Velite hands it `meta.content` (the raw MDX source), not a pre-walked tree; the parse step is the AST-extraction path, not a "text scan."
@@ -279,7 +279,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 2 v4 — AST-walker contract_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: unified/mdast engineer | Task: Implement the heading-hygiene AST walker per Component 2. Mark in-progress; log-implementation when done. | Restrictions: AST walk is the SOLE inspection mechanism — no regex pass over `meta.content` after the parse step. Re-parsing the raw content via remark is the AST-extraction path; this is NOT a "text scan." Sequence-rule applies in document order. PROJECTS_ALLOW_H4=1 unlocks depth, NOT sequence. | _Leverage: remark/remark-gfm/remark-mdx plugin stack | _Requirements: 6.9.a, 6.9.b, 6.9.c | Success: A fixture with `<h1>Title</h1>` throws; a code-fenced `<h1>` example does NOT throw (AST-only); a fixture starting with `### intro` throws sequence error; `PROJECTS_ALLOW_H4=1` permits depth-4 but a `## → #### skip` still throws. Then mark complete._
 
-- [ ] 8.4. Add `PROJECTS_INCLUDE_DRAFTS=1` build-log warning to the transform + register the collection
+- [x] 8.4. Add `PROJECTS_INCLUDE_DRAFTS=1` build-log warning to the transform + register the collection
   - File: velite.config.ts (continue from 8.3 — finalize transform; register collection)
   - Inside the transform, after heading-hygiene succeeds, BEFORE the return value:
     ```ts
@@ -302,7 +302,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 1 v4 — Risk 3 reversal (single-process emit) + comment-trail rollback pin_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: Velite + Node-stderr UX engineer | Task: Add the draft-warning emit with the load-bearing comment + register the collection. Mark in-progress; log-implementation when done. | Restrictions: Comment block MUST appear verbatim above the conditional emit — it is the rollback signal for a future worker-threads velite upgrade. `console.error` (NOT `console.warn`/`process.stderr.write`). Emit fires only when BOTH conditions hold (`draft === true` AND env var === `"1"`). Collection registered LAST. | _Leverage: 8.1-8.3; defineConfig | _Requirements: 1.1, 7.2.c | Success: `pnpm velite build` against an empty `content/projects/` succeeds (emits `projects: []`); against a fixture with a draft + `PROJECTS_INCLUDE_DRAFTS=1`, stderr contains exactly one `[velite/projects] PROJECTS_INCLUDE_DRAFTS=1 — including draft project: <slug>` line per draft fixture; collection visible via `#site/content`. Then mark complete._
 
-- [ ] 9. Add Velite output-shape regression test
+- [x] 9. Add Velite output-shape regression test
   - File: src/__tests__/velite-output-shape.test.ts
   - Vitest case (run after `pnpm velite build` has populated `.velite/projects.json` — Vitest's existing globalSetup handles this for blog-core; verify it also runs for this test path):
     - Import `projects` from `#site/content`.
@@ -316,7 +316,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - **Skip-if-absent escape (v3 — closes r2 Target 3)**: gate on `if (process.env.CI !== "true" && !fs.existsSync(path.join(process.cwd(), ".velite/projects.json"))) test.skip()`. Under CI (`process.env.CI === "true"`), the suite errors loud if the file is absent — Task 19.5's pretest gate runs first and would have already failed, but the in-test absence-check is a second tripwire that fails the suite instead of silently skipping.
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: QA/Vitest engineer | Task: Implement the output-shape regression test. Mark in-progress; log-implementation when done. | Restrictions: Test against the fixture project. Assertions name the specific Velite shape properties (`width`, `height`, `src`, `blurDataURL`). Skip-if-absent gated on `process.env.CI !== "true"` per v3 r2 Target 3 closure. | _Leverage: #site/content; vitest | _Requirements: 1.11 | Success: Test passes against current Velite output; mutating the fixture's cover to a non-image-typed value fails the assertion with a clean diagnostic; running locally without `.velite/projects.json` skips clean; running under `CI=true` without the file errors loud (not skip). Then mark complete after logging._
 
-- [ ] 10. Implement `src/lib/projects.ts` chokepoint module with cache + alias
+- [x] 10. Implement `src/lib/projects.ts` chokepoint module with cache + alias
   - File: src/lib/projects.ts
   - Public surface (per Component 3 v4 verbatim):
     ```ts
@@ -340,7 +340,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 3 v4 — full section with cache + getPublishedProjects body + getProjectBySlug + shouldShowUpdatedBadge + formatProjectDate_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: Senior TypeScript developer | Task: Implement projects.ts per Component 3 v4. Mark in-progress; log-implementation when done. | Restrictions: Env reads happen INSIDE getPublishedProjects via envSnapshot, not at module top-level. NO consumer outside this module imports `projects` from `#site/content` — Task 11's scanner enforces this. `formatProjectDate = formatContentDate` exactly (reference equality required by Task 13). NO test-only reset export; cache invalidates via snapshotsEqual. NO warning emit here (moved to velite). | _Leverage: #site/content; format-date.ts; project-errors.ts | _Requirements: 2.1, 6.2, 6.3, 7.1, 7.3, 7.4, 7.5, 7.6.a, 7.6.b, 7.6.c, 7.6.d, 7.6.e, 7.6.f, 7.6.g, 9.3, 12.0 | Success: Type-check passes; all six exports present; throws use the imported message constants; cache hit returns the same array reference on consecutive calls with stable env. Then mark complete after logging._
 
-- [ ] 11. Implement chokepoint scanner `src/lib/build/check-projects-chokepoint.ts`
+- [x] 11. Implement chokepoint scanner `src/lib/build/check-projects-chokepoint.ts`
   - File: src/lib/build/check-projects-chokepoint.ts
   - Export `runChokepointScan(filePath: string): ScanFinding[]` that:
     - Reads the file via `fs.readFileSync(filePath, "utf-8")`.
@@ -356,7 +356,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 11 v4 — algorithm + isContentSpecifier policy_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: TypeScript compiler-API engineer | Task: Implement the AST-based chokepoint scanner. Mark in-progress; log-implementation when done. | Restrictions: Use `ts.createSourceFile` — NO regex-only scanning. Exact-equality check on the import specifier (sub-paths out of scope per design). Return `ScanFinding[]` per Data Model 3. Pure function — no I/O beyond reading the input file. | _Leverage: typescript package | _Requirements: 7.4 | Success: Calling against a synthetic file with each of the 17 shapes returns the expected findings (Task 14 verifies via the canary fixture). Then mark complete after logging._
 
-- [ ] 12. Create canary fixture `src/__fixtures__/chokepoint-canary.ts`
+- [x] 12. Create canary fixture `src/__fixtures__/chokepoint-canary.ts`
   - File: src/__fixtures__/chokepoint-canary.ts
   - Contains representative cases for ALL 17 coverage-matrix shapes (named, named-renamed, namespace+member, namespace+destructure, namespace+destructure-with-rename, barrel-star, barrel-named, barrel-named-renamed, dynamic-string, dynamic-template, type-only, etc.) — each shape exercised at least once. The fixture exists INSIDE `src/` (per Req 7.6.h — closes the v3 "fixture outside scanner's scan path" finding).
   - **`tsconfig.json` exclude**: add `"src/__fixtures__/chokepoint-canary.ts"` to the `exclude` array so the fixture is not type-checked during the production build. (The scanner reads it via `fs.readFileSync` regardless — `exclude` only governs tsc compilation, not the scanner's input set.)
@@ -369,7 +369,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 11 v4 — canary fixture; Req 7.6.h_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: Test-fixture author | Task: Create the canary fixture with all 17 shapes from Component 11 v4 coverage matrix. Update tsconfig.json to exclude this file. Mark in-progress; log-implementation when done. | Restrictions: File extension is `.ts` — NOT `.ts.txt` (Req 7.6.h closure). All 17 shapes from the coverage matrix represented. Each line clearly identifiable so a future maintainer can extend safely. | _Leverage: src/__fixtures__ convention; tsconfig.json exclude block | _Requirements: 7.6.h | Success: `pnpm typecheck` ignores this file (excluded); `runChokepointScan` against it returns findings for every shape (Task 14 verifies). Then mark complete after logging._
 
-- [ ] 12.5. Implement `scripts/verify-canary-regex-pair.mjs` + wire into CI — mechanical enforcement of the canary ↔ regex-list pair-update contract (v4 — closes r3 Target 6 recurring finding)
+- [x] 12.5. Implement `scripts/verify-canary-regex-pair.mjs` + wire into CI — mechanical enforcement of the canary ↔ regex-list pair-update contract (v4 — closes r3 Target 6 recurring finding)
   - Files: scripts/verify-canary-regex-pair.mjs, scripts/verify-canary-regex-pair.test.mjs, scripts/__fixtures__/canary-pair/{good-both,good-neither,bad-only-canary,bad-only-test}.diff, .github/workflows/ci.yml (modify — add a CI step before Build 1)
   - **Closes r3 Target 6**: applies Task 6.5's all-or-none paired-merge gate pattern to the structurally identical canary fixture ↔ projects.test.ts regex-list pair. Without this gate, extending the canary without updating the regex list (or vice versa) silently breaks Task 14.2 case 9's invariant.
   - **Script logic** (mirrors 6.5):
@@ -390,7 +390,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: r3 Target 6 closure_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: CI tooling engineer | Task: Implement the canary-pair verifier per Task 6.5's pattern. Mark in-progress; log-implementation when done. | Restrictions: Same all-or-none rule + revert-shape detection as 6.5. Step name `"Verify canary↔regex-list paired-merge"` MUST appear in ci.yml verbatim. Self-tests live in `scripts/__fixtures__/canary-pair/`. | _Leverage: scripts/ patterns; Task 6.5 implementation as reference | _Requirements: 7.6.h | Success: Verifier exits 0 against `good-both.diff` and `good-neither.diff`; exits non-zero against `bad-only-canary.diff` and `bad-only-test.diff`; CI step is present in ci.yml. Then mark complete after logging._
 
-- [ ] 13. Implement `src/lib/format-date.test.ts` — formatter + parity-triangle assertions
+- [x] 13. Implement `src/lib/format-date.test.ts` — formatter + parity-triangle assertions
   - File: src/lib/format-date.test.ts
   - **Header comment** (verbatim, per Component 4 v4 + Attack 7 finding): `// Do not call vi.resetModules() in this file — parity assertions depend on shared module instances.`
   - Cases:
@@ -405,7 +405,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 4 v4 — parity tests block_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: QA/Vitest engineer | Task: Implement the four assertions per Component 4 v4. Mark in-progress; log-implementation when done. | Restrictions: Header comment exact. NO `vi.resetModules()` in this file (would break reference equality). | _Leverage: vitest; the three modules from Tasks 2/3/10 | _Requirements: 9.2, 9.3 | Success: All four assertions pass; wrapping either alias with an arrow function fails Parity 1 or 2; mutating `formatContentDate`'s body fails Body-identity. Then mark complete after logging._
 
-- [ ] 14.1. Implement `src/lib/projects.test.ts` Part 1 — sort + filter + cache + guard
+- [x] 14.1. Implement `src/lib/projects.test.ts` Part 1 — sort + filter + cache + guard
   - File: src/lib/projects.test.ts (initial creation; later parts append `describe` blocks)
   - Cases (filter-behavior + guard-throw reviewer profile):
     1. **Sort**: synthetic project array → assert `byDateDescSlugAsc` ordering (date desc; slug asc tiebreak).
@@ -424,7 +424,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 3 v4 — cache invariants; r2 Target 2 split_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: QA/Vitest engineer (filter-behavior + env-mutation specialist) | Task: Implement Part 1 of projects.test.ts per v3. Mark in-progress; log-implementation when done. | Restrictions: NO `vi.resetModules()` (breaks Case 7 cache memoization). Env-mutation scoped via beforeEach/afterEach — reset all three vars. Cases 5a/5b explicitly partition throw vs. no-throw. | _Leverage: vitest | _Requirements: 2.1, 6.3, 7.1, 7.2.a, 7.2.b, 7.2.d, 7.3, 8.0 | Success: All 8 cases pass (5 splits into 5a/5b counted as two). Then mark complete._
 
-- [ ] 14.2. Implement `src/lib/projects.test.ts` Part 2 — chokepoint scanner + canary regex sentinels
+- [x] 14.2. Implement `src/lib/projects.test.ts` Part 2 — chokepoint scanner + canary regex sentinels
   - File: src/lib/projects.test.ts (append `describe` block)
   - Cases (AST/scanner + regex-maintenance reviewer profile):
     8. **Chokepoint scanner** against the canary fixture: `const findings = runChokepointScan(canaryPath)` — assert at least one finding of each expected kind in `{ "named", "namespace-member", "namespace-destructure", "barrel-star", "barrel-named", "dynamic", "type-only" }` is present.
@@ -437,7 +437,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 11 v4 — scanner + canary; r2 Target 2 split_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: QA engineer (AST + regex maintenance specialist) | Task: Implement Part 2 of projects.test.ts per v3. Mark in-progress; log-implementation when done. | Restrictions: The canary regex assertions are EACH a pinned literal regex matching the corresponding canary fixture line; updating the canary requires updating the regex list in the same PR (Author doc §9 contract). Allowlist self-test asserts the production allowlist (NOT a test-specific override) does not flag `src/lib/projects.ts`. | _Leverage: vitest; Task 11 scanner; Task 12 canary | _Requirements: 7.4, 7.6.a, 7.6.b, 7.6.c, 7.6.d, 7.6.e, 7.6.f, 7.6.h | Success: Cases 8/9/11 pass; mutating the scanner to skip the namespace pattern fails Case 8; corrupting the canary's named-renamed line fails Case 9. Then mark complete._
 
-- [ ] 14.3. Implement `src/lib/projects.test.ts` Part 3 — type-system + author-controlled `updated` + empty collection
+- [x] 14.3. Implement `src/lib/projects.test.ts` Part 3 — type-system + author-controlled `updated` + empty collection
   - File: src/lib/projects.test.ts (append `describe` block — empty-collection in its own sub-describe so the `vi.mock` is scoped)
   - Cases (type-system + meta-verification reviewer profile):
     10. **Empty collection via `vi.mock`**: in a separate `describe` block using `vi.mock("#site/content", () => ({ projects: [] }))`, assert `getPublishedProjects()` returns `[]`.
@@ -458,7 +458,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 1 v4 (schema shape); r2 Target 2 closures_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: QA/Vitest engineer (type-system + runtime-fixture specialist) | Task: Implement Part 3 of projects.test.ts per v4 — Case 13 is now a RUNTIME fixture assertion (13-runtime + 13b + 13c defense-in-depth). Mark in-progress; log-implementation when done. | Restrictions: Use `toEqualTypeOf` (not `toMatchTypeOf`) for `Project["cover"]` against the Velite-emitted `Image` type. Case 13-runtime asserts `entry.updated === "2025-12-01"` against fixture-published-second. Case 13b is opt-in via `PROJECTS_TEST_GIT_MUTATION=1` and runs the git-mutation reset/restore pattern. Case 13c is defense-in-depth only — never the primary signal. `expectTypeOf` checks compile-time; do NOT downgrade to runtime assertions. Empty-collection in a separate `describe` so `vi.mock` is scoped. | _Leverage: vitest expectTypeOf; .velite/projects.json; git subprocess for Case 13b | _Requirements: 1.5, 1.8, 1.9 | Success: Cases 10/12/13-runtime/13b/13c pass; mutating `Project["links"]` fails Case 12; changing fixture-published-second's `updated` value fails Case 13-runtime; a hypothetical git-history-derivation in velite.config.ts would fail Case 13b. Then mark complete._
 
-- [ ] 14.4. Implement `src/lib/build/check-project-headings.test.ts` — unit-test coverage for the `PROJECTS_ALLOW_H4=1` override branch (v4 — closes r3 Target 4 H4-coverage finding)
+- [x] 14.4. Implement `src/lib/build/check-project-headings.test.ts` — unit-test coverage for the `PROJECTS_ALLOW_H4=1` override branch (v4 — closes r3 Target 4 H4-coverage finding)
   - File: src/lib/build/check-project-headings.test.ts
   - **Prerequisite**: Task 8.3's `checkProjectHeadings` helper MUST be extractable from velite.config.ts as a testable export. Update Task 8.3 implementation to export the helper from `velite.config.ts` (named export) OR factor it into a sibling module `src/lib/build/check-project-headings.ts`. v4 prefers the sibling-module path; document the decision in the Task 8.3 implementation log.
   - Cases (in-memory MDX strings fed through the extracted helper):
@@ -474,7 +474,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 2 v4; r3 Target 4 H4-coverage closure_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: QA/Vitest engineer + unified/mdast | Task: Add unit-test coverage for the H4 override branch per v4 r3-Target-4 closure. Mark in-progress; log-implementation when done. | Restrictions: Extract `checkProjectHeadings` as a sibling module if not already done in Task 8.3 — the helper must be importable by this test. Use `vi.stubEnv` for env mutation; reset in `afterEach`. In-memory MDX strings, not on-disk fixtures. Five cases as listed; do NOT collapse them. | _Leverage: vitest stubEnv | _Requirements: 6.9.a, 6.9.b, 6.9.c | Success: All 5 cases pass; flipping the helper's depth-vs-sequence ordering (e.g., letting `PROJECTS_ALLOW_H4=1` also bypass sequence) fails Case 4. Then mark complete._
 
-- [ ] 15. Extend `src/lib/blog-errors.test.ts` for the looks-like-prod backport
+- [x] 15. Extend `src/lib/blog-errors.test.ts` for the looks-like-prod backport
   - File: src/lib/blog-errors.test.ts (extend existing)
   - Add a case asserting `VERCEL=1 + VERCEL_ENV=development + BLOG_INCLUDE_DRAFTS=1` returns `null` (no throw). This is the no-regression assertion for Task 4's narrowing backport.
   - Add a case asserting `VERCEL=1 + VERCEL_ENV="" + BLOG_INCLUDE_DRAFTS=1` returns `{ kind: "production" }` (looks-like-prod fires).
@@ -487,7 +487,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 5 (logic mirror) + Code Reuse Analysis "Modified library module"_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: QA/Vitest engineer | Task: Extend blog-errors.test.ts with the three looks-like-prod cases per the v4 backport. Mark in-progress; log-implementation when done. | Restrictions: Do not modify existing assertions. Env-var mutations scoped via beforeEach/afterEach. | _Leverage: existing blog-errors.test.ts | _Requirements: 7.3 | Success: All three new cases pass; reverting Task 4's narrowing fails them with clean diagnostics. Then mark complete after logging._
 
-- [ ] 16. Create presentational components — `<StatusBadge />`, `<UpdatedBadge />`, `<LinkRail />`, `<ProjectCard />`
+- [x] 16. Create presentational components — `<StatusBadge />`, `<UpdatedBadge />`, `<LinkRail />`, `<ProjectCard />`
   - Files: src/components/projects/status-badge.tsx, src/components/projects/updated-badge.tsx, src/components/projects/link-rail.tsx, src/components/projects/project-card.tsx
   - **`<StatusBadge status>`** (Component 7): `<span>` with status-specific class; renders "Archived" or "Concept" (not invoked for `active`).
   - **`<UpdatedBadge updated>`** (Component 14): `<span><time dateTime={updated}>Updated on {display}</time></span>` — `display` from `formatContentDate(updated).display`.
@@ -501,7 +501,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Components 6, 7, 8, 14_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: React server-component engineer | Task: Implement the four components. Mark in-progress; log-implementation when done. | Restrictions: NO `"use client"`. Single anchor wraps the card; `aria-labelledby` scopes the accessible name to the title. `<a rel="noopener">` (no `target="_blank"`, no `noreferrer`). Status badge NOT rendered for `active`. UpdatedBadge consumed only when `shouldShowUpdatedBadge(project)` returns true (caller-side gate, not internal). | _Leverage: shadcn Card; next/image; formatContentDate | _Requirements: 2.3, 2.6, 2.7, 4.1, 4.2, 4.3, 4.4, 4.5, 5.4, 5.5, 5.7 | Success: All four type-check; cards render with the expected DOM structure under Storybook or a manual render probe. Then mark complete after logging._
 
-- [ ] 17. Create author doc `docs/projects-authoring.md`
+- [x] 17. Create author doc `docs/projects-authoring.md`
   - File: docs/projects-authoring.md
   - Ten sections in the pinned order from Req 11.1 (each heading is `## §N <title>` exactly as Req 11.1 lists — the structural test in Task 18 reads these literal strings):
     - §1 Quick start — copy this MDX file
@@ -536,7 +536,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 13 v4 — section order + §6 / §9 additions_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: Technical writer with MDX/Velite familiarity | Task: Author the doc per Req 11.1 + Component 13 v4. Mark in-progress; log-implementation when done. | Restrictions: Section headings MUST match the Req 11.1 literal strings (Task 18 asserts these). Ten sections, in order. §6 and §9 include the v4 additions verbatim per the design. | _Leverage: docs/ conventions | _Requirements: 11.1, 11.2, 11.3, 11.4 | Success: Doc renders cleanly; Task 18 structural test passes against the ten heading strings; manual proofread confirms §6 and §9 additions present. Then mark complete after logging._
 
-- [ ] 18. Implement doc structural test `src/__tests__/docs-projects-authoring.test.ts`
+- [x] 18. Implement doc structural test `src/__tests__/docs-projects-authoring.test.ts`
   - File: src/__tests__/docs-projects-authoring.test.ts
   - Vitest case that:
     - Reads `docs/projects-authoring.md` via `fs.readFileSync`.
@@ -549,7 +549,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 13 v4 — structural test_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: QA/Vitest engineer | Task: Implement the structural test. Mark in-progress; log-implementation when done. | Restrictions: Heading-string matching is `##` only (NOT `###`). Order asserted (each subsequent heading appears after the previous in the file). NO scanner invocation on doc contents. | _Leverage: fs; vitest; docs/projects-authoring.md | _Requirements: 11.3 | Success: Test passes against the doc from Task 17; renaming any section heading fails the test with a clean diagnostic. Then mark complete after logging._
 
-- [ ] 19. Create TWO fixture projects (1 draft + 1 published) with colocated cover images
+- [x] 19. Create TWO fixture projects (1 draft + 1 published) with colocated cover images
   - Files: content/projects/fixture-placeholder.mdx, content/projects/fixture-placeholder-cover.png (≥1200×800), content/projects/fixture-published-second.mdx, content/projects/fixture-published-second-cover.png (≥1200×800)
   - **v3 — Two fixtures (closes r2 Target 5)**: a single fixture is the wrong substrate for downstream tasks. Two fixtures give: (a) Task 25's reverse-chrono assertion a non-degenerate sort case in BOTH build flavors; (b) Task 28.1's draft-warning-count assertion a parameterized expectation; (c) Task 27 a concrete Build-2 "published-stays-visible" assertion.
   - **Fixture 1 — `fixture-placeholder.mdx`** (DRAFT):
@@ -568,7 +568,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Overview — "One fixture project ships in the same PR"; r2 Target 5 closure_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: Technical writer + image-asset committer | Task: Create BOTH fixture MDX files + their colocated cover assets per v3. Mark in-progress; log-implementation when done. | Restrictions: fixture-placeholder.mdx is `draft: true` and has wide-media substrate (img, pre, table, SVG with viewBox); fixture-published-second.mdx is `draft: false` and minimal body. Dates: placeholder `2026-05-25`, published-second `2026-04-15` (latter must be earlier so reverse-chrono shows placeholder first when both visible). Cover images ≥1200×800 + ≤1 MB each. Description 50–160; summary 30–140; both distinct strings; both fixtures. Body has no h1, no h4+, first heading h2, no level skips. SVG default for wide-media — iframe-rendered-height assertion is dropped per v3 r2 closure. | _Leverage: content/posts/ MDX style | _Requirements: 1.10, 7.13, 2.1 | Success: `pnpm velite build` accepts BOTH fixtures; `.velite/projects.json` contains both; with `PROJECTS_INCLUDE_DRAFTS=1` the stderr warning fires exactly once (one draft fixture); without `PROJECTS_INCLUDE_DRAFTS=1` only the published-second fixture appears in the output. Then mark complete after logging._
 
-- [ ] 19.5. Implement `scripts/check-velite-output.mjs` — fail-loud CI gate + step-count invariant (v4 — hardened per r3 Target 5)
+- [x] 19.5. Implement `scripts/check-velite-output.mjs` — fail-loud CI gate + step-count invariant (v4 — hardened per r3 Target 5)
   - Files: scripts/check-velite-output.mjs, scripts/check-velite-output.test.mjs, scripts/__fixtures__/check-velite/{good-ci.yml,bad-only-one-step.yml,bad-three-steps.yml}, .github/workflows/ci.yml (modify — add the pretest step in both build sequences)
   - Closes **r2 Target 3** and **r3 Target 5** sub-finding (CI-step duplication as a structural invariant).
   - **Script default mode (presence + shape gate)**:
@@ -597,7 +597,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: r3 Target 5 closure_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: CI tooling engineer | Task: Implement the v4 pretest gate + --verify-ci-wiring mode + CI wiring per r3 Target 5 closure. Mark in-progress; log-implementation when done. | Restrictions: Two modes (default + `--verify-ci-wiring`). Step name `"Check velite output before tests"` MUST appear EXACTLY TWICE in ci.yml — once per build flavor. The structural-invariant step runs BEFORE Build 1. Three self-test fixtures cover the count cases. Stale-detection deferred per the inline note. | _Leverage: scripts/ patterns; `yaml` package | _Requirements: 1.8, 7.14 | Success: Default mode exits 0 against a real Build 1 output; exits non-zero when `.velite/projects.json` is deleted. `--verify-ci-wiring` mode exits 0 against `good-ci.yml`; exits non-zero against the two `bad-*.yml` fixtures. All three CI step invocations are present. Then mark complete after logging._
 
-- [ ] 20. Create empty-state fixture `src/__fixtures__/projects-empty/README.md`
+- [x] 20. Create empty-state fixture `src/__fixtures__/projects-empty/README.md`
   - File: src/__fixtures__/projects-empty/README.md
   - Content per Component 9 v4 — explain the `vi.mock("#site/content", () => ({ projects: [] }))` approach, include a code example, note the import-graph constraint (gallery page only consumes `projects` via `src/lib/projects.ts`, not `pages` / `profile` / `posts` — so the mock returning only `projects` is sufficient).
   - **No `.json` file**. Just the README. (Component 9 v4 — closes the v3 "JSON-with-comments doesn't exist" attack-finding.)
@@ -608,7 +608,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 9 v4 — empty-state mechanism_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: Technical writer | Task: Create the README documenting the vi.mock empty-state mechanism. Mark in-progress; log-implementation when done. | Restrictions: Markdown only — NO .json sibling file. Include a code fence with the `vi.mock` example. State the import-graph reasoning explicitly. | _Leverage: src/__fixtures__/ conventions | _Requirements: 1.8, 2.9 | Success: File renders cleanly; future maintainer can follow the mock pattern by reading this doc alone. Then mark complete after logging._
 
-- [ ] 21. Create `src/styles/projects.css` with the anchored-escape rules
+- [x] 21. Create `src/styles/projects.css` with the anchored-escape rules
   - File: src/styles/projects.css
   - CSS per Component 10 v4 verbatim:
     ```css
@@ -640,7 +640,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 10 v4 — Container-width contract block_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: CSS engineer with containing-block expertise | Task: Implement the CSS exactly as Component 10 v4 specifies. Mark in-progress; log-implementation when done. | Restrictions: `<figure>` deliberately NOT in the wide-media selector list. `--outer-width` declared on `.projects-article` (NOT on `.prose`). Iframe + SVG carve-outs present. Top-of-file comment explains the math. NO `!important`. | _Leverage: CSS custom properties; `:is(...)` selector | _Requirements: 6.7 | Success: CSS parses; rendered in a fixture page (Task 28 fixture render), wide media escape to the outer container's content width. Then mark complete after logging._
 
-- [ ] 22. Implement gallery page `src/app/(site)/projects/page.tsx`
+- [x] 22. Implement gallery page `src/app/(site)/projects/page.tsx`
   - File: src/app/(site)/projects/page.tsx
   - Per Component 9 v4:
     - `import "@/styles/projects.css";` at the top (page-level CSS import — per-route load decision).
@@ -655,7 +655,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 9 v4 — Gallery page_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: Next.js App Router engineer | Task: Implement the gallery route per Component 9 v4. Mark in-progress; log-implementation when done. | Restrictions: NO direct `#site/content` imports — go through src/lib/projects.ts. `dynamic = "force-static"`. Page-level CSS import at the very top. `eager={i < 2}` exactly. Empty-state copy renders without throwing or 404'ing. | _Leverage: src/lib/projects.ts; <ProjectCard />; projects.css | _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10 | Success: `/projects` renders the fixture card when `PROJECTS_INCLUDE_DRAFTS=1`; empty-state visible when no projects published; chokepoint scanner (Task 11) flags no violations against this file. Then mark complete after logging._
 
-- [ ] 23. Implement detail page `src/app/(site)/projects/[slug]/page.tsx`
+- [x] 23. Implement detail page `src/app/(site)/projects/[slug]/page.tsx`
   - File: src/app/(site)/projects/[slug]/page.tsx
   - Per Component 10 v4 snippet verbatim (top-of-file `import "@/styles/projects.css";`; `dynamic = "force-static"`; `generateStaticParams` from `getPublishedProjects()`; `generateMetadata` per Req 6.4 with `openGraph` block including `publishedTime`, optional `modifiedTime`, optional `images` from `project.ogImage`).
   - Page body structure per Component 10 v4 snippet — wraps everything in `<div className="mx-auto w-full max-w-5xl px-4 py-12 sm:py-16 projects-article">` so the anchored-escape CSS resolves correctly (`projects-article` carries `--outer-width` and `position: relative`). DOM order per Req 6.1: header (h1 title, time, optional updated badge, optional status badge), cover image, optional link rail, `<div className="mx-auto max-w-prose mt-8"><div className="prose dark:prose-invert"><MDXContent code={project.body} /></div></div>`, "Back to all projects" link.
@@ -668,7 +668,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 10 v4 — full snippet + container-width contract_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: Next.js App Router + MDX engineer | Task: Implement the detail route per Component 10 v4. Mark in-progress; log-implementation when done. | Restrictions: NO direct `#site/content` imports. Outer container has `projects-article` class (CSS depends on it). Inner narrow div has `.prose` class — NO `position` on it. `<figure>` is NOT in the wide-media list (CSS deliberately excludes it). LinkRail rendered only when present and non-empty. Use `<MDXContent />` for the body. | _Leverage: src/lib/projects.ts; presentational components; projects.css | _Requirements: 6.1, 6.2, 6.4, 6.5, 6.6, 6.7, 6.8, 6.10, 6.12 | Success: `/projects/fixture-placeholder` renders with the v4 nesting; a wide `<img>` in the body escapes to the outer container's content width; a narrow `<p>` sibling stays at `~65ch`. Then mark complete after logging._
 
-- [ ] 24. Extend `src/app/sitemap.ts` with project URLs
+- [x] 24. Extend `src/app/sitemap.ts` with project URLs
   - File: src/app/sitemap.ts (modify existing)
   - Append per-project entries from `getPublishedProjects()`: `url: <siteUrl>/projects/<slug>`, `lastModified: new Date(project.updated ?? project.date)`.
   - Always include `/projects` itself (regardless of whether any projects are published — Req 8.2).
@@ -681,7 +681,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Code Reuse Analysis — `src/app/sitemap.ts: extended`_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: SEO/Next.js engineer | Task: Extend sitemap.ts. Mark in-progress; log-implementation when done. | Restrictions: Do not change existing entries' shape. No hard-coded host. Drafts naturally excluded by `getPublishedProjects()` (the chokepoint applies the filter — sitemap inherits). | _Leverage: src/lib/projects.ts; siteConfig | _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5 | Success: Built sitemap.xml contains `/projects` and per-project URLs when drafts visible; never contains a draft URL in CI's Build 2. Then mark complete after logging._
 
-- [ ] 25. E2E gallery test `e2e/tests/projects-gallery.test.ts`
+- [x] 25. E2E gallery test `e2e/tests/projects-gallery.test.ts`
   - File: e2e/tests/projects-gallery.test.ts
   - Playwright loads `/projects`. Assertions (per Testing Strategy E2E):
     - Cards render in reverse-chronological order (date desc; slug asc tiebreak).
@@ -697,7 +697,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Testing Strategy → End-to-End — Gallery + draft handling_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: QA/Playwright engineer | Task: Implement the gallery E2E per the design's dual-build content-coupling pin. Mark in-progress; log-implementation when done. | Restrictions: Read `.velite/projects.json` to derive the expected card count — do NOT hard-code. Parameterize on `process.env.PROJECTS_INCLUDE_DRAFTS`. Empty-state asserted by selector + visible text. Loading-attribute assertions check the rendered `<img>` (not the `<Image>` source). | _Leverage: Playwright; .velite/projects.json | _Requirements: 2.1, 2.3, 2.6, 2.9 | Success: Test passes under both CI build flavors; deliberately dropping the eager-load contract on the first card fails the relevant assertion. Then mark complete after logging._
 
-- [ ] 26. E2E detail-page layout measurement test `e2e/tests/projects-detail-layout.test.ts`
+- [x] 26. E2E detail-page layout measurement test `e2e/tests/projects-detail-layout.test.ts`
   - File: e2e/tests/projects-detail-layout.test.ts
   - Playwright loads `/projects/fixture-placeholder` (or whatever the fixture's actual slug resolves to after the Task 19 fixture is built — read from `.velite/projects.json` for robustness).
   - **Skip-if-absent escape (v2 — closes r1 Target 4)**: gate on `if (process.env.CI !== "true" && !fs.existsSync(path.join(process.cwd(), ".velite/projects.json"))) test.skip()` at suite entry — same rationale as Task 25 (v3 — closes r2 Target 3 by gating the skip on local-only).
@@ -717,7 +717,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Testing Strategy → E2E → Detail-page layout measurement (Component 10 v4)_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: QA/Playwright engineer | Task: Implement the layout-measurement E2E per Component 10 v4. Mark in-progress; log-implementation when done. | Restrictions: Viewport exactly 1280×720. Tolerances ±20px (prose) / ±10px (others). Read slug from `.velite/projects.json`. The fixture must include a wide `<img>` and an iframe (or svg with viewBox) body element for the wide-media measurement assertions to have substrate — coordinate with Task 19 to ensure those elements exist in the fixture body. | _Leverage: Playwright boundingBox; .velite/projects.json | _Requirements: 6.1, 6.7, 6.12 | Success: Test passes with the fixture content; deliberately removing the wide-media CSS from projects.css causes the `<img>` width assertion to fail. Then mark complete after logging._
 
-- [ ] 27. E2E draft-handling test `e2e/tests/projects-draft-handling.test.ts`
+- [x] 27. E2E draft-handling test `e2e/tests/projects-draft-handling.test.ts`
   - File: e2e/tests/projects-draft-handling.test.ts
   - **Skip-if-absent escape (v2 — closes r1 Target 4)**: gate on `if (process.env.CI !== "true" && !fs.existsSync(path.join(process.cwd(), ".velite/projects.json"))) test.skip()` at suite entry — same rationale as Task 25 (v3 — closes r2 Target 3 by gating the skip on local-only).
   - Playwright assertions parameterized on `process.env.PROJECTS_INCLUDE_DRAFTS`:
@@ -736,7 +736,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Testing Strategy → E2E → Draft handling_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: QA/Playwright engineer | Task: Implement the draft-handling E2E per the dual-build content-coupling pin. Mark in-progress; log-implementation when done. | Restrictions: Parameterize on `process.env.PROJECTS_INCLUDE_DRAFTS`. Assert 404 via Playwright's response status, not by text. Sitemap check fetches `/sitemap.xml` and substring-asserts. | _Leverage: Playwright; existing dual-build CI | _Requirements: 7.1, 7.2.a, 7.2.b, 7.2.c, 7.5, 8.3 | Success: Test passes under both flavors; deliberately removing the draft filter from `getPublishedProjects()` fails the Build-2 assertion. Then mark complete after logging._
 
-- [ ] 28.1. Dual-build local smoke + chokepoint negative verification
+- [x] 28.1. Dual-build local smoke + chokepoint negative verification
   - File: (no new file — verification step; document outcomes in the implementation log)
   - Local steps:
     1. `PROJECTS_INCLUDE_DRAFTS=1 pnpm build` → `pnpm test:e2e` → confirm Tasks 25, 26, 27 all pass under Build 1; cite JSON `results` fragments (per the citation contract in 28.3 below).
@@ -751,7 +751,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 1 v4 single-process pin; Testing Strategy → E2E → Draft handling; r1 Target 3 split_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: Senior engineer | Task: Run dual-build smoke + chokepoint negative + draft-warning count assertion. Mark in-progress; log-implementation when done. | Restrictions: Cite Playwright outputs as JSON fragments — NO "tests passed" prose. Glob the actual `.next/` tree (not a stub). Draft-warning count assertion is mechanical (`grep -c`); if it fails, do NOT mark 28.1 [x] — file the follow-up first. | _Leverage: dual-build CI patterns | _Requirements: 7.1, 7.2, 7.5, 8.3 | Success: Both builds complete; chokepoint negative test green; draft-warning count equals draft count exactly. Then mark complete after logging._
 
-- [ ] 28.2. Capture fixture-render screenshot (the empirical CSS-math evidence)
+- [x] 28.2. Capture fixture-render screenshot (the empirical CSS-math evidence)
   - File: docs/projects-showcase-fixture-render.png (or similar — committed to the repo as the implementation evidence)
   - **Mandatory artefact** (Component 10 v4 implementation gate — closes the r3 Missing #6 + r1 Target 3 sub-finding about screenshot ambiguity):
     - Run under the Build 1 state (`PROJECTS_INCLUDE_DRAFTS=1 pnpm build` from 28.1 step 1) — explicitly NOT Build 2, since the fixture is `draft: true` and would 404 in Build 2. State this in the implementation log alongside the artefact.
@@ -765,7 +765,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Component 10 v4 — implementation gate (fixture-render screenshot mandate)_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: QA/Playwright engineer | Task: Capture the fixture-render screenshot per the v2 split. Mark in-progress; log-implementation when done. | Restrictions: Build 1 state ONLY (the fixture is draft). Viewport 1280×720 exactly. `fullPage: true`. Commit the PNG to `docs/`. Reference Build-state + viewport + path in the implementation log. | _Leverage: Playwright screenshot API | _Requirements: 6.7 | Success: PNG committed; implementation log links it; wide media visibly escapes to the outer container's content width; narrow `<p>` visibly stays at ~65ch. Then mark complete after logging._
 
-- [ ] 28.3. Lighthouse manual verification — hard gate (no follow-up escape)
+- [x] 28.3. Lighthouse manual verification — hard gate (no follow-up escape)
   - File: (no new file — verification step; document scores in the implementation log)
   - Run `pnpm lhci-once` (or equivalent) against `/projects` AND `/projects/fixture-placeholder` (under Build 1 state).
   - Capture scores: performance, accessibility, best-practices, SEO — for BOTH URLs (eight numbers total).
@@ -779,7 +779,7 @@ Each task carries a `_Requirements:` footer listing requirement IDs from `requir
   - _Design refs: Testing Strategy → E2E → Lighthouse manual; r1 Target 3 hard-gate closure_
   - _Prompt: Implement the task for spec project-showcase, first run spec-workflow-guide then implement the task: Role: Senior engineer | Task: Run Lighthouse against both URLs and apply the hard gate. Mark in-progress; log-implementation when done. | Restrictions: HARD GATE — do NOT mark [x] if ANY of the 8 scores is `<90`. Opening a follow-up does NOT satisfy the gate. Document all 8 scores as a table in the implementation log. Cite Lighthouse JSON result IDs. | _Leverage: lighthouserc.js; Build 1 state | _Requirements: 12.0 | Success: All 8 scores ≥90; table in implementation log; JSON IDs cited. Then mark complete after logging._
 
-- [ ] 28.4. Lighthouse re-verification cadence — script + log + CI-integrated step (v4 — hardened per r3 Target 3)
+- [-] 28.4. Lighthouse re-verification cadence — script + log + CI-integrated step (v4 — hardened per r3 Target 3)
   - Files: scripts/check-lighthouse-cadence.mjs, docs/projects-showcase-lighthouse-runs.md, .github/workflows/ci.yml (modify — add a cadence step at the end of the existing CI job; v4 drops the separate `lighthouse-cadence.yml`)
   - **v4 trigger change (closes r3 Target 3)**: v3's separate workflow firing on `push to main` paths fired on EVERY mdx edit (typos, body changes, slug renames), degrading the signal. v4 collapses the cadence check into the EXISTING CI workflow as a final step after Build 2, AND adds `workflow_dispatch` for on-demand checks. The cadence alert appears in the normal CI build run.
   - **Artefact 1 — `scripts/check-lighthouse-cadence.mjs`** (v4 — fixture-exclusion + cleaner count substrate):

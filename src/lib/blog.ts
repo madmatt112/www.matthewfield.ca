@@ -6,6 +6,7 @@ import {
   checkVercelDraftGuard,
 } from "@/lib/blog-errors";
 import { KNOWN_FIXTURE_SLUGS } from "@/lib/build/derive-post-slug.mjs";
+import { formatContentDate } from "@/lib/format-date";
 
 export type Post = (typeof posts)[number];
 export type PostMeta = Pick<Post, "slug" | "title">;
@@ -83,15 +84,7 @@ export function formatReadingTime(minutes: number): string {
   return `${minutes} min read`;
 }
 
-const postDateFormatter = new Intl.DateTimeFormat("en-CA", {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-});
-
-export function formatPostDate(iso: string): { datetime: string; display: string } {
-  return { datetime: iso, display: postDateFormatter.format(new Date(iso)) };
-}
+export const formatPostDate = formatContentDate;
 
 export function shouldShowUpdatedBadge(post: Post): boolean {
   return post.updated != null && new Date(post.updated) > new Date(post.date);

@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build 1 (with drafts)
+        run: pnpm build
+        env:
+          BLOG_INCLUDE_DRAFTS: "1"
+
+      - name: Check velite output before tests
+        run: node scripts/check-velite-output.mjs
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Build 2 (production-mode)
+        run: pnpm build
+
+      - name: Verify production build (Build 2)
+        run: node scripts/verify-production-build.mjs

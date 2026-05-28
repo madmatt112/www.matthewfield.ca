@@ -2,8 +2,15 @@ import type { NextConfig } from "next";
 import {
   BLOG_DRAFT_LEAK_GUARD_MSG_PREVIEW,
   BLOG_DRAFT_LEAK_GUARD_MSG_PRODUCTION,
-  checkVercelDraftGuard,
+  checkVercelDraftGuard as checkBlogDraftGuard,
 } from "./src/lib/blog-errors";
+import {
+  PROJECTS_DRAFT_LEAK_GUARD_MSG_PREVIEW,
+  PROJECTS_DRAFT_LEAK_GUARD_MSG_PRODUCTION,
+  checkVercelDraftGuard as checkProjectsDraftGuard,
+} from "./src/lib/project-errors";
+
+const __isUnderVitest = process.env.VITEST === "true";
 
 /*
  * Early-stderr env-var-scoping guard (Operator-error UX Layer 1).
@@ -15,23 +22,42 @@ import {
  * rethrow path. Local dev (VERCEL unset) is unaffected.
  *
  * Source-of-truth for the error message bodies and the underlying check:
- *   src/lib/blog-errors.ts
+ *   src/lib/blog-errors.ts (blog)
+ *   src/lib/project-errors.ts (projects)
  *
  * Fix (Vercel UI): Project Settings → Environment Variables → ensure
- *   BLOG_INCLUDE_DRAFTS is set on Preview scope only (NOT Production).
+ *   BLOG_INCLUDE_DRAFTS / PROJECTS_INCLUDE_DRAFTS are set on Preview scope
+ *   only (NOT Production).
  *
- * See Req 7.3 in .spec-workflow/specs/blog-core/requirements.md and the
+ * See Req 7.3 in .spec-workflow/specs/blog-core/requirements.md and
+ * .spec-workflow/specs/project-showcase/requirements.md, plus the
  * design.md "Operator-error UX" + "next.config.ts (extension)" sections.
+ *
+ * Under Vitest (`process.env.VITEST === "true"`), runDraftGuard writes the
+ * diagnostic but does NOT call `process.exit(1)` — the gate prevents the
+ * test runner from being killed mid-suite while still surfacing the message.
  */
-const __draftGuard = checkVercelDraftGuard();
-if (__draftGuard?.kind === "production") {
-  process.stderr.write(BLOG_DRAFT_LEAK_GUARD_MSG_PRODUCTION + "\n");
-  process.exit(1);
+function runDraftGuard(
+  guard: { kind: "production" | "preview" } | null,
+  msgProd: string,
+  msgPreview: string,
+): void {
+  if (!guard) return;
+  const msg = guard.kind === "production" ? msgProd : msgPreview;
+  console.error(msg);
+  if (!__isUnderVitest) process.exit(1);
 }
-if (__draftGuard?.kind === "preview") {
-  process.stderr.write(BLOG_DRAFT_LEAK_GUARD_MSG_PREVIEW + "\n");
-  process.exit(1);
-}
+
+runDraftGuard(
+  checkBlogDraftGuard(),
+  BLOG_DRAFT_LEAK_GUARD_MSG_PRODUCTION,
+  BLOG_DRAFT_LEAK_GUARD_MSG_PREVIEW,
+);
+runDraftGuard(
+  checkProjectsDraftGuard(),
+  PROJECTS_DRAFT_LEAK_GUARD_MSG_PRODUCTION,
+  PROJECTS_DRAFT_LEAK_GUARD_MSG_PREVIEW,
+);
 
 const cspDirectives = [
   "default-src 'self'",

@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   ci:
@@ -78,10 +79,25 @@ jobs:
         env:
           BLOG_ENHANCED_CI_LITERALS_REQUIRED: "1"
 
+      - name: "Verify paired-merge for 6+7"
+        run: node scripts/verify-paired-merge.mjs
+
+      - name: "Verify canary↔regex-list paired-merge"
+        run: node scripts/verify-canary-regex-pair.mjs
+
+      - name: "Self-tests for check-velite-output"
+        run: node --test scripts/check-velite-output.test.mjs
+
+      - name: Verify CI wiring for check-velite-output
+        run: node scripts/check-velite-output.mjs --verify-ci-wiring
+
       - name: Build 1 (with drafts)
         run: pnpm build
         env:
           BLOG_INCLUDE_DRAFTS: "1"
+
+      - name: Check velite output before tests
+        run: node scripts/check-velite-output.mjs
 
       - name: Touch Build 1 sentinel
         run: touch .velite/.build1-sentinel
@@ -102,11 +118,19 @@ jobs:
         if: always()
         run: pnpm build
 
+      - name: Check velite output before tests
+        if: always()
+        run: node scripts/check-velite-output.mjs
+
       - name: Verify production build (Build 2)
         if: always()
         run: node scripts/verify-production-build.mjs
         env:
           NODE_OPTIONS: "--no-warnings=ExperimentalWarning"
+
+      - name: "Check Lighthouse cadence"
+        if: always()
+        run: node scripts/check-lighthouse-cadence.mjs
 
       - name: Pagefind crawl (Build 2)
         if: vars.PAGEFIND_ENABLED != 'false'
