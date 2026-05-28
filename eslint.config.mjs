@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Pagefind generated bundle (built by `pnpm build:search`).
+    "public/pagefind/**",
   ]),
   // Chokepoint-bypass guard: direct imports of "#site/content" are forbidden
   // outside the authorized helper. Consume posts via src/lib/blog.ts.
@@ -35,7 +37,13 @@ const eslintConfig = defineConfig([
     },
   },
   {
-    files: ["src/lib/blog.ts", "velite.config.ts"],
+    files: [
+      "src/lib/blog.ts",
+      "velite.config.ts",
+      "src/__fixtures__/chokepoint-canary.ts",
+      "src/lib/blog.test.ts",
+      "src/app/feed.xml/parity.test.ts",
+    ],
     rules: {
       "no-restricted-imports": "off",
     },

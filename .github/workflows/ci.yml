@@ -114,6 +114,10 @@ jobs:
         if: always()
         run: rm -rf .velite .next
 
+      - name: Velite build (for Build 2)
+        if: always()
+        run: pnpm exec velite build
+
       - name: Build 2 (production-mode)
         if: always()
         run: pnpm build
