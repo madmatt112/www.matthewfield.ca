@@ -1,0 +1,456 @@
+# Tasks Document
+
+Tasks are listed in a **topological order** consistent with the DAG below; the linear ordering of the document does not imply serial execution. Three largely independent branches can run in parallel after the schema primitives land:
+
+- the **Velite-validation chain** (1 → 2 → 3 → 4 → 5 → 6, with data files at 6),
+- the **chokepoint-parity chain** (7 → 8 → 9 → 10 → 11), and
+- the **author-doc + CI chain** (21 → 22, 23, 24).
+
+They converge at the `src/lib` query layer (12, 13), which both the rendering layer (14–19) and the sitemap (20) consume, and at the final build verification (26).
+
+```mermaid
+graph TD
+    T1[1: schema primitives] --> T2[2: per-entry schemas]
+    T2 --> T3[3: error-format]
+    T3 --> T4[4: yaml loader]
+    T2 --> T4
+    T4 --> T5[5: register collections+loaders]
+    T5 --> T6[6: data files]
+    T5 --> T12[12: contributions.ts]
+    T5 --> T13[13: resources.ts]
+    T7[7: eslint additive] --> T12
+    T7 --> T13
+    T8[8: content chokepoint scanner] --> T10[10: scanner test]
+    T9[9: canary fixture + tsconfig + eslint off] --> T10
+    T8 --> T9
+    T10 --> T11[11: paired-merge gate + CI]
+    T9 --> T11
+    T12 --> T14[14: page CSS]
+    T13 --> T14
+    T15[15: ContributionLinkRail] --> T16[16: ContributionCard]
+    T16 --> T17[17: /contributions page]
+    T12 --> T17
+    T14 --> T17
+    T18[18: ResourceCategorySection] --> T19[19: /resources page]
+    T13 --> T19
+    T14 --> T19
+    T12 --> T20[20: sitemap]
+    T13 --> T20
+    T21[21: author doc] --> T22[22: check-authoring-docs + test]
+    T5 --> T23[23: lighthouse cadence guard + runs-log]
+    T22 --> T24[24: ci.yml wiring + topology verifier]
+    T23 --> T24
+    T11 --> T24
+    T17 --> T25[25: hero-card copy refinement]
+    T19 --> T25
+    T6 --> T26[26: end-to-end build verification]
+    T17 --> T26
+    T19 --> T26
+    T20 --> T26
+    T24 --> T26
+```
+
+## Revision history
+
+- **v1**: Initial decomposition of the v4 design (post-r3 adversarial on requirements + design). Tasks pin the design's load-bearing decisions: (a) the **custom YAML loader as authoritative validator** (corrections #2/#3 — Velite is non-strict, so a `throw` in `load` is the only reliable per-collection hard-fail hook), split across schema-primitives → schemas → error-format → loader so each is independently unit-testable without a full Velite build; (b) the **per-entry** `s.object().strict()` envelope (correction #1), `single` defaulted; (c) the **`isoDate()` validate-don't-transform, `fatal:true`** helper (r3 findings 2a/2b) storing raw `YYYY-MM-DD`; (d) `formatZodIssues` owning the entire Shared Build-Time Error-Message Contract loader-side, with the **schema-walk unwrap table** for enum-member/`.shape` derivation through `ZodEffects`/`ZodPipeline`/`ZodOptional` wrappers (r3 finding #3); (e) **two-layer chokepoint parity** with `projects` via a SEPARATE parallel scanner + canary + paired-merge gate (zero changes to projects infrastructure — r2/r3 findings), with a **symbol→authorized-helper map** so `contributions.ts` cannot import `resources` and vice-versa; (f) loader-as-validator means all issue-shape introspection is written against **Velite's bundled v3-shaped `s`/zod**, never the top-level `zod ^4` dependency (r2 finding 5a); (g) sitemap entries moved out of the static `routes` array into collection-derived `lastModified` (Req 6.2); (h) author-doc heading check + N=10 Lighthouse cadence guard as standalone testable scripts, wired into CI with a mandatory `verify-ci-topology` re-run (r1 acceptance gate); (i) a Requirements Coverage Matrix at the document foot for orphan-AC visibility.
+- **v4 (post-r3 adversarial review of tasks.md, FINAL)**: r3 ran empirical probes in the actual harness and declared the document **converged / implementation-ready, zero blocking findings** — both load-bearing v3 deltas were confirmed to work (the deterministic `getByRole("group")` render assertion passes without jest-dom; the `sitemap.empty.test.ts` file-scope `vi.mock` is not shadowed by the built `.velite`). Only minor residuals, addressed here: (1) **Task 20 "exactly once" assertion** — r3 R2 noted the empty test's "both URLs present" check is also satisfied by the pre-edit static `routes` array, so its only real teeth are `not.toThrow()`; v4 adds an assertion that `/contributions` and `/resources` each appear EXACTLY ONCE (catches a forgotten `routes`-literal removal producing duplicates, complementing Task 20's restriction + Task 26). (2) **Mock-list accuracy (r3 R3)** — only `posts`/`projects`/`contributions`/`resources` are transitively read by `sitemap()`; the mock may list more (harmless/future-proof) but MUST list at least those four. (3) **Documented design-drift (r3 R1)** — `design.md:323`'s retracted "or re-declared in test" escape is **superseded** by v3's single-sourcing (constants exported from `src/lib`, page imports, lib test asserts the exported value); tasks.md is the governing artifact and is already clean — recorded here as a known, intentional supersede rather than editing the already-approved design. No other changes; the prior rounds' decisions stand.
+- **v3 (post-r2 adversarial review of tasks.md)**: r2 attacked the v2 deltas and found the render-test fix was incomplete and the wrong shape. v3 corrections: (1) **Drop jest-dom matchers from Tasks 15/16** — the repo's `vitest.config.ts` has NO `setupFiles`, so `toHaveAccessibleName`/`toBeInTheDocument` are unregistered (verified: the only existing `.test.tsx`, `src/canary.test.tsx`, uses plain `render()` + `.toBeDefined()`, never a jest-dom matcher). v3 rewrites the assertions to **deterministic DOM checks** — `getByRole("group").getAttribute("aria-labelledby")` `=== "contrib-"+index` AND `container.querySelector("#contrib-"+index)?.textContent === title` — which need no jest-dom/setupFiles and catch the `contrib-`-vs-`contrib_` typo more robustly than jsdom's incomplete accname computation (r2 findings #1 blocking + #2). No `vitest.config.ts` change required. (2) **Task 20 empty test → dedicated `src/app/sitemap.empty.test.ts`** with a file-scope `vi.mock("#site/content", () => ({ contributions: [], resources: [] }))` calling the REAL `sitemap()` default export and asserting `not.toThrow()` + both URLs present with the `now` fallback — mirroring the established `src/lib/projects.empty.test.ts` idiom, so the guard survives Task 6 seeding real entries (r2 #3 — the v2 unit-isolated `maxOr` test proved nothing about `sitemap()`). (3) **Single-source the description constants** — `CONTRIBUTIONS_DESCRIPTION`/`RESOURCES_DESCRIPTION` are now EXPORTED from `src/lib/contributions.ts`/`resources.ts`; the page imports them (no redeclare); the lib test asserts the **exported** constant. Removed the design's "or re-declared in test" escape hatch (r2 #4 — a re-declared copy guarded nothing the page ships). (4) **Task 3(e) honesty + manifest** — the `ZodPipeline` `_def.out`/`_def.in` branch is unreachable by any issue these two schemas emit (pipelines wrap leaf strings; the walk never descends through them), so its test is relabeled **defensive/synthetic (not a production path)**; and Task 3's Success now requires the test file to contain seven named `describe` blocks (one per clause a–g) so partial completion is grep-detectable without splitting the task (r2 #5). (5) **Task 23 seed value** — restriction to seed the runs-log's initial entry with the actual launch count (0 when data is `[]`), never a placeholder, so the cadence guard doesn't fire spuriously on the first real run (r2 #6).
+- **v2 (post-r1 adversarial review of tasks.md)**: r1's pattern — the decomposition was sound, but several `Success:` lines reduced to "renders the documented structure" (manual-only verification) and a few load-bearing prohibitions lived in design prose, not task restrictions. v2 converts each to a mechanical gate. (1) **Add render tests to the rendering layer** — Tasks 15 & 16 gain a colocated component test; Task 16's `Success:` now requires a `getByRole("group")` + `toHaveAccessibleName` assertion proving the rail's `aria-labelledby` resolves to the card `<h2>` id (closes the split-ownership 2.6/3.7 a11y gap — risk #1; the entire rendering layer no longer ships test-free). (2) **Task 5 restriction "do NOT set `strict` in `defineConfig`"** — pins the design's rejected-alternative into an enforceable restriction so an implementer can't convert currently-warning `posts`/`projects` content into a hard failure (risk #2). (3) **Task 20 `maxOr` empty-array guard** — restriction "no bare `.reduce` without an initial value" + a launch-state (`[]`) empty-collection sitemap test (risk #3 — this path runs on day one). (4) **Task 9 atomicity restriction** — "canary fixture + tsconfig-exclude + eslint-off MUST land in ONE commit" so no intermediate commit fails typecheck/lint (risk #4, Req 1.9). (5) **Task 3 per-contract-clause sub-checkboxes** — the seven contract functions each get an explicit sub-deliverable with a dedicated unit test (incl. the r3-flagged `["links",0,"kind"]` schema-walk and a `ZodPipeline` traversal case), so the defensive fallback can't silently mask a missing enum-member list (risk #5). Kept as one file/one task (splitting across two tasks would create the same-file coupling r1 warned against) but the binary checkbox becomes a tracked checklist. (6) **Task 8 allowlist + Task 10 restriction** — add `check-content-chokepoint.test.ts` to the scanner allowlist for true `projects` parity AND pin "read the canary via `fs.readFileSync` only; no inline import-shaped strings outside RegExp literals" (risk #6). (7) **Declare the `eslint.config.mjs` shared-edit coupling** between Tasks 7 and 9 (undeclared merge coupling). (8) **Task 21 author-doc forward-coupling bullet** — document that future YAML collections pass through this loader and must register their schema in `makeContentYamlLoader` (orphan design note). (9) **Matrix clarification** — the durable committed V for Reqs 1.4/4.4/10.1 is Task 4's loader unit tests; Task 26 is a one-time launch-gate integration confirmation, not the regression layer. (10) **Task 25 marked explicitly non-blocking** (Req 9.2 is "MAY"; nothing gates on it). (11) **Renumber 6.5 → 6** (there was never a dropped Task 6; the half-number was cosmetic noise).
+
+---
+
+## `_Requirements:` footer semantics
+
+Each task carries a `_Requirements:` footer listing requirement IDs from `requirements.md`. The semantics are **"this task contributes to satisfying these requirements"** (in whole or in part) — *not* "this task transitively depends on these requirements." A requirement may be covered by multiple tasks; the Requirements Coverage Matrix at the document foot makes the inverse mapping explicit so orphan requirements are visible at review time.
+
+All `_Prompt` fields are written for a fresh-context implementer and begin with the spec-workflow re-entry instruction. All schema/loader/error-format code in this spec MUST import types and the schema builder from `velite` (the bundled v3-shaped `s`/zod), **never** from the top-level `zod` dependency — their issue field names differ.
+
+---
+
+- [ ] 1. Create shared schema primitives in src/lib/build/content-schema-primitives.ts
+  - File: src/lib/build/content-schema-primitives.ts, src/lib/build/content-schema-primitives.test.ts
+  - Export the shared zod builders used by both per-entry schemas (design → "Velite layer"):
+    - `BUILD_START_UTC` — `Date.now()` captured once at module load (Req 4.2 upper-bound anchor; shared by loader `safeParse` and Velite re-parse).
+    - `httpUrl()` — the two-stage check extracted from `linkSchema` (`velite.config.ts:267-280`): `s.string().url().refine(new URL()-parse + protocol ∈ {http:,https:})`.
+    - `trimmed(min, max)` — `s.string().transform((v) => v.trim()).pipe(s.string().min(min).max(max))` (trim-then-bound; Req 1.2 / 4.2).
+    - `isoDate()` — **validate, do NOT transform, abort fatally** per design v4: regex `^(\d{4})-(\d{2})-(\d{2})$`, then a round-trip calendar check via `new Date("${v}T00:00:00.000Z")` comparing `getUTCFullYear/Month/Date` to the captured groups; both failure branches `ctx.addIssue({ code: "custom", fatal: true, ... })`. Stores the raw `YYYY-MM-DD` string (no rewrite). MUST NOT chain `.transform()` (that reintroduces the r3 `RangeError` escape).
+    - `uniqueByKind` — a `superRefine` for a `links` array that adds an issue when two links share a `kind` (Req 3.2).
+  - Unit tests (the load-bearing ones): `isoDate()` rejects `2026-02-30`, `2026-04-31`, non-leap `2026-02-29`, `2026-13-45`, `2026-00-10`, and a shape-valid-but-unparseable string WITHOUT throwing a `RangeError` (every bad date is a normal aborted ZodIssue); accepts `2026-05-28` and stores it verbatim. `httpUrl()` rejects `mailto:`/`javascript:`/`file:` and accepts `https:`. `trimmed()` applies bounds post-trim and rejects a whitespace-only string.
+  - Purpose: single source of truth for the reusable field validators; isolates the highest-risk validator (`isoDate`) for direct unit coverage.
+  - _Leverage: velite.config.ts:252-282 (linkSchema two-stage URL + .strict() idiom); Velite's bundled `s` from "velite"_
+  - _Requirements: 1.2, 3.2, 3.3, 4.2_
+  - _Depends on: (none — new module)_
+  - _Design refs: Architecture → "Velite layer", isoDate() v4 block, httpUrl/trimmed pins_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: TypeScript developer fluent in zod v3 schema composition | Task: Create the shared primitives module and its unit tests as described, importing `s` from "velite" (NOT top-level zod). Implement `isoDate()` as validate-only with `fatal: true` issues and a UTC round-trip calendar check; do NOT add a `.transform()`. Mark in-progress before starting; call log-implementation when done. | Restrictions: Import the schema builder only from "velite". No `.transform()` on `isoDate()`. `BUILD_START_UTC` captured exactly once at module scope. Do not touch `velite.config.ts` in this task. | _Leverage: velite.config.ts linkSchema | _Requirements: 1.2, 3.2, 3.3, 4.2 | Success: `pnpm test` passes the new suite; calendar-invalid dates produce aborted ZodIssues (no thrown RangeError); `pnpm typecheck` clean. Then mark complete after logging._
+
+- [ ] 2. Create the two per-entry schema modules
+  - File: src/lib/build/contributions-schema.ts, src/lib/build/resources-schema.ts
+  - `contributions-schema.ts` exports `contributionEntrySchema = s.object({...}).strict()` and `contributionLinkSchema`:
+    - `repo` (`s.string().min(1).max(80).regex(/^[a-zA-Z0-9][a-zA-Z0-9._-]*\/[a-zA-Z0-9._-]+$/)`), `repoUrl: httpUrl()`, `title: trimmed(5,100)`, `description: trimmed(30,280)`, `date: isoDate()` (future permitted — NO upper bound), `language: s.string().min(1).max(24).optional()`, `links: s.array(contributionLinkSchema).min(1).max(5).superRefine(uniqueByKind)`.
+    - `contributionLinkSchema = s.object({ kind: s.enum(["pr","commit","issue","release","writeup","discussion"]), label: trimmed(1,60).optional(), url: httpUrl() }).strict()`. **No per-field `errorMap`** — all formatting is centralized in Task 3's `formatZodIssues`.
+  - `resources-schema.ts` exports `resourceEntrySchema = s.object({...}).strict()`:
+    - `title: trimmed(2,80)`, `url: httpUrl()`, `description: trimmed(20,200)`, `category: s.enum(["devops-tools","blogs-and-feeds","reading","fun-stuff"])`, `added: isoDate().refine((d) => Date.parse(d) <= BUILD_START_UTC)` (future-blocked; the refine only runs on calendar-valid dates because `isoDate()` aborts fatally).
+  - These schema objects are the SINGLE SOURCE OF TRUTH imported by BOTH the collection registration (Task 5, for types/output) AND the loader (Task 4, for validation). No `errorMap` attached anywhere.
+  - Purpose: pin the exact per-entry field contracts (correction #1 — per-entry object, not `s.array(...)`).
+  - _Leverage: Task 1 primitives; velite.config.ts projects schema shape_
+  - _Requirements: 1.1, 1.2, 1.3, 1.5, 3.1, 4.1, 4.2, 4.3, 4.5_
+  - _Depends on: 1_
+  - _Design refs: "Per-entry schema", "Contributions per-entry fields", "Resources per-entry fields"_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: TypeScript developer | Task: Create the two per-entry schema modules using the Task 1 primitives, exactly as specified (per-entry `s.object().strict()`, not array-wrapped). Mark in-progress; log-implementation when done. | Restrictions: Per-entry object schema only (no `s.array(...)` wrapper). `contributions date` has NO upper bound; `resources added` is upper-bounded by `BUILD_START_UTC`. No per-field `errorMap`. Import `s` from "velite". | _Leverage: Task 1 primitives | _Requirements: 1.1, 1.2, 1.3, 1.5, 3.1, 4.1, 4.2, 4.3, 4.5 | Success: both modules type-check; the six link kinds and four categories match the design verbatim; schemas export cleanly for import by Tasks 4 and 5. Then mark complete after logging._
+
+- [ ] 3. Create the error-message formatter src/lib/build/content-error-format.ts
+  - File: src/lib/build/content-error-format.ts, src/lib/build/content-error-format.test.ts
+  - Export pure functions implementing the **Shared Build-Time Error-Message Contract** (requirements.md §"Shared Build-Time Error-Message Contract"):
+    - `formatZodIssues(issues, { basename, entry, index, schema })` → string[] (one contract line per issue).
+    - `serializeValue(v)` — quoted strings; bare numbers/booleans/`null`; objects/arrays via compact `JSON.stringify`; `\n`-escape THEN 80-char truncate with `…` inside the closing quote (string) / after the JSON (compound).
+    - field-path builder — dot-and-bracket form (`links[2].kind`: numeric segments bracketed, string segments dot-joined).
+    - locator chooser — repo/title preferred when `issue.path[0]` is NOT the identifier field AND the identifier is a non-empty trimmed string; else `entry[<index>]`. If `issue.path[0] === "repo"` (contributions) / `"title"` (resources), ALWAYS use `entry[<index>]`.
+    - `formatEnumMembers` — derived by **walking the schema along `issue.path` to the failing field's `ZodEnum`** and reading `_def.values` (covers both `invalid_enum_value` AND `invalid_type` on enum fields; `issue.options` alone is insufficient — r2 finding).
+    - schema-walk-to-field helper — applies the **unwrap table**: `ZodEffects→_def.schema`, `ZodPipeline→_def.out` (then `_def.in`), `ZodOptional/Nullable/Default→_def.innerType`, `ZodArray (numeric segment)→_def.type`, `ZodObject (key segment)→.shape[seg]`. Reaching `["links",0,"kind"]` must traverse the `superRefine` `ZodEffects`→`ZodArray`→element `ZodObject`→`.shape.kind`. Defensive: if the walk hits an unexpected node, OMIT the member list rather than throw.
+    - `unrecognized_keys` handler — per stray key: `unknown key 'repoURL' (did you mean 'repoUrl'?)`, nearest-key match against the CORRECT object's `.shape` (found via the walk). Item 4 (offending value) is skipped for this code.
+    - `Hint:` appender — own line, `Hint: ` prefix, ≤3 per message (Req 3.1 forge hints).
+  - **Sub-deliverables (this is one file / one task, but each clause below MUST have its own dedicated unit test — the task is not done until every box is covered; the defensive schema-walk fallback must NOT be allowed to silently mask a missing enum-member list):**
+    - **(a)** `serializeValue` — quoting/bare/JSON rules + `\n`-escape + 80-char truncation (incl. non-scalar `links: {}`).
+    - **(b)** field-path builder — `links[2].kind` bracket-and-dot form.
+    - **(c)** locator chooser — repo/title vs `entry[n]`, incl. the identifier-itself-failed branch.
+    - **(d)** `formatEnumMembers` — both `invalid_enum_value` AND `invalid_type` (non-string `kind: 42`) codes.
+    - **(e)** schema-walk + unwrap table — a test that traverses the EXACT path `["links",0,"kind"]` through the `superRefine` `ZodEffects`→`ZodArray`→element `ZodObject`→`.shape.kind` and asserts the enum members are FOUND (not the fallback). **Note (r2 #5a):** no issue these two real schemas emit ever walks *through* a `ZodPipeline` (the `trimmed()` pipelines wrap leaf strings; the walk never descends past them). The `ZodPipeline` `_def.out`/`_def.in` unwrap-table row is therefore **defensive/unreachable for production data** — cover it with an explicitly-labeled SYNTHETIC schema fixture (a pipeline wrapping an object) so the helper is robust, but do NOT present it as coverage of a real path.
+    - **(f)** `unrecognized_keys` did-you-mean — nearest-key match against the correct object's `.shape`, incl. a nested stray key under `links[2]`.
+    - **(g)** `Hint:` appender — own-line `Hint: ` prefix, ≤3 per message.
+  - Unit tests cover every contract clause directly per the sub-deliverables above. **Partial-completion guard (r2 #5b):** the test file MUST contain seven top-level `describe` blocks named for clauses (a)–(g) so a reviewer can grep that all seven exist — this is the cheap stand-in for splitting the task, which would create the same-file two-task coupling r1 warned against.
+  - Purpose: own the entire error contract loader-side (Velite's native message path is bypassed; v1 design's per-field-errorMap path proven impossible — r1).
+  - _Leverage: Task 2 schemas (for the walk-target objects); requirements.md Shared Contract; velite bundled zod issue shapes_
+  - _Requirements: 1.4, 3.1, 4.4_
+  - _Depends on: 2_
+  - _Design refs: "Error-message contract", "Schema-walk unwrap table"_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: TypeScript developer with deep zod-v3 internals knowledge | Task: Implement the contract formatter and its unit tests exactly per the design's seven contract items and the unwrap table. All issue-shape introspection (`issue.code`, `issue.options`, `issue.keys`, `_def.values`, `.shape`, `typeName`) MUST be written against velite's bundled v3 zod, never top-level zod. Mark in-progress; log-implementation when done. | Restrictions: No import from top-level "zod". Pure functions only (no I/O). The schema-walk falls back to omitting the enum list on an unexpected node — never throws. | _Leverage: Task 2 schemas; requirements Shared Contract | _Requirements: 1.4, 3.1, 4.4 | Success: the test file has seven `describe` blocks (a)-(g) and ALL pass, INCLUDING the (e) test that walks `["links",0,"kind"]` and asserts the enum members are FOUND (not the defensive fallback), with the `ZodPipeline` row covered by an explicitly-labeled synthetic fixture (not a real path); non-scalar-value, non-string-enum, multi-key-unrecognized, nested-unknown-key, and identifier-failed cases all covered; `pnpm typecheck` clean. Then mark complete after logging._
+
+- [ ] 4. Create the authoritative YAML loader src/lib/build/content-yaml-loader.ts
+  - File: src/lib/build/content-yaml-loader.ts, src/lib/build/content-yaml-loader.test.ts
+  - Export `makeContentYamlLoader(schemasByBasename)` returning `defineLoader({ test: /\.(ya?ml)$/, load })` exactly per the design code block:
+    - compute `basename`; if not in `schemasByBasename`, passthrough `{ data: yaml.parse(file.toString()) ?? [] }` (no-op for unmanaged YAML — coupling note).
+    - envelope checks: `parsed == null` → throw the named "is empty or null … write the explicit empty list literal: []" error; `!Array.isArray(parsed)` → throw "must be a top-level YAML list …".
+    - per-entry: `schema.safeParse(entry)` wrapped in try/catch (defense-in-depth: a thrown internal error becomes a contract line, not a bare RangeError — r3 finding 2b); collect `formatZodIssues(...)` for each failure; if `messages.length > 0` throw `"\n" + messages.join("\n")`; else return `{ data: parsed }`.
+  - Loader unit tests call `makeContentYamlLoader({...}).load(fakeVFile)` with synthetic contents: valid array → `{ data }`; `null`/`~`/zero-byte → throws named envelope error; non-array (mapping/scalar) → throws; bad enum / oversize field / unknown key / duplicate `kind` / whitespace-only `label` / future-dated `added` / calendar-invalid `date` → throws a contract-conformant message. This is where corrections #2 and #3 are pinned as tests (no full Velite build needed).
+  - Use the `yaml` package directly (already a devDependency used by `scripts/check-velite-output.mjs`).
+  - Purpose: deliver the hard build failure the requirements demand, scoped to the two managed files, since Velite is non-strict and would otherwise only warn (correction #3).
+  - _Leverage: Tasks 2 & 3; `yaml` dep; defineLoader from "velite"_
+  - _Requirements: 1.4, 1.6, 3.1, 3.3, 4.4, 4.6, 10.1, 10.2_
+  - _Depends on: 2, 3_
+  - _Design refs: "Custom YAML loader" code block + "Why this works", Envelope state table_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: Build-tooling engineer familiar with Velite loaders | Task: Implement the loader factory and its unit tests exactly per the design code block, including the try/catch around safeParse and the throw-on-messages aggregation. Verify the envelope state table behaviors. Mark in-progress; log-implementation when done. | Restrictions: `safeParse` (sync) only — no async. The named envelope error strings must match the design verbatim (basename-substituted). Throw raw Error (Velite surfaces `err.message` untruncated). Import `defineLoader` from "velite". | _Leverage: Tasks 2 & 3; yaml dep | _Requirements: 1.4, 1.6, 3.1, 3.3, 4.4, 4.6, 10.1, 10.2 | Success: all loader unit tests pass (valid passthrough; null/~/zero-byte/non-array throws; per-entry violation throws contract message); `pnpm typecheck` clean. Then mark complete after logging._
+
+- [ ] 5. Register contributions + resources collections and the loader in velite.config.ts
+  - File: velite.config.ts
+  - Import the two schema modules (Task 2) and `makeContentYamlLoader` (Task 4). Add two `defineCollection` registrations: `contributions` (`name: "Contribution"`, `pattern: "contributions.yaml"`, `schema: contributionEntrySchema`) and `resources` (`name: "Resource"`, `pattern: "resources.yaml"`, `schema: resourceEntrySchema`). `single` left default (false).
+  - In `defineConfig`: add both to `collections` (currently `{ pages, profile, posts, projects }` at velite.config.ts:425) and add `loaders: [makeContentYamlLoader({ "contributions.yaml": contributionEntrySchema, "resources.yaml": resourceEntrySchema })]`. Existing collections untouched.
+  - **Do NOT set `strict: true` (or any `strict` key) in `defineConfig`.** The design explicitly rejects global strict mode: it is all-or-nothing and would convert currently-warning `posts`/`projects` content into hard build failures — an unassessed cross-spec blast radius outside this spec's scope. The loader (Task 4) is the scoped hard-fail mechanism.
+  - Purpose: wire the validated collections into the build so `#site/content` exposes `contributions: Contribution[]` and `resources: Resource[]`.
+  - _Leverage: velite.config.ts:425 collections object; Tasks 2 & 4_
+  - _Requirements: 1.1, 4.1, 1.8, 4.7_
+  - _Depends on: 2, 4_
+  - _Design refs: "Integration Points → velite.config.ts"_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: Build-tooling engineer | Task: Register the two collections and the loader additively in velite.config.ts as specified; leave pages/profile/posts/projects untouched. Run `pnpm exec velite build` to confirm `.velite/contributions.json` and `.velite/resources.json` are emitted (as `[]` when files are absent). Mark in-progress; log-implementation when done. | Restrictions: Additive only — do not modify existing collection definitions. `single` stays default. Same schema object instance passed to both the collection and the loader map. Do NOT set any `strict` key in defineConfig. | _Leverage: velite.config.ts collections; Task 4 loader | _Requirements: 1.1, 4.1, 1.8, 4.7 | Success: `pnpm exec velite build` exits 0 and emits both JSON files; `#site/content` types expose `contributions`/`resources`; existing collections unchanged. Then mark complete after logging._
+
+- [ ] 6. Create the two YAML data files
+  - File: content/contributions.yaml, content/resources.yaml
+  - Each file is a top-level YAML list. Create them as valid lists — either the explicit empty-list literal `[]` (valid empty state) or seeded with real, schema-valid entries (Matthew's editorial call). If seeded, every entry MUST pass the Task 2 schema (run `pnpm exec velite build` to confirm a green build).
+  - Per Req 1.9 order-of-operations, the data files, schema, route, helper, and author doc must land in a sequence where every intermediate commit leaves CI green; the empty-list literal satisfies that for an unseeded launch.
+  - Purpose: provide the build inputs and exercise the populated/empty branches.
+  - _Leverage: Task 5 collections; author doc example entries (Task 21)_
+  - _Requirements: 1.9, 4.1_
+  - _Depends on: 5_
+  - _Design refs: Envelope state table; Req 1.9_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: Content author | Task: Create content/contributions.yaml and content/resources.yaml as valid top-level YAML lists (empty-list literal or schema-valid seeded entries). Run `pnpm exec velite build` and confirm exit 0. Mark in-progress; log-implementation when done. | Restrictions: Top-level list only (never a bare mapping, never zero bytes, never `~`). Seeded entries must pass the schema. | _Leverage: Task 5; Task 21 examples | _Requirements: 1.9, 4.1 | Success: `pnpm exec velite build` green; if seeded, entries appear in `.velite/*.json`. Then mark complete after logging._
+
+- [ ] 7. Extend the eslint chokepoint rule additively (importNames + helper allowlist)
+  - File: eslint.config.mjs
+  - In the `no-restricted-imports` block (eslint.config.mjs:22-50), extend `importNames: ["posts"]` → `["posts", "contributions", "resources"]`. In the exemption `files` list, add `src/lib/contributions.ts` and `src/lib/resources.ts`. Both edits in the same change so the named-import bypass is caught while the authorized helpers stay legal.
+  - Do NOT add test files to the allowlist — `contributions.test.ts`/`resources.test.ts` use `vi.mock("#site/content", ...)` and never import the real collection (correction to v1 over-adding).
+  - **Shared-file coupling note:** `eslint.config.mjs` is ALSO edited by Task 9 (adds the canary fixture to the `off` file list). If 7 and 9 land on separate branches they will touch the same `files:[...]` region — coordinate the merge (trivial, but flagged so it isn't a surprise conflict).
+  - Purpose: Layer 1 chokepoint guard (catches named-import bypass) at parity with `posts`.
+  - _Leverage: eslint.config.mjs:22-50_
+  - _Requirements: 1.8, 4.7, 7.4_
+  - _Depends on: (none — but Tasks 12/13 depend on this)_
+  - _Design refs: "Chokepoint enforcement — Layer 1"_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: Tooling engineer | Task: Extend the existing no-restricted-imports rule additively per the design — add contributions/resources to importNames and add the two helper files to the exemption list. Mark in-progress; log-implementation when done. | Restrictions: Additive only. Do NOT add test files to the allowlist. Do not touch the projects/posts wiring beyond appending the two names. | _Leverage: eslint.config.mjs | _Requirements: 1.8, 4.7, 7.4 | Success: `pnpm lint` passes; a deliberate `import { contributions } from "#site/content"` in a non-allowlisted file errors. Then mark complete after logging._
+
+- [ ] 8. Create the parallel chokepoint scanner src/lib/build/check-content-chokepoint.ts
+  - File: src/lib/build/check-content-chokepoint.ts
+  - A SEPARATE scanner (NOT a generalization of `check-projects-chokepoint.ts` — that file's signature and pinned 17-sentinel test are frozen). Takes a **symbol→authorized-helper-allowlist map**: `{ contributions: ["src/lib/contributions.ts"], resources: ["src/lib/resources.ts"] }`. Detects all `#site/content` import shapes (the same 17 categories as the projects scanner, incl. `import * as c from "#site/content"; c.contributions` which eslint `importNames` cannot catch) for BOTH symbols, and flags an import of a symbol from any file NOT in that symbol's allowlist (so `contributions.ts` importing `resources` is a violation, and vice-versa). The new canary fixture path (Task 9) AND the scanner test file `src/lib/build/check-content-chokepoint.test.ts` are path-exempted in this scanner's allowlist — true parity with the `projects` scanner, which allowlists both its canary and `projects.test.ts`.
+  - Purpose: Layer 2 chokepoint guard with full import-shape coverage + cross-symbol isolation, at parity with `projects` and with zero changes to the projects scanner.
+  - _Leverage: src/lib/build/check-projects-chokepoint.ts (structure/AST walk — copy, do not import/modify)_
+  - _Requirements: 1.8, 4.7, 7.4_
+  - _Depends on: (none — new file)_
+  - _Design refs: "Chokepoint enforcement — Layer 2"_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: TypeScript tooling engineer with ts-compiler-API familiarity | Task: Create a new, independent chokepoint scanner taking a symbol→allowlist map and covering all import shapes for both contributions and resources, including namespace-member access. Path-exempt the new canary fixture. Mark in-progress; log-implementation when done. | Restrictions: Do NOT modify or import check-projects-chokepoint.ts. The allowlist is per-symbol so cross-symbol imports are violations. Exact specifier equality `=== "#site/content"`. | _Leverage: check-projects-chokepoint.ts structure | _Requirements: 1.8, 4.7, 7.4 | Success: module exports a scanner returning findings; `pnpm typecheck` clean. (Driven by Task 10's test.) Then mark complete after logging._
+
+- [ ] 9. Create the content chokepoint canary fixture + wire its three exemptions
+  - File: src/__fixtures__/content-chokepoint-canary.ts, tsconfig.json, eslint.config.mjs
+  - New canary fixture (parallel to `src/__fixtures__/chokepoint-canary.ts`) carrying raw `#site/content` imports for BOTH `contributions` and `resources` across the import shapes the scanner must detect. Because it carries intentional violations it MUST be added to: (i) `tsconfig.json` `exclude` (today excludes only the projects canary — r3 finding #5; otherwise `pnpm typecheck` fails), (ii) the eslint exemption `files` list (`no-restricted-imports: off`), and (iii) the new scanner's path-exempt allowlist (handled in Task 8).
+  - **Atomicity (Req 1.9 — load-bearing):** the fixture file, its `tsconfig.json` exclude entry, and its eslint off-list entry MUST land in ONE commit. Splitting them leaves an intermediate commit that fails `pnpm typecheck` (ci.yml:51) or `pnpm lint` (ci.yml:45) on the fixture's intentional violations — violating the every-intermediate-commit-green invariant.
+  - **Shared-file coupling note:** the eslint off-list edit here touches the same `eslint.config.mjs` region as Task 7 — coordinate the merge.
+  - Purpose: provide the negative-test substrate for the new scanner without breaking typecheck/lint.
+  - _Leverage: src/__fixtures__/chokepoint-canary.ts (shape)_
+  - _Requirements: 1.8, 4.7, 7.4_
+  - _Depends on: 8_
+  - _Design refs: "Chokepoint enforcement — Layer 2" canary bullet_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: Tooling engineer | Task: Create the new canary fixture covering both symbols' import shapes, and add it to tsconfig exclude + eslint off-list. Mark in-progress; log-implementation when done. | Restrictions: Add to BOTH tsconfig exclude and eslint off-list (the scanner allowlist is Task 8's responsibility). Fixture + tsconfig-exclude + eslint-off MUST be ONE commit (never split — Req 1.9). Do not touch the projects canary or its tsconfig/eslint entries. | _Leverage: chokepoint-canary.ts | _Requirements: 1.8, 4.7, 7.4 | Success: `pnpm typecheck` and `pnpm lint` both pass with the new fixture present. Then mark complete after logging._
+
+- [ ] 10. Create the scanner self-test src/lib/build/check-content-chokepoint.test.ts
+  - File: src/lib/build/check-content-chokepoint.test.ts
+  - Drives the Task 8 scanner against the Task 9 canary (mirrors `projects.test.ts` Cases 8-11 but parallel and independent). Owns the canary's regex sentinels. Asserts: every import shape for both symbols is flagged in a non-allowlisted file; the `import * as c; c.contributions` namespace shape is caught; the symbol→allowlist self-test confirms `contributions.ts` CANNOT import `resources` and vice-versa; and authorized helpers + the canary path are NOT flagged.
+  - Purpose: lock the scanner's coverage and the cross-symbol isolation.
+  - _Leverage: Task 8 scanner; Task 9 canary; projects.test.ts Cases 8-11 (pattern)_
+  - _Requirements: 1.8, 4.7, 7.4_
+  - _Depends on: 8, 9_
+  - _Design refs: Testing Strategy → "chokepoint scanner"_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: QA engineer | Task: Write the scanner self-test driving Task 8 against the Task 9 canary, owning the canary regex sentinels and asserting full shape coverage + cross-symbol isolation. Mark in-progress; log-implementation when done. | Restrictions: This test owns the canary sentinels (paired with Task 11's gate). Read the canary via `fs.readFileSync` only — express expected import shapes as RegExp literals, never as inline import-shaped strings the scanner's own AST walk could flag (mirrors the projects test pattern). Do not couple to the projects test. | _Leverage: projects.test.ts Cases 8-11 | _Requirements: 1.8, 4.7, 7.4 | Success: `pnpm test` passes the new suite; removing a canary shape makes the test fail. Then mark complete after logging._
+
+- [ ] 11. Create a SEPARATE paired-merge gate scripts/verify-content-canary-regex-pair.mjs
+  - File: scripts/verify-content-canary-regex-pair.mjs, scripts/verify-content-canary-regex-pair.test.mjs
+  - A new gate (NOT an extension of `verify-canary-regex-pair.mjs` — appending to its flat `TRACKED_SET` would couple the two pairs and FAIL a future single-pair PR; r3 finding #4). Its OWN `TRACKED_SET = { src/__fixtures__/content-chokepoint-canary.ts, src/lib/build/check-content-chokepoint.test.ts }` with independent all-or-none logic. Self-test mirrors `verify-canary-regex-pair.test.mjs`.
+  - Purpose: enforce that the canary fixture and its regex-owning test move together, independently of the projects pair.
+  - _Leverage: scripts/verify-canary-regex-pair.mjs (structure — copy, do not modify)_
+  - _Requirements: 7.4_
+  - _Depends on: 9, 10_
+  - _Design refs: "Chokepoint enforcement — Layer 2" separate-gate bullet_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: Tooling engineer | Task: Create a separate paired-merge gate + self-test with its own two-file TRACKED_SET, copying the structure of verify-canary-regex-pair.mjs without modifying it. Mark in-progress; log-implementation when done. | Restrictions: Independent TRACKED_SET — do NOT append to the projects gate's set. CI wiring is Task 24's responsibility. | _Leverage: verify-canary-regex-pair.mjs | _Requirements: 7.4 | Success: `node --test scripts/verify-content-canary-regex-pair.test.mjs` passes; touching only one tracked file fails the gate. Then mark complete after logging._
+
+- [ ] 12. Create src/lib/contributions.ts + contributions.test.ts
+  - File: src/lib/contributions.ts, src/lib/contributions.test.ts
+  - Exports (Req 7.1): `export type Contribution = (typeof contributions)[number]`, `export type ContributionLink = Contribution["links"][number]`, `byDateDescRepoAscTitleAsc(a,b): number` (three deterministic keys, Req 2.1), `getAllContributions(): readonly Contribution[]` (collection sorted by the comparator; no draft filtering), `export const formatContributionDate = formatContentDate`. Imports `contributions` from `#site/content` (now allowlisted) and `formatContentDate` from `@/lib/format-date`.
+  - **Export `CONTRIBUTIONS_DESCRIPTION` (50–160 chars) from this module** (single source of truth — Req 2.8). The page (Task 17) imports it; it is NOT re-declared in the page or in the test. (v3 single-sourcing per r2 #4 — a re-declared copy would guard nothing the page ships.)
+  - Tests (`vi.mock("#site/content", ...)` like `projects.test.ts:4`): all three comparator-key branches; stability on identical keys; sort order of `getAllContributions`; `expectTypeOf` assertions on `Contribution`/`ContributionLink`; empty-collection behavior. Also assert the **exported** `CONTRIBUTIONS_DESCRIPTION` length ∈ [50,160] (Req 2.8 — import the real constant, do not re-declare).
+  - Purpose: sole query surface for contributions behind the chokepoint.
+  - _Leverage: src/lib/projects.ts (shape); src/lib/format-date.ts_
+  - _Requirements: 2.1, 2.8, 7.1, 7.3, 1.8_
+  - _Depends on: 5, 7_
+  - _Design refs: "src/lib layer → contributions.ts"_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: TypeScript developer | Task: Create contributions.ts mirroring projects.ts's shape and its colocated test using vi.mock("#site/content"). Mark in-progress; log-implementation when done. | Restrictions: `formatContributionDate === formatContentDate` (re-export, no wrapper). Comparator is pure `(a,b)=>number`. No draft filtering (no draft flag exists). | _Leverage: projects.ts; format-date.ts | _Requirements: 2.1, 2.8, 7.1, 7.3, 1.8 | Success: `pnpm test`, `pnpm typecheck`, `pnpm lint` all pass; comparator branch + stability + empty-collection tests green. Then mark complete after logging._
+
+- [ ] 13. Create src/lib/resources.ts + resources.test.ts
+  - File: src/lib/resources.ts, src/lib/resources.test.ts
+  - Exports (Req 7.2): types `Resource`/`ResourceCategory`; `byAddedDescTitleAscUrlAsc(a,b)` (three keys, Req 5.3); `RESOURCE_CATEGORY_LABELS: Record<ResourceCategory,string>` (frozen: `devops-tools→"DevOps Tools"`, `blogs-and-feeds→"Blogs & Feeds"`, `reading→"Reading"`, `fun-stuff→"Fun Stuff"`); `CATEGORY_ORDER: readonly ResourceCategory[]` (enum order); `getAllResources()`; `getResourcesGroupedByCategory()` (grouped in `CATEGORY_ORDER`, each group sorted by the comparator, **empty groups omitted** — Req 5.6); `export const formatResourceDate = formatContentDate`.
+  - **Export `RESOURCES_DESCRIPTION` (50–160 chars) from this module** (single source of truth — Req 5.8). The page (Task 19) imports it; NOT re-declared in the page or test (v3 single-sourcing per r2 #4).
+  - Tests: three comparator-key branches; stability; empty-group omission (Req 5.6); seed-date degenerate case (equal `added` → alphabetical by title, Req 5.3); `RESOURCE_CATEGORY_LABELS` covers every enum member; group order equals `CATEGORY_ORDER`; the **exported** `RESOURCES_DESCRIPTION` length ∈ [50,160] (Req 5.8 — import the real constant, do not re-declare).
+  - Purpose: sole query/group/label surface for resources behind the chokepoint.
+  - _Leverage: src/lib/projects.ts / blog.ts (shape); format-date.ts_
+  - _Requirements: 5.1, 5.3, 5.6, 5.8, 7.2, 7.3, 4.7_
+  - _Depends on: 5, 7_
+  - _Design refs: "src/lib layer → resources.ts"_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: TypeScript developer | Task: Create resources.ts (comparator, label map, category order, grouped getter with empty-group omission) and its colocated test using vi.mock. Mark in-progress; log-implementation when done. | Restrictions: `formatResourceDate === formatContentDate`. Group order MUST equal CATEGORY_ORDER. Empty groups omitted. | _Leverage: projects.ts/blog.ts; format-date.ts | _Requirements: 5.1, 5.3, 5.6, 5.8, 7.2, 7.3, 4.7 | Success: `pnpm test`/`typecheck`/`lint` pass; empty-group-omission + seed-date + label-coverage tests green. Then mark complete after logging._
+
+- [ ] 14. Add shared page styling for both pages
+  - File: src/styles/contributions.css (and src/styles/resources.css if needed)
+  - CSS for the contribution card grid (Req 2.10 breakpoints: 1 col `<640px`, 2 col `641-1023px`, ≥2 col `≥1024px`), the `.contrib-repo` `<code>`, the link rail, the `language` badge, and the resources category sections (stack vertically at all breakpoints, single-column entries — Req 5.9). Both themes (light/dark) via existing CSS variables. Mirrors `src/styles/projects.css` import pattern.
+  - Purpose: presentational layer; no client JS.
+  - _Leverage: src/styles/projects.css; existing theme CSS variables_
+  - _Requirements: 2.10, 5.9_
+  - _Depends on: 12, 13_
+  - _Design refs: Rendering layer breakpoint notes_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: Frontend developer (CSS) | Task: Add the page CSS following projects.css conventions and the specified breakpoints, working in both themes. Mark in-progress; log-implementation when done. | Restrictions: No client JS. Use existing theme variables; no hardcoded colors that break dark mode. | _Leverage: projects.css; theme variables | _Requirements: 2.10, 5.9 | Success: grid reflows at the three breakpoints; both themes render correctly; `pnpm lint`/`build` clean. Then mark complete after logging._
+
+- [ ] 15. Create ContributionLinkRail component
+  - File: src/components/contributions/contribution-link-rail.tsx, src/components/contributions/contribution-link-rail.test.tsx
+  - Wrapper element with `role="group"` + `aria-labelledby={labelledBy}` (Req 2.6, 3.7). Each link a plain `<a href={url} rel="noopener">` (same-tab; Req 2.7/3.6), in array order (Req 3.4). Rendered text = `label ?? DEFAULT_LABELS[kind]`. `DEFAULT_LABELS` owned here: `pr→"Pull request"`, `commit→"Commit"`, `issue→"Issue"`, `release→"Release notes"`, `writeup→"Write-up"`, `discussion→"Discussion"`. Server-rendered; no client JS.
+  - **Render test** (`@testing-library/react` `render` + `getByRole`, jsdom env which is the vitest default here — **NO jest-dom matchers**, because `vitest.config.ts` has no `setupFiles` so `toHaveAccessibleName`/`toBeInTheDocument` are unregistered; mirror `src/canary.test.tsx`, which uses plain `render()` + core assertions). Assert deterministically: `getByRole("group").getAttribute("aria-labelledby")` equals the passed `labelledBy`; each link's `textContent` equals `label ?? DEFAULT_LABELS[kind]`; each `<a>` has `getAttribute("rel") === "noopener"` and NO `target` attribute; links appear in array order.
+  - Purpose: the typed-link rail (Req 3).
+  - _Leverage: src/components/projects/link-rail.tsx (shape); ContributionLink type from src/lib/contributions.ts_
+  - _Requirements: 2.6, 2.7, 3.1, 3.4, 3.6, 3.7_
+  - _Depends on: 12_
+  - _Design refs: "ContributionLinkRail"_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: React (server-component) developer | Task: Create ContributionLinkRail per the design, with the DEFAULT_LABELS map, role=group + aria-labelledby, rel=noopener same-tab links in array order. Mark in-progress; log-implementation when done. | Restrictions: Server component (no "use client"). No target=_blank. label falls back to DEFAULT_LABELS[kind]. | _Leverage: projects/link-rail.tsx | _Requirements: 2.6, 2.7, 3.1, 3.4, 3.6, 3.7 | Success: the render test passes using deterministic DOM assertions (NO jest-dom) — `getByRole("group").getAttribute("aria-labelledby")` equals the passed value, link `textContent` resolves via DEFAULT_LABELS, each `<a>` has rel=noopener and no target attribute, array order preserved; typecheck/lint clean. Then mark complete after logging._
+
+- [ ] 16. Create ContributionCard component
+  - File: src/components/contributions/contribution-card.tsx, src/components/contributions/contribution-card.test.tsx
+  - `<article>` (no whole-card link; Req 2.5) → `<h2 id={"contrib-" + index}>{title}</h2>` (index = sorted-output position, Req 2.4) → `<code className="contrib-repo">{repo}</code>` (element locked, Req 2.4) → `<p>{description}</p>` → `<time dateTime={datetime}>{display}</time>` via `formatContributionDate` → `language` badge iff present → `<ContributionLinkRail links={links} labelledBy={"contrib-" + index} />`. The id/labelledBy use the template form `contrib-<index>` at implementation time.
+  - **Render test (closes the split-ownership 2.6/3.7 gap — the load-bearing one), deterministic, NO jest-dom:** render a `ContributionCard` with a known `index`, then assert the wiring directly without relying on jsdom's incomplete accessible-name computation: `getByRole("group").getAttribute("aria-labelledby")` === `"contrib-" + index` AND `container.querySelector("#contrib-" + index)?.textContent` === `title`. Together these prove the rail's `aria-labelledby` points at the rendered `<h2 id="contrib-<index>">` and that the id is actually present — a `contrib-` vs `contrib_` typo (producer in Task 16, consumer in Task 15) MUST fail. Also assert `container.querySelector("code.contrib-repo")` is present and the `language` badge appears iff `language` is set.
+  - Purpose: per-contribution card.
+  - _Leverage: src/components/projects/project-card.tsx (shape); Task 15 rail; formatContributionDate_
+  - _Requirements: 2.4, 2.5, 2.6, 3.7_
+  - _Depends on: 15_
+  - _Design refs: "ContributionCard"_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: React (server-component) developer | Task: Create ContributionCard with the exact DOM order and element choices (article, h2 with `contrib-<index>` id, code.contrib-repo, p, time, optional language badge, link rail). Mark in-progress; log-implementation when done. | Restrictions: No whole-card anchor. `<code class="contrib-repo">` locked. index is the sorted-output position passed by the page. | _Leverage: project-card.tsx; Task 15 | _Requirements: 2.4, 2.5, 2.6, 3.7 | Success: the render test passes with deterministic DOM assertions (NO jest-dom) — `getByRole("group").getAttribute("aria-labelledby") === "contrib-"+index` AND `querySelector("#contrib-"+index).textContent === title` (proving the wiring across Tasks 15/16), `code.contrib-repo` present, language badge conditional; typecheck/lint clean. Then mark complete after logging._
+
+- [ ] 17. Create the /contributions route page.tsx
+  - File: src/app/(site)/contributions/page.tsx (replace the PlaceholderPage)
+  - `export const dynamic = "force-static"`. **Import `CONTRIBUTIONS_DESCRIPTION` from `src/lib/contributions.ts`** (do NOT declare it here — single-sourced per v3). It feeds both `generateMetadata()` (`{ title: "Contributions", description, alternates.canonical: "/contributions" }`) and is consistent across populated/empty branches (Req 2.9). `<main>` → `<h1 id="page-heading">Contributions</h1>`. Populated: `<ul role="list" aria-labelledby="page-heading">` of `<li><ContributionCard contribution={c} index={i} /></li>` over `getAllContributions()`. Empty (`length===0`): `<section aria-labelledby="empty-state-heading">` with `<h2 id="empty-state-heading">` + `<p>` (prose owned here; NO 404, NO empty `<main>`). Import the page CSS.
+  - Purpose: the `/contributions` page (Req 2).
+  - _Leverage: src/app/(site)/projects/page.tsx (skeleton); Task 16 card; src/lib/contributions.ts_
+  - _Requirements: 2.1, 2.2, 2.3, 2.8, 2.9_
+  - _Depends on: 12, 14, 16_
+  - _Design refs: "/contributions route"_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: Next.js App Router developer | Task: Replace the placeholder with the real force-static page per the design: shared description constant, h1#page-heading, ul[role=list][aria-labelledby], populated/empty branches. Import from src/lib/contributions.ts ONLY (never #site/content). Mark in-progress; log-implementation when done. | Restrictions: force-static. Single description constant for both meta and both branches. Empty state is a sectioned page, not a 404. Helper-only imports. | _Leverage: projects/page.tsx; Task 16 | _Requirements: 2.1, 2.2, 2.3, 2.8, 2.9 | Success: page renders populated and empty states; meta description consistent; lint passes (no #site/content import). Then mark complete after logging._
+
+- [ ] 18. Create ResourceCategorySection component
+  - File: src/components/resources/resource-category-section.tsx
+  - `<section>` → `<h2 id={"cat-" + category}>{label}</h2>` (id form `cat-<slug>`; Req 5.4) → `<ul>` of `<li>`. Each `<li>`: `<a href={url} rel="noopener">{title}</a>` then `<p className="resource-note">{description}</p>` (Req 5.5; `<ul>/<li>`, NOT `<dl>`). Server-rendered.
+  - Purpose: per-category resource section.
+  - _Leverage: Resource type from src/lib/resources.ts; formatResourceDate if needed_
+  - _Requirements: 5.4, 5.5_
+  - _Depends on: 13_
+  - _Design refs: "ResourceCategorySection"_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: React (server-component) developer | Task: Create ResourceCategorySection with `section → h2#cat-<slug> → ul/li(a + p.resource-note)`. Mark in-progress; log-implementation when done. | Restrictions: ul/li (never dl). rel=noopener same-tab. Server component. | _Leverage: src/lib/resources.ts | _Requirements: 5.4, 5.5 | Success: renders the documented structure; typecheck/lint clean. Then mark complete after logging._
+
+- [ ] 19. Create the /resources route page.tsx
+  - File: src/app/(site)/resources/page.tsx (replace the PlaceholderPage)
+  - `force-static`; **import `RESOURCES_DESCRIPTION` from `src/lib/resources.ts`** (do NOT declare it here — single-sourced per v3) feeding `generateMetadata()` (`{ title: "Resources", description, canonical }`) consistently across both branches. `<main>` → `<h1>Resources</h1>`. Populated: `getResourcesGroupedByCategory().map(...)` → one `<ResourceCategorySection>` per non-empty group (Req 5.6). Empty: identical sectioned empty-state pattern as contributions (Req 5.7). No sticky TOC at launch (Req 5.10). Import page CSS.
+  - Purpose: the `/resources` page (Req 5).
+  - _Leverage: projects/page.tsx skeleton; Task 18 section; src/lib/resources.ts_
+  - _Requirements: 5.1, 5.2, 5.6, 5.7, 5.8, 5.10_
+  - _Depends on: 13, 14, 18_
+  - _Design refs: "/resources route"_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: Next.js App Router developer | Task: Replace the placeholder with the real force-static /resources page per the design (grouped sections, empty-group omission, sectioned empty state, no sticky TOC). Import from src/lib/resources.ts ONLY. Mark in-progress; log-implementation when done. | Restrictions: force-static. Helper-only imports. Empty categories omitted; empty page is a sectioned page not a 404. | _Leverage: projects/page.tsx; Task 18 | _Requirements: 5.1, 5.2, 5.6, 5.7, 5.8, 5.10 | Success: renders grouped/empty states; meta consistent; lint passes (no #site/content import). Then mark complete after logging._
+
+- [ ] 20. Move /contributions and /resources to computed sitemap entries
+  - File: src/app/sitemap.ts, src/app/sitemap.empty.test.ts
+  - Remove `/contributions` and `/resources` from the static `routes` array (sitemap.ts:11,13). Add two computed entries whose `lastModified` is `maxOr(collection dates, now)` — `now` is the existing build-timestamp fallback (Req 6.2): contributions use `c.date`, resources use `r.added`. Import via the new helpers (`getAllContributions`/`getAllResources`) — chokepoint-clean.
+  - **`maxOr` empty-array guard (load-bearing — the launch state is `[]`):** `maxOr` MUST short-circuit on an empty array (`dates.length ? new Date(dates.reduce(...)) : fallback`). A bare `dates.reduce((a,b)=>a>b?a:b)` with no initial value throws `TypeError: Reduce of empty array` — and since Task 6 ships `[]` on day one, that crashes the sitemap build immediately.
+  - **Test the REAL `sitemap()` path, not `maxOr` in isolation (v3 per r2 #3):** create a dedicated `src/app/sitemap.empty.test.ts` mirroring `src/lib/projects.empty.test.ts` — a **file-scope** `vi.mock("#site/content", () => ({ contributions: [], resources: [], posts: [], projects: [], pages: [], profile: [] }))` (include every symbol `sitemap.ts` transitively imports so the mock is complete), import the default-exported `sitemap` AFTER the mock, then `expect(() => sitemap()).not.toThrow()` AND assert the result includes `/contributions` and `/resources` **each EXACTLY ONCE** (v4 per r3 R2 — guards against a forgotten static-`routes` removal producing duplicate entries) with a `lastModified` equal to the build `now`. The `vi.mock` MUST list at least the four symbols `sitemap()` transitively reads (`posts`, `projects`, `contributions`, `resources`); extra symbols are harmless. A unit-isolated `maxOr` test does NOT satisfy this — it must exercise `sitemap()` itself, and survive Task 6 later seeding real entries.
+  - Purpose: sitemap inclusion with collection-derived freshness (Req 6).
+  - _Leverage: src/app/sitemap.ts existing structure; src/lib/contributions.ts / resources.ts_
+  - _Requirements: 6.1, 6.2_
+  - _Depends on: 12, 13_
+  - _Design refs: "Sitemap"_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: Next.js developer | Task: Move both routes out of the static routes array into computed entries with maxOr(dates, now) lastModified, importing through the new helpers. Mark in-progress; log-implementation when done. | Restrictions: Remove the two literals from `routes` (no duplicate entries). Helper imports only. Empty collection → build-timestamp fallback. `maxOr` must NOT use a bare `.reduce` without an initial value (empty-array guard). | _Leverage: sitemap.ts; helpers | _Requirements: 6.1, 6.2 | Success: sitemap includes both URLs exactly once with computed lastModified; `src/app/sitemap.empty.test.ts` calls the real `sitemap()` under a file-scope `vi.mock` of `#site/content` with empty collections and asserts `not.toThrow()` + both URLs present EXACTLY ONCE with `now` fallback; typecheck/lint/build clean. Then mark complete after logging._
+
+- [ ] 21. Write the author documentation docs/contributions-and-resources-authoring.md
+  - File: docs/contributions-and-resources-authoring.md
+  - Include the canonical headings VERBATIM (single-line, no comma, no colon — Req 8.1): `## Contributions YAML shape`, `## Link kinds`, `## Resources YAML shape`, `## Resource categories`, `## Seeding added for legacy bookmarks`, `## Sort order`, `## Empty-file behavior`, `## No-draft policy and removal latency`, `## Deep-link anchor stability`. Plus one concrete example entry per collection. Content covers: the `repo` regex + GitHub-compat rationale, the forge-mapping convention (GitLab MR→`pr` etc.), the `added` UTC wall-clock caveat (Req 4.2), `date` future-allowed vs `added` future-blocked asymmetry, category display-label-vs-slug separation + extension workflow, the seed-date degenerate case, missing-vs-`[]`-vs-zero-byte distinctions, no-draft rationale + staging-friction + one-CI-cycle removal latency, and the narrowed anchor-stability conditions (Req 10.6). Under `## Empty-file behavior` (or a short note there), also document the **loader forward-coupling**: because the custom loader's `test` matches all `content/**/*.y(a)ml`, any future YAML collection passes through it — a future author MUST register their schema in `makeContentYamlLoader`'s `schemasByBasename` map (unregistered YAML gets a benign null→`[]` passthrough, NOT validation). The design says to document this; no other task owns it.
+  - Purpose: single source of authoring truth (Req 8.1).
+  - _Leverage: docs/projects-showcase-*.md (tone); requirements §8.1_
+  - _Requirements: 8.1, 1.7, 4.2, 5.3, 10.6, 10.7_
+  - _Depends on: (none — but Task 22 checks it, Task 6 examples reference it)_
+  - _Design refs: "Author documentation"_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: Technical writer | Task: Write the authoring doc with all nine canonical headings VERBATIM plus one example per collection, covering every documented convention. Mark in-progress; log-implementation when done. | Restrictions: Canonical headings must be exact single lines with no comma/colon. Cover all listed topics. | _Leverage: docs/projects-showcase-*.md; requirements §8.1 | _Requirements: 8.1, 1.7, 4.2, 5.3, 10.6, 10.7 | Success: all nine headings present verbatim; examples are schema-valid; (Task 22's check will pass). Then mark complete after logging._
+
+- [ ] 22. Create scripts/check-authoring-docs.mjs + self-test + package.json script
+  - File: scripts/check-authoring-docs.mjs, scripts/check-authoring-docs.test.mjs, package.json
+  - Pure testable core `checkHeadings(docText) → { exitCode, missing[] }` (mirrors `check-velite-output.test.mjs`'s `{ exitCode, diagnostic }` shape). Reads `docs/contributions-and-resources-authoring.md`; asserts each canonical heading from Req 8.1 appears as an exact line. Missing heading → bare `::warning::<message>` on stdout (precedent `warn-no-pagefind.mjs:103`) AND exit non-zero (CI and local identical — Req 8.2). Doc missing → exit non-zero, stderr error, no annotation. Doc zero-byte → warning per heading, exit non-zero. Add `"check:authoring-docs": "node scripts/check-authoring-docs.mjs"` to package.json. Self-test covers all four cases (all-present→0; one-missing→nonzero+stdout warning; doc-missing→nonzero+stderr; zero-byte→nonzero+per-heading warnings).
+  - Purpose: fail the build on author-doc heading drift (Req 8.2).
+  - _Leverage: scripts/check-velite-output.test.mjs (self-test pattern); warn-no-pagefind.mjs:103 (annotation form)_
+  - _Requirements: 8.2_
+  - _Depends on: 21_
+  - _Design refs: "CI guardrails → Author-doc heading check"_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: Node tooling engineer | Task: Create the heading-drift checker with a pure checkHeadings core, the bare ::warning:: annotation form, identical CI/local exit codes, the three edge cases, the package.json script, and a node --test self-test. Mark in-progress; log-implementation when done. | Restrictions: Bare `::warning::` (no file= param). Same exit codes in CI and local. Pure core exported for the test. | _Leverage: check-velite-output.test.mjs; warn-no-pagefind.mjs | _Requirements: 8.2 | Success: `node --test scripts/check-authoring-docs.test.mjs` passes; `pnpm check:authoring-docs` exits 0 against the real doc. (CI wiring is Task 24.) Then mark complete after logging._
+
+- [ ] 23. Create the N=10 Lighthouse cadence guard + runs-log
+  - File: scripts/check-contributions-resources-lighthouse-cadence.mjs, docs/contributions-and-resources-lighthouse-runs.md
+  - Structural clone of `check-lighthouse-cadence.mjs`: count = `contributions.length + resources.length` from `.velite/contributions.json` + `.velite/resources.json`; last logged count parsed from the runs-log via the same `matches.at(-1)` last-entry-wins regex; fires (exit non-zero) when `count - last >= 10` (Req NFR: N=10). Tag stderr with `[contrib-resources-lighthouse-cadence]`. **Two-file-missing semantics (r3 5e):** if EITHER `.velite/*.json` is absent, exit non-zero naming the missing file (broken build, NOT count 0). New script — do NOT extend the project-showcase N=3 one. Seed the runs-log with an initial run entry following `docs/projects-showcase-lighthouse-runs.md`'s per-run-count convention. **Seed value (r2 #6):** the initial entry's count MUST be the actual launch count (`0` when both files are `[]`), NOT a placeholder — otherwise `count - last` is computed against a fake baseline and the guard can fire spuriously on the first real run. The `matches.at(-1)` last-entry parser is correct; the risk is purely the seeded value.
+  - Purpose: count-based Lighthouse re-verification nudge for both pages (NFR Performance).
+  - _Leverage: scripts/check-lighthouse-cadence.mjs; docs/projects-showcase-lighthouse-runs.md_
+  - _Requirements: NFR-Performance (Lighthouse cadence)_
+  - _Depends on: 5_
+  - _Design refs: "CI guardrails → Lighthouse cadence"_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: Node tooling engineer | Task: Clone the cadence guard for the summed contributions+resources count with N=10 and a new runs-log doc; implement the two-file-missing fail-hard semantics and the last-entry-wins parser. Mark in-progress; log-implementation when done. | Restrictions: New script (do not edit the N=3 projects one). N=10, delta-based (no modulo gate). Either JSON missing → exit non-zero naming it. | _Leverage: check-lighthouse-cadence.mjs | _Requirements: NFR-Performance | Success: with a fresh runs-log and small counts the script exits 0; a simulated delta≥10 fires red; missing JSON fails hard. (CI wiring is Task 24.) Then mark complete after logging._
+
+- [ ] 24. Wire the three new CI steps and update verify-ci-topology.mjs
+  - File: .github/workflows/ci.yml, scripts/verify-ci-topology.mjs (if its literal list must grow)
+  - Add three steps: (1) `check:authoring-docs` after `Lint` (ci.yml:45) and before `Build 1` (ci.yml:94); (2) the `node --test` self-test for check-authoring-docs co-located with the existing check-velite-output self-test (ci.yml:88); plus the new paired-merge gate from Task 11 co-located with the existing canary gate (ci.yml:85); (3) the contributions/resources Lighthouse cadence check co-located with the existing cadence step (ci.yml:135, after Build 2 where `.velite/*.json` exists). Then run `node scripts/verify-ci-topology.mjs` and `node scripts/check-velite-output.mjs --verify-ci-wiring` and confirm exit 0; if the verifier's pinned literal list must grow to register the new step names, that edit is part of THIS task.
+  - Purpose: surface author-doc drift, the new canary pair, and the cadence nudge in CI (Req 8.2 + acceptance gate).
+  - _Leverage: .github/workflows/ci.yml step structure; scripts/verify-ci-topology.mjs_
+  - _Requirements: 8.2, NFR-Performance, 7.4_
+  - _Depends on: 11, 22, 23_
+  - _Design refs: "CI-topology verifier (acceptance gate)"_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: CI/DevOps engineer | Task: Insert the three CI steps at the documented slots, then run verify-ci-topology.mjs and check-velite-output.mjs --verify-ci-wiring and confirm exit 0, growing the topology verifier's literal list if needed. Mark in-progress; log-implementation when done. | Restrictions: Do not reorder or rename existing pinned step literals. The cadence step MUST be after Build 2. authoring-docs check MUST be before Build 1. | _Leverage: ci.yml; verify-ci-topology.mjs | _Requirements: 8.2, NFR-Performance, 7.4 | Success: `node scripts/verify-ci-topology.mjs` exits 0; the three steps appear at the documented positions; check-velite-output --verify-ci-wiring exits 0. Then mark complete after logging._
+
+- [ ] 25. Refine landing-page hero-card descriptions (OPTIONAL — non-blocking)
+  - File: src/config/site.ts
+  - **Non-blocking:** Req 9.2 is a "MAY," and nothing in the DAG depends on Task 25. It MUST NOT gate the spec's "done" state — if the launch copy is already adequate, this task may be closed as a no-op with a one-line log. Listed separately only for Req 9.2 traceability.
+  - The `navItems`/`heroCards` already include `/contributions` and `/resources` (verified at `site.ts` by symbol). Optionally refine the two hero-card descriptions to reflect the now-live pages (Req 9.2). No structural change; no nav change.
+  - Purpose: copy polish now that the routes are real (Req 9.2, 9.3).
+  - _Leverage: src/config/site.ts (navItems/heroCards)_
+  - _Requirements: 9.1, 9.2, 9.3_
+  - _Depends on: 17, 19_
+  - _Design refs: "Integration Points → src/config/site.ts"_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: Content editor | Task: Refine the two hero-card descriptions in src/config/site.ts for the now-live pages; make no structural changes. Mark in-progress; log-implementation when done. | Restrictions: Description text only — no structural/nav changes; do not add/remove cards. | _Leverage: src/config/site.ts | _Requirements: 9.1, 9.2, 9.3 | Success: descriptions updated; typecheck/lint/build clean; landing page still links to both routes. Then mark complete after logging._
+
+- [ ] 26. End-to-end build verification (green build + malformed-entry hard-fail)
+  - File: (no source change — verification task; record results in the implementation log)
+  - On a throwaway local branch: (a) run `pnpm exec velite build` against clean `content/*.yaml` and confirm green + both `.velite/*.json` emitted; (b) introduce a malformed entry in each file (bad enum, oversize field, unknown key, duplicate `kind`, future-dated `added`, calendar-invalid `date`, zero-byte file, top-level mapping) and confirm `pnpm exec velite build` exits non-zero with a contract-conformant named message for each; (c) run the full gate locally: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `node scripts/verify-ci-topology.mjs`, `node scripts/verify-content-canary-regex-pair.mjs`, `pnpm check:authoring-docs`; (d) revert all throwaway edits — DO NOT commit them. The CI build is the integration test for the Velite layer; this task confirms it locally before relying on CI.
+  - Purpose: prove the loader-as-authoritative-validator actually hard-fails (corrections #2/#3) and that all gates are green on clean data.
+  - _Leverage: the full toolchain; design Testing Strategy → Integration Testing_
+  - _Requirements: 1.4, 1.6, 3.1, 4.4, 4.6, 10.1_
+  - _Depends on: 6, 17, 19, 20, 24_
+  - _Design refs: "Testing Strategy → Integration Testing"; "Acceptance requirement"_
+  - _Prompt: Implement the task for spec contributions-and-resources, first run spec-workflow-guide then implement the task: Role: Release/QA engineer | Task: On a throwaway branch, verify the clean build is green and each malformed-entry class hard-fails with a named contract message; run the full local gate suite; revert all throwaway edits. Cite the green-build and each hard-fail message in the implementation log. Mark in-progress; log-implementation when done. | Restrictions: Do NOT commit the malformed throwaway edits. Verify every malformed class listed. | _Leverage: full toolchain | _Requirements: 1.4, 1.6, 3.1, 4.4, 4.6, 10.1 | Success: clean build green; every malformed class exits non-zero with a contract-conformant message; all gates pass on clean data; throwaway edits reverted. Then mark complete after logging._
+
+---
+
+## Requirements Coverage Matrix
+
+Legend: **I** = implements, **V** = verifies (test/gate), **D** = documentation-only, **P** = relies on pre-existing infra.
+
+**Note on the "schema violation → hard build fail" requirements (1.4 / 4.4 / 10.1):** the durable, committed verification is **Task 4's loader unit tests** (they exercise bad enum / oversize / unknown-key / dup-kind / future-`added` / calendar-invalid-`date` and assert `load()` throws). **Task 26** is a one-time, uncommitted throwaway-branch integration confirmation that the throw becomes a non-zero CI exit — a launch gate, NOT the regression layer. If Task 26 is ever pruned as redundant, Task 4's tests MUST NOT be weakened.
+
+| Requirement | Tasks | Class |
+|---|---|---|
+| 1.1 contributions collection registration | 2, 5 | I |
+| 1.2 contributions required fields | 1, 2 | I |
+| 1.3 contributions optional `language` | 2 | I |
+| 1.4 schema violation → named build error | 3, 4, 26 | I + V |
+| 1.5 `.strict()` at every boundary | 2 | I |
+| 1.6 empty-payload handling | 4, 26 | I + V |
+| 1.7 cross-forge precedent | 21 | D |
+| 1.8 output via `#site/content`, no JSON.parse | 5, 7, 8, 9, 10, 12 | I + V |
+| 1.9 order-of-operations | 6 | I |
+| 2.1 reverse-chron sort + comparator | 12, 17 | I + V |
+| 2.2 force-static | 17 | I |
+| 2.3 heading structure / aria | 17 | I |
+| 2.4 card DOM order + element locks | 16 | I |
+| 2.5 no whole-card link | 16 | I |
+| 2.6 link grouping a11y | 15, 16 | I + V |
+| 2.7 link attributes | 15 | I |
+| 2.8 meta description bounds | 12, 17 | I + V |
+| 2.9 empty state structure + meta consistency | 17 | I |
+| 2.10 responsive breakpoints | 14 | I |
+| 3.1 typed-link shape + enum + error contract | 2, 3, 15 | I |
+| 3.2 uniqueness per kind | 1, 2 | I |
+| 3.3 two-stage URL validation | 1 | I |
+| 3.4 display order = array order | 15 | I |
+| 3.5 ≥1 link required | 2 | I |
+| 3.6 link attributes | 15 | I |
+| 3.7 rail role=group | 15, 16 | I + V |
+| 4.1 resources collection registration | 2, 5, 6 | I |
+| 4.2 resources required fields + `added` bound | 1, 2, 21 | I + D |
+| 4.3 no optional fields | 2 | I |
+| 4.4 schema violation → named error | 3, 4, 26 | I + V |
+| 4.5 `.strict()` | 2 | I |
+| 4.6 empty-payload handling | 4, 26 | I + V |
+| 4.7 output via `#site/content` | 5, 7, 8, 9, 10, 13 | I + V |
+| 5.1 grouped + label map | 13, 19 | I |
+| 5.2 force-static | 19 | I |
+| 5.3 intra-category sort + seed-date case | 13 | I + V |
+| 5.4 category heading structure | 18 | I |
+| 5.5 entry DOM (ul/li, not dl) | 18 | I |
+| 5.6 empty categories omitted | 13, 19 | I + V |
+| 5.7 empty page state | 19 | I |
+| 5.8 meta description bounds | 13, 19 | I + V |
+| 5.9 responsive | 14 | I |
+| 5.10 no sticky TOC at launch | 19 | I |
+| 6.1 sitemap inclusion | 20 | I |
+| 6.2 lastModified derivation | 20 | I + V |
+| 7.1 contributions.ts exports | 12 | I |
+| 7.2 resources.ts exports | 13 | I |
+| 7.3 helper unit tests | 12, 13 | V |
+| 7.4 chokepoint enforcement | 7, 8, 9, 10, 11 | I + V |
+| 8.1 author doc canonical headings | 21 | D |
+| 8.2 heading-drift CI check | 22, 24 | I + V |
+| 9.1 hero cards / nav exist | 25 | P |
+| 9.2 hero-card copy refinement | 25 | I |
+| 9.3 no other landing changes | 25 | D |
+| 9.4 /slashes not required | — | D (non-feature) |
+| 10.1 typo → build fail | 4, 26 | I + V |
+| 10.2 closed-enum blast radius | 4, 21 | I + D |
+| 10.3 rename no-SEO-consequence | 21 | D |
+| 10.4 removal on next deploy | 21 | D |
+| 10.5 rollback via revert | 21 | D |
+| 10.6 anchor non-stability disclaim | 16, 18, 21 | I + D |
+| 10.7 no-draft policy | 21 | D |
+| 10.8 i18n non-feature | 21 | D |
+| NFR Code Architecture | 1, 12, 13 | I |
+| NFR Performance (static, Lighthouse cadence) | 14, 17, 19, 23, 24 | I + V |
+| NFR Security (rel=noopener, URL validation) | 1, 15, 18 | I |
+| NFR Reliability (empty-file build error) | 4, 26 | I + V |
+| NFR Usability / Maintainability | 14, 21, 22 | I + D |
