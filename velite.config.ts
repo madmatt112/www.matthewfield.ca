@@ -15,6 +15,9 @@ import { rehypeCopyButton } from "./src/lib/build/rehype-copy-button";
 import { countWordsFromMdast } from "./src/lib/build/word-count";
 import { KNOWN_FIXTURE_SLUGS, derivePostSlug } from "./src/lib/build/derive-post-slug.mjs";
 import { checkProjectHeadings } from "./src/lib/build/check-project-headings";
+import { contributionEntrySchema } from "./src/lib/build/contributions-schema";
+import { resourceEntrySchema } from "./src/lib/build/resources-schema";
+import { makeContentYamlLoader } from "./src/lib/build/content-yaml-loader";
 
 // Typed content collections for the site. Downstream specs extend this file
 // by adding more collections (blog, projects, etc.) following the `pages`
@@ -414,6 +417,18 @@ const projects = defineCollection({
     }),
 });
 
+const contributions = defineCollection({
+  name: "Contribution",
+  pattern: "contributions.yaml",
+  schema: contributionEntrySchema,
+});
+
+const resources = defineCollection({
+  name: "Resource",
+  pattern: "resources.yaml",
+  schema: resourceEntrySchema,
+});
+
 export default defineConfig({
   root: "content",
   output: {
@@ -422,7 +437,13 @@ export default defineConfig({
     base: "/static/",
     clean: true,
   },
-  collections: { pages, profile, posts, projects },
+  collections: { pages, profile, posts, projects, contributions, resources },
+  loaders: [
+    makeContentYamlLoader({
+      "contributions.yaml": contributionEntrySchema,
+      "resources.yaml": resourceEntrySchema,
+    }),
+  ],
   mdx: {
     remarkPlugins: sharedRemarkPlugins,
     rehypePlugins: sharedRehypePlugins,

@@ -1,0 +1,2 @@
+src/__fixtures__/content-chokepoint-canary.ts
+src/lib/build/check-content-chokepoint.test.ts

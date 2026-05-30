@@ -31,5 +31,9 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "src/__fixtures__/chokepoint-canary.ts"]
+  "exclude": [
+    "node_modules",
+    "src/__fixtures__/chokepoint-canary.ts",
+    "src/__fixtures__/content-chokepoint-canary.ts"
+  ]
 }

@@ -3,14 +3,14 @@ import { siteConfig } from "@/config/site";
 import { getVisiblePublishedPosts } from "@/lib/blog";
 import { getAllTags, getAllCategories } from "@/lib/blog-taxonomy";
 import { getPublishedProjects } from "@/lib/projects";
+import { getAllContributions } from "@/lib/contributions";
+import { getAllResources } from "@/lib/resources";
 
 const routes = [
   "/",
   "/profile",
   "/projects",
-  "/contributions",
   "/blog",
-  "/resources",
   "/playground",
   "/about",
   "/contact",
@@ -19,6 +19,13 @@ const routes = [
   "/sitemap",
   "/slashes",
 ];
+
+// Latest date in `dates`, or `fallback` when empty. The empty-array guard is
+// load-bearing: the launch state of both collections is `[]`, and a bare
+// `.reduce` with no initial value throws "Reduce of empty array".
+function maxOr(dates: string[], fallback: Date): Date {
+  return dates.length ? new Date(dates.reduce((a, b) => (a > b ? a : b))) : fallback;
+}
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
@@ -63,5 +70,29 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: new Date(project.updated ?? project.date),
   }));
 
-  return [...staticEntries, ...postEntries, ...tagEntries, ...categoryEntries, ...projectEntries];
+  const contributionsEntry = {
+    url: new URL("/contributions", siteConfig.url).toString(),
+    lastModified: maxOr(
+      getAllContributions().map((c) => c.date),
+      now,
+    ),
+  };
+
+  const resourcesEntry = {
+    url: new URL("/resources", siteConfig.url).toString(),
+    lastModified: maxOr(
+      getAllResources().map((r) => r.added),
+      now,
+    ),
+  };
+
+  return [
+    ...staticEntries,
+    contributionsEntry,
+    resourcesEntry,
+    ...postEntries,
+    ...tagEntries,
+    ...categoryEntries,
+    ...projectEntries,
+  ];
 }

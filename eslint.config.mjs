@@ -27,7 +27,7 @@ const eslintConfig = defineConfig([
           paths: [
             {
               name: "#site/content",
-              importNames: ["posts"],
+              importNames: ["posts", "contributions", "resources"],
               message:
                 'Import posts via src/lib/blog.ts helpers (e.g., getPublishedPosts) instead of "#site/content" directly.',
             },
@@ -39,8 +39,11 @@ const eslintConfig = defineConfig([
   {
     files: [
       "src/lib/blog.ts",
+      "src/lib/contributions.ts",
+      "src/lib/resources.ts",
       "velite.config.ts",
       "src/__fixtures__/chokepoint-canary.ts",
+      "src/__fixtures__/content-chokepoint-canary.ts",
       "src/lib/blog.test.ts",
       "src/app/feed.xml/parity.test.ts",
     ],

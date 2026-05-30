@@ -45,6 +45,9 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Check authoring docs
+        run: pnpm check:authoring-docs
+
       - name: Format check
         run: pnpm format:check
 
@@ -85,8 +88,14 @@ jobs:
       - name: "Verify canary↔regex-list paired-merge"
         run: node scripts/verify-canary-regex-pair.mjs
 
+      - name: "Verify content canary↔regex-list paired-merge"
+        run: node scripts/verify-content-canary-regex-pair.mjs
+
       - name: "Self-tests for check-velite-output"
         run: node --test scripts/check-velite-output.test.mjs
+
+      - name: "Self-tests for check-authoring-docs"
+        run: node --test scripts/check-authoring-docs.test.mjs
 
       - name: Verify CI wiring for check-velite-output
         run: node scripts/check-velite-output.mjs --verify-ci-wiring
@@ -135,6 +144,10 @@ jobs:
       - name: "Check Lighthouse cadence"
         if: always()
         run: node scripts/check-lighthouse-cadence.mjs
+
+      - name: "Check contributions/resources Lighthouse cadence"
+        if: always()
+        run: node scripts/check-contributions-resources-lighthouse-cadence.mjs
 
       - name: Pagefind crawl (Build 2)
         if: vars.PAGEFIND_ENABLED != 'false'
