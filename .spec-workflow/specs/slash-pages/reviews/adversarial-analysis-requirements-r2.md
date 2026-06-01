@@ -1,0 +1,86 @@
+# Adversarial Analysis: slash-pages requirements (v2)
+
+Reviewer stance: senior staff engineer, Next.js App Router + Velite content sites. Goal is to break the document, not bless it. Every claim below was checked against live code; file/line citations are from the working tree at review time.
+
+All v2 claims about current code were verified true unless flagged. `s.isodate().optional()` is the right API; `getVisiblePublishedPosts()`/`getPublishedProjects()` are zero-arg; `formatContentDate` exists and is the shared formatter; `getAboutPage()` exists; the footer already links `/slashes`; the XML `sitemap.ts` already lists every static route. So the structural skeleton is sound. The damage is in the details v2 introduced or left unspecified.
+
+---
+
+## Verified facts that drive the findings
+
+1. **`s.isodate()` emits a full midnight-UTC ISO timestamp, not a plain date.** `node_modules/velite/dist/index.js:140`: `isodate = () => stringType().refine(...).transform((value) => new Date(value).toISOString())`. Empirically, `s.isodate().parse("2026-05-29")` returns `"2026-05-29T00:00:00.000Z"`. The existing `posts.updated: s.isodate().optional()` (velite.config.ts:100) proves the *field* pattern compiles — it does **not** prove a plain-date round-trips cleanly, because posts are usually authored with a time and rendered through the same formatter that has the same latent bug.
+
+2. **`formatContentDate` is timezone-naive and off-by-one for date-only input.** `src/lib/format-date.ts:7-9` does `contentDateFormatter.format(new Date(iso))` with `new Intl.DateTimeFormat("en-CA", { year, month, day })` and **no `timeZone` option**, so it formats in the server/runtime-local zone. Verified:
+   - `TZ=America/Toronto` → `format(new Date("2026-05-29T00:00:00.000Z"))` = **"May 28, 2026"**
+   - `TZ=America/Vancouver` → **"May 28, 2026"**
+   - `TZ=UTC` → "May 29, 2026"
+   Matthew is in Canada. The `/now` "last updated" date authored as `2026-05-29` will render **the day before** on a Canadian-zone runtime. (Vercel build/SSR runs UTC, so it may render correctly in prod and wrong in local dev, or vice versa depending on where the date is computed — but the bug is real and silent.)
+
+3. **The compiled Velite `body` is a JS function-string, not prose.** `.velite/pages.json` for `about.mdx` is literally `const{jsx:n}=arguments[0];function _createMdxContent(e){...}`. The prose ("Placeholder content...") survives as an embedded string literal, but the surrounding text is JS (`function`, `wrapper`, `arguments`, `createMdxContent`).
+
+4. **`navItems` contains no `/` (home) entry.** Its six hrefs are `/profile /projects /contributions /blog /resources /playground`. `slashPages` is `/about /contact /colophon /now /sitemap /slashes`. **Neither list contains `/`.** By contrast the XML `sitemap.ts` *routes array does* start with `"/"`.
+
+5. **`scripts/check-authoring-docs.mjs` hardcodes one doc path and one heading set.** Line 32: `const DOC_REL_PATH = "docs/contributions-and-resources-authoring.md";` Lines 35-45: `CANONICAL_HEADINGS` is a fixed array of contributions/resources headings. The pure core `checkHeadings(docText)` takes text, but `main()` reads exactly that one path against exactly those headings. There is no doc-registry, no glob, no parameterization.
+
+---
+
+## Top 5 risks / gaps (ranked)
+
+### 1. `/now`'s last-updated date is silently off-by-one in Matthew's own timezone — the one page whose entire reason to exist is date honesty. (Req 2.2, Req 4.1) — **Compounding**
+v1's git-date was killed for being noise-prone; v2's manual `s.isodate()` field is **wrong-prone**. Concrete scenario: Matthew writes `updated: 2026-05-29` in `now.mdx`, runs `pnpm dev` locally (America/Toronto), and `/now` renders `<time datetime="2026-05-29T00:00:00.000Z">May 28, 2026</time>`. The visible text contradicts the machine attribute *and* is a day stale. Req 2.2 explicitly mandates "`formatContentDate` ... wrapped in a `<time datetime>` whose attribute is the machine ISO value" — so the spec wires the page straight into the buggy formatter without acknowledging the date-only artifact. The requirement note in the prompt is correct and the doc never addresses it. **The doc must either (a) require `formatContentDate` to format in a fixed `timeZone` (UTC or America/Toronto) for date-only values, or (b) require `updated` to be authored/stored as a date-only string that is formatted without `new Date()` round-tripping.** As written, Req 2.2 ships a visible bug.
+
+### 2. The HTML `/sitemap` omits the home page `/` entirely — and nothing catches it. (Req 5.1) — **Novel**
+Req 5.1 sources the sitemap's links from `navItems` (sections) + `slashPages` + posts + projects. Verified: `/` is in **none** of those. So the human-readable "see and reach the site's pages from one place" sitemap (its stated user story) **cannot reach the home page**. The XML sitemap gets this right (its routes array leads with `"/"`), which is exactly the kind of drift the cut parity test would have surfaced. This is a direct, demonstrable omission, not a hypothetical. Fix is one line (prepend a Home entry), but the requirement as written produces a sitemap missing the single most important URL.
+
+### 3. Req 10.2's sentinel/word-count test is unimplementable as written and brittle by design. (Req 10.2) — **Compounding**
+Two defects:
+- **Source ambiguity → likely-broken implementation.** The spec says "the seed *bodies* of `content/pages/*.mdx`." If an implementer imports `pages` from `#site/content` (the obvious move, and the only place a "body" formally exists), they get the compiled JS function-string shown in fact #3 — word-count counts JS tokens (`const`, `function`, `wrapper`, `jsx`...), and sentinels can both false-positive (a variable named `placeholder`) and false-negative (prose mangled across the compiler). The test *must* read the raw `.mdx` from disk and strip frontmatter first, but the spec specifies neither the source nor the frontmatter-stripping step. As written it is a coin-flip whether the implementer builds the working version.
+- **Substring sentinels are theatre.** `"TODO"` is legitimate `/colophon` content ("TODO: document the deploy pipeline" is honest engineering prose). `"placeholder"` appears in legitimate technical writing. The `≥40-word` floor is a magic number with no rationale — an intentionally terse `/about` ("I build platforms. Reach me at /contact.") is good copy that fails the gate. The first false-positive gets the assertion deleted or the threshold gamed, at which point the gate guards nothing. The cut-or-justify call: tie the floor to a rationale or drop it; restrict sentinels to ones that cannot occur in real prose (the exact placeholder strings the scaffolding emits, e.g. the literal `"Replaced in a downstream spec."` and `"Placeholder content."` from the current `about.mdx`), not generic English words.
+
+### 4. The `slashPages`-in-`siteConfig` move trades a registry for editorial copy in a typed config, and the spec double-specifies its one invariant. (Req 6.2, 6.3, 10.1; Shared Definitions) — **Compounding**
+- **It is the same coupling in a different file.** v2 claims this is "simpler" than `src/config/pages.ts`, but a 6-entry array of `{href, title, description}` in `site.ts` *is* a page registry — just colocated with nav config. It adds ~30-40 lines to a currently-78-line file (still under the 300-line guideline, so not a bloat violation — that specific attack fails). The real tension: the doc elsewhere champions "markdown-first content" (Alignment §, product principle #2), then puts **page descriptions (editorial copy)** into a TypeScript file. Every `/slashes` description edit is now a code change + redeploy, contradicting the "Matthew edits markdown" success metric. This is defensible for 6 stable IndieWeb pages, but the doc should *say so* rather than claim markdown-first while doing the opposite.
+- **Req 6.3 ≡ Req 10.1 — redundant.** Req 6.3 says "a unit test (Req 10) SHALL assert these invariants and that the set equals the six expected hrefs." Req 10.1 says "a unit test asserting `siteConfig.slashPages` invariants (Req 6.3): exactly the six expected hrefs, each with non-empty title/description and a leading-slash href." These are **one test described twice**, each pointing at the other. Req 6.2 ("exactly the six") is a third statement of the same constraint. Collapse to one normative statement; the cross-citation loop is noise.
+
+### 5. The authoring doc (Req 9) is ungated and its CI-wiring escape hatch is dead words. (Req 9.3) — **Novel / Compounding**
+Forced yes/no on the prompt's question: **the existing script does NOT support an additional doc without modification.** `check-authoring-docs.mjs` hardcodes `DOC_REL_PATH` and `CANONICAL_HEADINGS` (fact #5). To gate `slash-pages-authoring.md` you must edit the script (add a second doc/heading set or parameterize `main()`). Therefore Req 9.3's "OPTIONAL ... if the existing script supports additional docs without modification" resolves to **the condition is false, so the optionality never triggers, so Req 9.3 authorizes doing nothing** — it is mush that an implementer will skip. Net result: `docs/slash-pages-authoring.md` ships with **zero CI signal**, free to rot out of sync with the `pages` schema and the `updated`-field workflow it documents, while its sibling `contributions-and-resources-authoring.md` *is* gated. That asymmetry is the maintenance liability the prompt suspected: a doc that *looks* like diligence but has no drift guard. Either (a) wire it (the script's pure `checkHeadings` core already supports it; only `main()` needs a doc list), or (b) drop the doc requirement and stop pretending. The current text picks neither.
+
+---
+
+## Top 3 conclusions to challenge or reverse
+
+### A. Decision #1 / Req 2.2 — "optional `updated`, render no date if absent" defeats the page's purpose.
+Req 2.2: "IF `updated` absent THEN render no date." Combined with the seed (Req 2.5) setting a date at launch, the *launch* page is fine — but the requirement permits a steady-state `/now` with **no recency signal at all**, on the one page defined by "how recently that was true" (its own user story). A `/now` with no date is worse than useless; it's misleading (looks current, isn't). Reverse: make `updated` **required for the `now` page specifically** (the schema field stays optional for `about`/`colophon`, but Req 2/Req 10 should assert `now.mdx` has it). The stale-date risk the prompt raises is real and unaddressed — v2 traded a noisy-but-fresh git date for a clean-but-silently-stale manual one — but the fix for staleness is process (the authoring doc's bump reminder, Req 2.5), whereas the fix for "no date at all" is making the field non-optional where it matters. The doc should at least name the stale-date tradeoff in Decision #1 instead of presenting the manual field as strictly superior.
+
+### B. Decision #3 + Decision #4 — `noindex` + zero-parity makes `/sitemap` net-negative weight.
+`/sitemap` is `robots: { index: false }` (Req 5.4) yet Req 5.1 mandates it list **every published post and project** plus all sections. A noindex page that re-lists the entire site, has its own empty-state handling (Req 5.3), and a four-part link set is real build + test surface (it's in the E2E matrix, Req 10.3-10.4) for a page no crawler reads and few humans visit. Combined with finding #2 (it can't even reach `/`) and Decision #4 (it may silently drift from the XML sitemap forever), challenge whether `/sitemap` earns its place at all. If kept, the cheap middle ground the prompt asks for: extract a single shared `staticRoutes` array (the XML sitemap already has one at `sitemap.ts:9-22`) and have **both** the HTML page and the XML route read it, plus an E2E smoke assertion that every `navItems` + `slashPages` + shared-routes href returns 200 (Req 10.3 already visits links — extend it to the static set). That kills the "HTML sitemap silently omits a real page" failure mode (including the `/` omission) for near-zero cost, without resurrecting the bespoke taxonomy/index-filter parity normalizer v1 over-engineered. v2 swung from over-engineered to under-specified; force the doc to pick the middle.
+
+### C. The `(Verify-existing)` labels — at least one is over-claimed.
+Req 1.1 / 1.2 / 1.4 / 1.6 are genuinely already met (verified against `src/app/(site)/about/page.tsx`). **But Req 4.2's "backward-compatible: existing `about.mdx` ... SHALL continue to validate"** is labeled as a property, not verify-existing, and is fine. The mislabel risk is in **Req 1.4** ("metadata SHALL derive title/description from frontmatter and inherit the site title template"): the current `about/page.tsx` `generateMetadata()` sets `title: aboutPage.title` and `robots: { index: false }` but does **not** demonstrably exercise the `%s | matthewfield.ca` template for this route in any verified way, and the route currently has `robots.index: false` that Req 1.3 must flip. Calling 1.4 "verify-existing" is mostly true but glosses that the indexability flip (Req 1.3) and the title-template inheritance are coupled — the implementer must touch `generateMetadata()` anyway, so the "verify-existing" framing understates the edit. Minor, but the doc's Decision #5 leans on these labels being precise.
+
+---
+
+## What's missing (add or cut before design)
+
+**Add:**
+1. **A timezone decision for date-only `updated` rendering** (finding #1). Without it, `/now` ships an off-by-one. This is the single highest-value addition. Cheapest fix: format date-only values with an explicit `timeZone` (UTC) in `formatContentDate`, or a `/now`-local formatter — and a unit test asserting `2026-05-29` → "May 29, 2026" regardless of `TZ`.
+2. **An explicit Home (`/`) entry on the HTML `/sitemap`** (finding #2), plus the shared-static-routes approach from conclusion B so the omission is structurally prevented, not just patched.
+3. **In Req 10.2: name the source (raw `.mdx` read from disk, frontmatter stripped via a known parser) and replace generic-word sentinels with the literal scaffolding strings** the placeholder emits (`"Placeholder content."`, `"Replaced in a downstream spec."`). Tie or cut the 40-word floor.
+4. **A yes/no on Req 9.3 gating** (finding #5). Recommend: parameterize `check-authoring-docs.mjs` `main()` over a `{ path, headings }` list (its pure core already supports it) and gate the new doc — or cut the doc requirement.
+5. **A unit-level render guard for `/now` and `/colophon` mirroring `getAboutPage()`** (the prompt's Req 10.5 concern). Verified: `now/page.tsx` and `colophon/page.tsx` are currently `<PlaceholderPage>` with **no** content-entry guard, while `about/page.tsx` has `getAboutPage()`. Req 10.5 makes the missing-entry test OPTIONAL and Req 1.2/2.3/3.2 only mandate the build-time *throw*. Req 2.3/3.2 say "mirroring Req 1.2" but the requirement bodies never pin that the `getNowPage()`/`getColophonPage()` guards must be **structurally identical** to `getAboutPage()` — leaving it to implementer discretion. Make the mirroring explicit so the only proven render guard pattern isn't silently dropped for two of three MDX pages.
+
+**Cut / simplify:**
+6. **Collapse Req 6.2 / 6.3 / 10.1** into one normative invariant statement + one test reference (finding #4). The triple-statement-plus-circular-citation is editorial debt.
+7. **Reconsider listing every post and project on a `noindex` `/sitemap`** (conclusion B). If `/sitemap` stays noindex, listing dynamic content is dead weight; either index it (and then parity matters) or trim it to sections + slash pages.
+
+**No recurring v1 regressions found.** The cut concepts (registry, `group` enum, `index` flag, git-date, parity test, XML refactor) are absent from the requirement bodies — I grep-checked and the only `group`/`index`/`parity`/`registry` mentions are in the Revision-notes / Decisions sections explicitly disclaiming them. The `s.path()` slug transform is left untouched as claimed (Req 4.1 verified against velite.config.ts:57). No stale cross-reference to a cut concept survived into a normative SHALL.
+
+---
+
+## Classification summary
+- **Finding 1** (off-by-one `/now` date): Compounding — deepens v1's date-honesty concern; v2's fix introduced a new failure mode the doc doesn't acknowledge.
+- **Finding 2** (`/` omitted from HTML sitemap): Novel — created by the `navItems`+`slashPages` sourcing decision.
+- **Finding 3** (sentinel test unimplementable/brittle): Compounding — v2 added the test to answer v1's "untestable seed" finding, but built it on an ambiguous source.
+- **Finding 4** (registry-in-config + triple-spec invariant): Compounding — the registry didn't die, it moved; new redundancy introduced.
+- **Finding 5** (ungated authoring doc / dead Req 9.3): Novel — the gating asymmetry and false optionality are v2 artifacts.
+
+Bottom line: the v2 cuts were correct and no v1 problem was secretly reintroduced. But v2's two headline additions — the manual `updated` field and the sentinel seed test — each ship a concrete, verifiable defect (timezone off-by-one; compiled-body vs raw-file ambiguity), the new shared `slashPages` list silently drops `/` from the human sitemap, and the new authoring doc is gated-in-name-only. Fix findings 1, 2, and 3 before design; resolve 4 and 5 as cleanups.
