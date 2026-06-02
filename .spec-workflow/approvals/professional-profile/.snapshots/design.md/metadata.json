@@ -1,6 +1,6 @@
 {
   "filePath": ".spec-workflow/specs/professional-profile/design.md",
-  "currentVersion": 3,
+  "currentVersion": 4,
   "snapshots": [
     {
       "version": 1,
@@ -25,6 +25,14 @@
       "trigger": "approved",
       "approvalId": "approval_1777391177939_ddgglvjy6",
       "approvalTitle": "professional-profile: design.md (v2 — adv. review fixes)"
+    },
+    {
+      "version": 4,
+      "filename": "snapshot-004.json",
+      "timestamp": "2026-06-02T22:06:26.245Z",
+      "trigger": "approved",
+      "approvalId": "approval_1780437885569_f769um2c8",
+      "approvalTitle": "professional-profile design v4 (post-r3 adversarial; +remediation plan)"
     }
   ]
 }
