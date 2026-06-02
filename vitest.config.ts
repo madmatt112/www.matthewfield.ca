@@ -8,6 +8,7 @@ export default defineConfig({
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
       "#site/content": fileURLToPath(new URL("./.velite", import.meta.url)),
+      "#playground": fileURLToPath(new URL("./playground", import.meta.url)),
     },
   },
   test: {

@@ -5,6 +5,7 @@ import { getAllTags, getAllCategories } from "@/lib/blog-taxonomy";
 import { getPublishedProjects } from "@/lib/projects";
 import { getAllContributions } from "@/lib/contributions";
 import { getAllResources } from "@/lib/resources";
+import { playgroundItems } from "#playground/manifest";
 
 const routes = [
   "/",
@@ -16,8 +17,6 @@ const routes = [
   "/contact",
   "/colophon",
   "/now",
-  "/sitemap",
-  "/slashes",
 ];
 
 // Latest date in `dates`, or `fallback` when empty. The empty-array guard is
@@ -86,6 +85,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ),
   };
 
+  const playgroundEntries = playgroundItems.map((it) => ({
+    url: new URL("/playground/" + it.slug, siteConfig.url).toString(),
+    lastModified: now,
+  }));
+
   return [
     ...staticEntries,
     contributionsEntry,
@@ -94,5 +98,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...tagEntries,
     ...categoryEntries,
     ...projectEntries,
+    ...playgroundEntries,
   ];
 }

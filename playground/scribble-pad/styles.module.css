@@ -1,0 +1,54 @@
+/* scribble-pad — same-page playground sample.
+
+   These values are deliberately CLASHING with the site theme: a serif
+   font, off-brand colors, and a bespoke layout. If the .playground-container
+   reset + CSS-Module scoping ever leaked, these would visibly bleed into the
+   host site — so this module doubles as the visual isolation proof (Req 7.2).
+
+   No :global, no global @import, no `composes … from global` — the leak
+   guard (scripts/check-playground-css.mjs) enforces that. */
+
+.root {
+  font-family: Georgia, "Times New Roman", serif;
+  color: #6b1f1f;
+  background: #f3e9d2;
+  padding: 24px;
+  border: 3px double #8a6d3b;
+  max-width: 640px;
+}
+
+.heading {
+  font-family: Georgia, "Times New Roman", serif;
+  color: #6b1f1f;
+  font-size: 28px;
+  letter-spacing: 0.04em;
+  margin: 0 0 12px;
+}
+
+.hint {
+  font-style: italic;
+  margin: 8px 0 16px;
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 240px;
+  background: #fffdf7;
+  border: 2px solid #8a6d3b;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.panel {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}

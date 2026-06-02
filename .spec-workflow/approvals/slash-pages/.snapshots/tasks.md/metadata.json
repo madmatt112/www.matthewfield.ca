@@ -1,0 +1,22 @@
+{
+  "filePath": ".spec-workflow/specs/slash-pages/tasks.md",
+  "currentVersion": 2,
+  "snapshots": [
+    {
+      "version": 1,
+      "filename": "snapshot-001.json",
+      "timestamp": "2026-06-01T18:29:30.342Z",
+      "trigger": "initial",
+      "approvalId": "approval_1780338570389_hcpqeis3w",
+      "approvalTitle": "slash-pages tasks (v1)"
+    },
+    {
+      "version": 2,
+      "filename": "snapshot-002.json",
+      "timestamp": "2026-06-01T20:31:16.449Z",
+      "trigger": "approved",
+      "approvalId": "approval_1780339948491_e2ao2rmnw",
+      "approvalTitle": "slash-pages tasks (v4 — post-r3, converged)"
+    }
+  ]
+}

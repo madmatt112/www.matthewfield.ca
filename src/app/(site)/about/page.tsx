@@ -22,7 +22,7 @@ export function generateMetadata(): Metadata {
   return {
     title: aboutPage.title,
     description: aboutPage.description,
-    robots: { index: false },
+    robots: { index: true },
   };
 }
 

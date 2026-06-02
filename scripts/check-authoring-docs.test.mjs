@@ -14,13 +14,18 @@ import { fileURLToPath } from "node:url";
 import { mkdtempSync, writeFileSync, rmSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
-import { checkHeadings, CANONICAL_HEADINGS } from "./check-authoring-docs.mjs";
+import {
+  checkHeadings,
+  CANONICAL_HEADINGS,
+  SLASH_PAGES_HEADINGS,
+  AUTHORING_DOCS,
+} from "./check-authoring-docs.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SCRIPT = path.join(__dirname, "check-authoring-docs.mjs");
-const DOC_REL_PATH = "docs/contributions-and-resources-authoring.md";
 
-const ALL_PRESENT = CANONICAL_HEADINGS.join("\n\n");
+const SUBJECT_REL = "docs/slash-pages-authoring.md";
+const subjectHeadings = SLASH_PAGES_HEADINGS;
 
 function makeTmp() {
   return mkdtempSync(path.join(tmpdir(), "check-authoring-docs-"));
@@ -30,78 +35,100 @@ function runScript(cwd) {
   return spawnSync(process.execPath, [SCRIPT], { cwd, encoding: "utf8" });
 }
 
-function writeDoc(dir, content) {
-  mkdirSync(path.join(dir, "docs"), { recursive: true });
-  writeFileSync(path.join(dir, DOC_REL_PATH), content);
+function writeDocs(dir, overrides = {}) {
+  for (const { path: rel, headings } of AUTHORING_DOCS) {
+    const content = rel in overrides ? overrides[rel] : headings.join("\n\n");
+    const abs = path.join(dir, rel);
+    mkdirSync(path.dirname(abs), { recursive: true });
+    writeFileSync(abs, content);
+  }
 }
 
 // --- Pure core ---
 
 test("checkHeadings — all headings present → exitCode 0, no missing", () => {
-  const result = checkHeadings(ALL_PRESENT);
+  const ALL_PRESENT = CANONICAL_HEADINGS.join("\n\n");
+  const result = checkHeadings(ALL_PRESENT, CANONICAL_HEADINGS);
   assert.equal(result.exitCode, 0);
   assert.deepEqual(result.missing, []);
 });
 
 test("checkHeadings — one heading missing → non-zero, names it", () => {
   const text = CANONICAL_HEADINGS.slice(1).join("\n\n");
-  const result = checkHeadings(text);
+  const result = checkHeadings(text, CANONICAL_HEADINGS);
   assert.notEqual(result.exitCode, 0);
   assert.deepEqual(result.missing, [CANONICAL_HEADINGS[0]]);
 });
 
 test("checkHeadings — zero-byte text → every heading missing, non-zero", () => {
-  const result = checkHeadings("");
+  const result = checkHeadings("", CANONICAL_HEADINGS);
   assert.notEqual(result.exitCode, 0);
   assert.deepEqual(result.missing, CANONICAL_HEADINGS);
 });
 
 // --- CLI ---
 
-test("CLI — all headings present → exit 0, no stdout", () => {
+test("CLI — all docs present, all headings present → exit 0, no ::warning::", () => {
   const dir = makeTmp();
   try {
-    writeDoc(dir, ALL_PRESENT);
+    writeDocs(dir, {});
     const r = runScript(dir);
     assert.equal(r.status, 0, `stderr: ${r.stderr}`);
-    assert.equal(r.stdout, "");
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
-  }
-});
-
-test("CLI — one heading missing → non-zero exit, stdout ::warning::", () => {
-  const dir = makeTmp();
-  try {
-    writeDoc(dir, CANONICAL_HEADINGS.slice(1).join("\n\n"));
-    const r = runScript(dir);
-    assert.notEqual(r.status, 0);
-    assert.match(r.stdout, /::warning::/);
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
-  }
-});
-
-test("CLI — doc missing → non-zero exit, stderr, no annotation", () => {
-  const dir = makeTmp();
-  try {
-    const r = runScript(dir);
-    assert.notEqual(r.status, 0);
-    assert.match(r.stderr, /author doc not found/);
     assert.doesNotMatch(r.stdout, /::warning::/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
 });
 
-test("CLI — zero-byte doc → non-zero exit, per-heading warnings", () => {
+test("CLI — one heading missing in subject doc (sibling full) → non-zero, ::warning:: contains subject path", () => {
   const dir = makeTmp();
   try {
-    writeDoc(dir, "");
+    writeDocs(dir, {
+      [SUBJECT_REL]: subjectHeadings.slice(1).join("\n\n"),
+    });
+    const r = runScript(dir);
+    assert.notEqual(r.status, 0);
+    assert.match(r.stdout, /::warning::/);
+    assert.ok(
+      r.stdout.includes(SUBJECT_REL),
+      `expected stdout to contain "${SUBJECT_REL}", got: ${r.stdout}`,
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("CLI — no docs written → non-zero, 'author doc not found' stderr line per doc, no ::warning::", () => {
+  const dir = makeTmp();
+  try {
+    const r = runScript(dir);
+    assert.notEqual(r.status, 0);
+    const notFoundLines = r.stderr
+      .split("\n")
+      .filter((l) => l.includes("author doc not found"));
+    assert.equal(
+      notFoundLines.length,
+      AUTHORING_DOCS.length,
+      `expected ${AUTHORING_DOCS.length} not-found lines, got ${notFoundLines.length}: ${r.stderr}`,
+    );
+    assert.doesNotMatch(r.stdout, /::warning::/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("CLI — zero-byte subject doc (sibling full) → non-zero, warningCount === subjectHeadings.length", () => {
+  const dir = makeTmp();
+  try {
+    writeDocs(dir, { [SUBJECT_REL]: "" });
     const r = runScript(dir);
     assert.notEqual(r.status, 0);
     const warningCount = (r.stdout.match(/::warning::/g) || []).length;
-    assert.equal(warningCount, CANONICAL_HEADINGS.length);
+    assert.equal(
+      warningCount,
+      subjectHeadings.length,
+      `expected ${subjectHeadings.length} warnings, got ${warningCount}`,
+    );
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

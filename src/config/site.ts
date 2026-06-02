@@ -9,6 +9,12 @@ type HeroCardConfig = {
   href: string;
 };
 
+export type SlashPage = {
+  href: string;
+  title: string;
+  description: string;
+};
+
 type SiteConfig = {
   name: string;
   description: string;
@@ -17,6 +23,7 @@ type SiteConfig = {
   ogImage: string;
   navItems: NavItem[];
   heroCards: HeroCardConfig[];
+  slashPages: SlashPage[];
   links: {
     linkedin: string;
     github: string;
@@ -69,6 +76,14 @@ export const siteConfig: SiteConfig = {
       description: "Interactive experiments and demos.",
       href: "/playground",
     },
+  ],
+  slashPages: [
+    { href: "/about", title: "/about", description: "Who I am beyond the resume." },
+    { href: "/now", title: "/now", description: "What I'm focused on right now." },
+    { href: "/colophon", title: "/colophon", description: "How this site is built." },
+    { href: "/contact", title: "/contact", description: "Get in touch." },
+    { href: "/sitemap", title: "/sitemap", description: "Every page and post, in one list." },
+    { href: "/slashes", title: "/slashes", description: "This index of standalone pages." },
   ],
   links: {
     linkedin: "https://www.linkedin.com/in/matthewcfield",

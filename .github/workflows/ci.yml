@@ -48,6 +48,9 @@ jobs:
       - name: Check authoring docs
         run: pnpm check:authoring-docs
 
+      - name: Check playground CSS
+        run: pnpm check:playground-css
+
       - name: Format check
         run: pnpm format:check
 
@@ -96,6 +99,9 @@ jobs:
 
       - name: "Self-tests for check-authoring-docs"
         run: node --test scripts/check-authoring-docs.test.mjs
+
+      - name: "Self-tests for check-playground-css"
+        run: node --test scripts/check-playground-css.test.mjs
 
       - name: Verify CI wiring for check-velite-output
         run: node scripts/check-velite-output.mjs --verify-ci-wiring

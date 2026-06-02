@@ -52,6 +52,7 @@ const pages = defineCollection({
       title: s.string(),
       description: s.string(),
       slug: s.path(),
+      updated: s.isodate().optional(),
       body: s.mdx(),
     })
     .transform((data) => ({ ...data, slug: data.slug.replace(/^pages\//, "") })),

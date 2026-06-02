@@ -1,17 +1,18 @@
 import { expect, test, type Page } from "@playwright/test";
 
-/* CSS isolation spike — Playwright verification (task 13).
+import { THEME_STORAGE_KEY } from "@/components/layout/theme-provider";
+
+/* CSS isolation — Playwright verification.
  *
  * Asserts the empirical behavior of the .playground-container isolation
- * boundary (task 10) plus the spike fixtures (tasks 11–12). All assertions
- * read computed styles via page.evaluate(() => getComputedStyle(...)) on
- * elements selected by data-testid.
+ * boundary applied by <PlaygroundFrame> around the same-page
+ * `scribble-pad` sample, plus the M1 typography re-establishment. All
+ * assertions read computed styles via
+ * page.evaluate(() => getComputedStyle(...)) on elements selected by
+ * data-testid carried by the scribble-pad fixture.
  *
  * Tests run against the production build (`pnpm build && pnpm start`) via
- * playwright.config.ts → webServer. Dev-mode (Turbopack) verification is
- * documented in e2e/spike-summary.txt; the 2026-04-16 run showed the
- * same assertions pass against the Turbopack dev build, so the expected
- * values below hold for both bundlers.
+ * playwright.config.ts → webServer.
  *
  * Color serialization: the production build runs oklch() values through
  * Lightning CSS, which emits two declarations per color — an RGB/hex
@@ -33,9 +34,10 @@ import { expect, test, type Page } from "@playwright/test";
  * brand-new token added to tokens.css is not detected by these tests
  * until it is wired into an assertion explicitly. */
 
-// `(playground)` is a Next.js route group — it doesn't add a URL segment,
-// so the spike fixture is served at /spike, not /playground/spike.
-const SPIKE_PATH = "/spike";
+// The same-page `scribble-pad` sample carries the migrated data-testid
+// hooks the isolation assertions read. It renders inside <PlaygroundFrame>
+// (the `.playground-container` reset boundary).
+const SCRIBBLE_PAD_PATH = "/playground/scribble-pad";
 
 type LabChannels = readonly [number, number, number];
 type RgbChannels = readonly [number, number, number];
@@ -51,40 +53,23 @@ const EXPECTED_PRIMARY_LIGHT: LabChannels = [7.78201, 0, 0];
 const EXPECTED_PRIMARY_FOREGROUND_LIGHT: LabChannels = [98.26, 0, 0];
 const EXPECTED_TAILWIND_BLUE_500: LabChannels = [54.1736, 13.3369, -74.6839];
 
-// `color: oklch(0.145 0 0)` declared in @layer playground cannot override
-// the unlayered `all: initial` on the same element (see SPIKE FINDING
-// below about layered-vs-unlayered cascade). Chromium's computed value
-// for `color` on the container therefore ends up as the initial
-// CanvasText keyword, which serializes to rgb(0, 0, 0) on the test's
-// white canvas. The assertion still proves R11 AC5's dark-mode
-// isolation: once .dark lands on <html>, if the host's dark tokens
-// leaked through the container reset, `color` would flip to the dark
-// --foreground instead of staying rgb(0, 0, 0).
-const EXPECTED_CONTAINER_COLOR_RGB: RgbChannels = [0, 0, 0];
+// After the M1 fix, `color: oklch(0.145 0 0)` is declared in a SECOND
+// unlayered rule on .playground-container, after the reset, so it beats
+// `all: initial` and actually applies. The production build runs that
+// oklch() through Lightning CSS, which emits an `#0a0a0a` sRGB fallback
+// alongside the modern lab() form; Chromium serializes the computed
+// `color` property to sRGB, so the container's real `color` resolves to
+// rgb(10, 10, 10). The dark-mode re-read asserts the same value: if the
+// host's .dark tokens leaked through the container reset, `color` would
+// flip to the dark --foreground instead of staying rgb(10, 10, 10).
+// Pinned to the exact prod-build serialization (expectRgbEqual is an
+// exact toBe match — no tolerance).
+const EXPECTED_CONTAINER_COLOR_RGB: RgbChannels = [10, 10, 10];
 
-// --radius = 0.625rem = 10px. Root font-size is 16px in Chromium's
-// defaults; the container re-declares font-size via @layer playground
-// but that declaration is shadowed by `all: initial` — the computed rem
-// base on descendants still falls back to the browser default of 16px,
-// which is what resolves var(--radius) to 10px here.
+// --radius = 0.625rem = 10px. The container re-declares font-size: 16px
+// in the M1 unlayered rule, matching Chromium's 16px root default, so
+// var(--radius) resolves to 10px on descendants.
 const EXPECTED_RADIUS = "10px";
-
-// SPIKE FINDING — layered typography re-declarations on .playground-container
-// are defeated by the unlayered `all: initial` on the same rule block.
-// Custom properties survive (CSS `all` excludes them by spec), but
-// font-family / font-size / line-height / color / etc. revert to the
-// browser initial. Task 14 (spike-results.md) records this and
-// recommends a follow-up that either moves the typography
-// re-establishment out of the layer or uses higher-specificity unlayered
-// selectors so the re-declarations beat the reset. The assertions below
-// encode this behavior via negation rather than pinning Chromium's
-// initial-value serialization ("Times New Roman" on the current test
-// image, Liberation Serif / DejaVu Serif on other distros). The
-// negation form survives platform / Playwright-bundled-Chromium
-// version bumps AND still fails loudly the moment the playground.css
-// fix lands — the ui-sans-serif stack will start appearing in the
-// computed value and the "not.toContain('ui-sans-serif')" assertion
-// flips from passing to failing, forcing a test update.
 
 // Strings that MUST NOT appear in any playground-descendant computed
 // font-family. The host site declares Geist on <html> and Arial /
@@ -95,11 +80,9 @@ const EXPECTED_RADIUS = "10px";
 // (which includes Arial / Helvetica Neue). Keeping the list narrow
 // avoids false multi-failure noise when the typography fix lands.
 const HOST_FONT_FAMILY_FRAGMENTS = ["Geist"] as const;
-// String that MUST NOT YET appear in playground-descendant computed
-// font-family (broken-state marker). When playground.css is fixed so
-// the re-declaration actually applies, this fragment WILL appear and
-// the assertion will flip — update the assertion to toContain at that
-// point.
+// String that MUST appear in playground-descendant computed font-family.
+// The M1 fix re-establishes the ui-sans-serif stack on the container via
+// an unlayered rule that beats `all: initial`, so descendants inherit it.
 const INTENDED_PLAYGROUND_FONT_FRAGMENT = "ui-sans-serif";
 
 function parseLab(value: string): LabChannels {
@@ -146,18 +129,20 @@ async function readComputed<T>(
   return await page.getByTestId(testId).evaluate(reader);
 }
 
-// Apply dark mode in a way that survives a future next-themes
-// ThemeProvider integration (task 16). The init script runs before any
-// page script parses, so the class lands on <html> before hydration;
-// populating localStorage "theme" = "dark" ahead of hydration makes
-// next-themes (attribute="class", defaultTheme="system") converge on
-// dark after hydrating instead of racing the manual classList.add. The
+// Apply dark mode in a way that cooperates with the next-themes
+// ThemeProvider. The init script runs before any page script parses, so
+// the class lands on <html> before hydration; populating the theme
+// storage key = "dark" ahead of hydration makes next-themes
+// (attribute="class", defaultTheme="system") converge on dark after
+// hydrating instead of racing the manual classList.add. The
 // DOMContentLoaded handler is a redundancy for environments where
 // documentElement isn't yet available during init-script execution.
+// THEME_STORAGE_KEY is passed into the init script (closure vars aren't
+// in scope inside the serialized browser-side function).
 async function applyDarkMode(page: Page): Promise<void> {
-  await page.addInitScript(() => {
+  await page.addInitScript((storageKey: string) => {
     try {
-      localStorage.setItem("theme", "dark");
+      localStorage.setItem(storageKey, "dark");
     } catch {
       /* incognito / storage disabled — ignore */
     }
@@ -168,10 +153,10 @@ async function applyDarkMode(page: Page): Promise<void> {
     };
     apply();
     document.addEventListener("DOMContentLoaded", apply);
-  });
+  }, THEME_STORAGE_KEY);
 }
 
-test.describe("CSS isolation spike — playground container", () => {
+test.describe("CSS isolation — playground container", () => {
   test("plain div inline styles are preserved (weak — see AC2 anchor test for isolation proof)", async ({
     page,
   }) => {
@@ -181,8 +166,8 @@ test.describe("CSS isolation spike — playground container", () => {
     // sanity check for the fixture itself; AC2 is actually anchored by
     // the `site globals blocked at container boundary` test below, which
     // reads a descendant WITHOUT inline overrides.
-    await page.goto(SPIKE_PATH);
-    const styles = await readComputed(page, "spike-plain-div-target", (el) => {
+    await page.goto(SCRIBBLE_PAD_PATH);
+    const styles = await readComputed(page, "sample-plain-div", (el) => {
       const cs = getComputedStyle(el);
       return { color: cs.color, fontFamily: cs.fontFamily };
     });
@@ -193,32 +178,22 @@ test.describe("CSS isolation spike — playground container", () => {
     expect(styles.fontFamily).toBe("serif");
   });
 
-  test("shadcn Button receives utility-class padding + records typography regression", async ({
+  test("shadcn Button receives utility-class padding + inherits the M1 typography", async ({
     page,
   }) => {
     // Two concerns in one test:
     //
-    // (1) Utility-class delivery through @layer playground. Background
-    //     and color are intentionally deferred — shadcn's bg-primary /
-    //     text-primary-foreground are no-ops until globals.css has the
-    //     @theme block that task 15 adds. The deferral is recorded on
-    //     task 13's line in tasks.md (visible in the task list, not
-    //     buried here). The direct component-level AC3 proof lives in
-    //     the `shadcn Button consumes re-established tokens via var()`
-    //     test further down.
+    // (1) Utility-class delivery through @layer playground. The shadcn
+    //     Button's size utilities (padding, font-size) resolve inside
+    //     the container's layer.
     //
-    // (2) Observed-broken marker for the typography re-declaration bug
-    //     (see SPIKE FINDING near the constants). font-family on the
-    //     Button's descendant path inherits the CSS initial serif
-    //     default because the @layer playground re-declaration is
-    //     shadowed by unlayered `all: initial` on the container. The
-    //     assertion is a negation: the computed font-family must NOT
-    //     include the intended playground stack fragment. Once
-    //     playground.css is fixed so the re-declaration actually
-    //     applies, this assertion WILL fail (ui-sans-serif starts
-    //     appearing) and the test must be updated — that's the intent.
-    await page.goto(SPIKE_PATH);
-    const styles = await readComputed(page, "spike-shadcn-button-target", (el) => {
+    // (2) M1 typography proof on the Button's descendant path. After the
+    //     M1 fix re-establishes the ui-sans-serif stack via an unlayered
+    //     rule that beats `all: initial`, the Button inherits it, so the
+    //     computed font-family MUST contain the intended playground stack
+    //     fragment — and MUST NOT contain any host-leak fragment.
+    await page.goto(SCRIBBLE_PAD_PATH);
+    const styles = await readComputed(page, "sample-font-target", (el) => {
       const cs = getComputedStyle(el);
       return {
         paddingLeft: cs.paddingLeft,
@@ -237,12 +212,12 @@ test.describe("CSS isolation spike — playground container", () => {
     for (const fragment of HOST_FONT_FAMILY_FRAGMENTS) {
       expect(styles.fontFamily).not.toContain(fragment);
     }
-    expect(styles.fontFamily).not.toContain(INTENDED_PLAYGROUND_FONT_FRAGMENT);
+    expect(styles.fontFamily).toContain(INTENDED_PLAYGROUND_FONT_FRAGMENT);
   });
 
   test("Tailwind utilities resolve inside @layer playground", async ({ page }) => {
-    await page.goto(SPIKE_PATH);
-    const styles = await readComputed(page, "spike-tailwind-div-target", (el) => {
+    await page.goto(SCRIBBLE_PAD_PATH);
+    const styles = await readComputed(page, "sample-tailwind-div", (el) => {
       const cs = getComputedStyle(el);
       return {
         backgroundColor: cs.backgroundColor,
@@ -277,7 +252,7 @@ test.describe("CSS isolation spike — playground container", () => {
       });
 
     // Light-mode baseline.
-    await page.goto(SPIKE_PATH);
+    await page.goto(SCRIBBLE_PAD_PATH);
     const before = await readContainer();
     expectLabClose(before.background, EXPECTED_BACKGROUND_LIGHT);
     expectLabClose(before.foreground, EXPECTED_FOREGROUND_LIGHT);
@@ -286,7 +261,7 @@ test.describe("CSS isolation spike — playground container", () => {
     expectRgbEqual(before.color, EXPECTED_CONTAINER_COLOR_RGB);
 
     // Dark mode applied via init script so the class is on <html> before
-    // hydration (future-compatible with next-themes — task 16).
+    // hydration (cooperates with the next-themes ThemeProvider).
     await applyDarkMode(page);
     await page.reload();
     const after = await readContainer();
@@ -311,7 +286,7 @@ test.describe("CSS isolation spike — playground container", () => {
     // actively wins over inherited dark values, rather than coincidentally
     // matching a light :root.
     const readTarget = () =>
-      readComputed(page, "spike-token-access-target", (el) => {
+      readComputed(page, "sample-token-target", (el) => {
         const cs = getComputedStyle(el);
         return {
           backgroundColor: cs.backgroundColor,
@@ -326,7 +301,7 @@ test.describe("CSS isolation spike — playground container", () => {
         };
       });
 
-    await page.goto(SPIKE_PATH);
+    await page.goto(SCRIBBLE_PAD_PATH);
     const before = await readTarget();
     expectLabClose(before.backgroundColor, EXPECTED_PRIMARY_LIGHT);
     expectLabClose(before.color, EXPECTED_PRIMARY_FOREGROUND_LIGHT);
@@ -352,7 +327,7 @@ test.describe("CSS isolation spike — playground container", () => {
   test("shadcn Button consumes re-established tokens via var() inline style", async ({ page }) => {
     // Direct R11 AC3 verification at the component path. The fixture
     // Button has inline style backgroundColor=var(--primary),
-    // color=var(--primary-foreground) (src/app/(playground)/spike/page.tsx).
+    // color=var(--primary-foreground) (playground/scribble-pad/index.tsx).
     // This decouples AC3 from task 15's @theme utility wiring AND from
     // the general-div fixture in the previous test — it proves the
     // actual shadcn Button component renders with the playground's
@@ -367,7 +342,7 @@ test.describe("CSS isolation spike — playground container", () => {
     // computed background-color would flip toward the dark value after
     // applyDarkMode + reload.
     const readButton = () =>
-      readComputed(page, "spike-button-token-target", (el) => {
+      readComputed(page, "sample-button-token", (el) => {
         const cs = getComputedStyle(el);
         return {
           backgroundColor: cs.backgroundColor,
@@ -375,7 +350,7 @@ test.describe("CSS isolation spike — playground container", () => {
         };
       });
 
-    await page.goto(SPIKE_PATH);
+    await page.goto(SCRIBBLE_PAD_PATH);
     const before = await readButton();
     expectLabClose(before.backgroundColor, EXPECTED_PRIMARY_LIGHT);
     expectLabClose(before.color, EXPECTED_PRIMARY_FOREGROUND_LIGHT);
@@ -400,8 +375,8 @@ test.describe("CSS isolation spike — playground container", () => {
     // font default changes (Liberation Serif / DejaVu Serif on
     // non-"Times New Roman" distros still passes) while still failing
     // loudly if isolation breaks.
-    await page.goto(SPIKE_PATH);
-    const styles = await readComputed(page, "spike-ac2-inherit-target", (el) => {
+    await page.goto(SCRIBBLE_PAD_PATH);
+    const styles = await readComputed(page, "sample-leak-probe", (el) => {
       const cs = getComputedStyle(el);
       return { fontFamily: cs.fontFamily };
     });

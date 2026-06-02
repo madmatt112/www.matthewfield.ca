@@ -13,6 +13,7 @@
     "test:e2e": "node scripts/run-e2e.mjs",
     "build:search": "node scripts/run-pagefind-crawl.mjs",
     "check:authoring-docs": "node scripts/check-authoring-docs.mjs",
+    "check:playground-css": "node scripts/check-playground-css.mjs",
     "lhci": "node scripts/run-lhci.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

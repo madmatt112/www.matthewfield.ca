@@ -1,0 +1,22 @@
+{
+  "filePath": ".spec-workflow/specs/playground/tasks.md",
+  "currentVersion": 2,
+  "snapshots": [
+    {
+      "version": 1,
+      "filename": "snapshot-001.json",
+      "timestamp": "2026-06-02T02:55:11.805Z",
+      "trigger": "initial",
+      "approvalId": "approval_1780368911771_9qni243ut",
+      "approvalTitle": "Playground tasks (v1)"
+    },
+    {
+      "version": 2,
+      "filename": "snapshot-002.json",
+      "timestamp": "2026-06-02T20:23:47.048Z",
+      "trigger": "approved",
+      "approvalId": "approval_1780370184161_boia14xu8",
+      "approvalTitle": "Playground tasks (v4 — addresses v3/r3 review; converged)"
+    }
+  ]
+}

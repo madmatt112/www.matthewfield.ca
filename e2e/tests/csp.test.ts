@@ -4,8 +4,9 @@ import { expect, test } from "@playwright/test";
 // /playground and /playground/* (negative-lookahead regex). These tests guard
 // against silent regressions if next.config.ts is refactored.
 //
-// Use the stable /playground index as the exclusion target — /playground/spike
-// is a spike artifact that may be removed by spec 8.
+// The opt-out is asserted on the stable index (/playground), a same-page item
+// landing (/playground/scribble-pad), and a nested embed (/playground/starfield/embed)
+// so a future regex refactor that re-narrows the lookahead is caught on the deep paths.
 
 const EXPECTED_CSP_DIRECTIVES = [
   "default-src 'self'",
@@ -32,11 +33,23 @@ test.describe("Content-Security-Policy headers", () => {
     }
   });
 
-  test("playground routes do not serve a CSP header", async ({ page }) => {
-    const response = await page.goto("/playground");
-    expect(response).not.toBeNull();
+  const PLAYGROUND_PATHS = [
+    "/playground",
+    "/playground/scribble-pad",
+    "/playground/starfield/embed",
+  ];
 
-    const csp = response?.headers()["content-security-policy"];
-    expect(csp).toBeUndefined();
-  });
+  for (const path of PLAYGROUND_PATHS) {
+    test(`playground route ${path} does not serve a CSP header`, async ({ page }) => {
+      const response = await page.goto(path);
+      expect(response).not.toBeNull();
+      expect(response?.ok()).toBe(true);
+
+      const headers = response?.headers() ?? {};
+      // No CSP (route-scoped opt-out, Req 10.5) and no X-Frame-Options, so the
+      // same-origin embed iframe loads without a framing error (Req 9.2).
+      expect(headers["content-security-policy"]).toBeUndefined();
+      expect(headers["x-frame-options"]).toBeUndefined();
+    });
+  }
 });
