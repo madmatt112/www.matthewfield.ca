@@ -92,7 +92,46 @@ describe("sendContactEmail subject and payload", () => {
 });
 
 describe("sendContactEmail testId forwarding", () => {
-  it("sets X-Test-Id header when input.testId is a string", async () => {
+  it("sets X-Test-Id header when input.testId is a string and NODE_ENV is not production", async () => {
+    vi.stubEnv("NODE_ENV", "test");
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { sendContactEmail } = await import("./mail");
+    const input = { ...baseInput, source: "contact" as const, testId: "case-42" };
+    await sendContactEmail(input);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const headers = init.headers as Record<string, string>;
+    expect(headers["X-Test-Id"]).toBe("case-42");
+
+    assertLogsScrubbed({ ...input, source: "contact", testId: input.testId });
+  });
+
+  it("suppresses X-Test-Id header when NODE_ENV is production even with a string testId", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("E2E_TEST_ID_ALLOWED", "");
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { sendContactEmail } = await import("./mail");
+    const input = { ...baseInput, source: "contact" as const, testId: "case-42" };
+    await sendContactEmail(input);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const headers = init.headers as Record<string, string>;
+    expect(headers["X-Test-Id"]).toBeUndefined();
+    expect(Object.keys(headers)).not.toContain("X-Test-Id");
+
+    assertLogsScrubbed({ ...input, source: "contact", testId: input.testId });
+  });
+
+  it("forwards X-Test-Id under NODE_ENV=production when E2E_TEST_ID_ALLOWED=1 (e2e escape hatch)", async () => {
+    // `next build` inlines NODE_ENV as "production" in the server bundle, so the
+    // e2e harness opens the gate via this runtime-read flag instead. The flag is
+    // never set in any real deployment, so the security property is preserved.
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("E2E_TEST_ID_ALLOWED", "1");
     const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
 
@@ -173,6 +212,20 @@ describe("getResendClient sanity guard", () => {
   it("throws when test-key is paired with the production Resend base URL", async () => {
     vi.stubEnv("RESEND_API_KEY", "test-key");
     vi.stubEnv("RESEND_BASE_URL", "https://api.resend.com");
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { sendContactEmail } = await import("./mail");
+    const input = { ...baseInput, source: "contact" as const };
+    await expect(sendContactEmail(input)).rejects.toThrow(/Refusing to send/);
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    assertLogsScrubbed({ ...input, source: "contact" });
+  });
+
+  it("throws when the Resend sandbox sender is paired with VERCEL_ENV=production", async () => {
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("RESEND_FROM", "onboarding@resend.dev");
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
 

@@ -17,6 +17,8 @@ vi.mock("@/lib/mail", () => {
   }
   return {
     sendContactEmail: vi.fn().mockResolvedValue(undefined),
+    testIdForwardingAllowed: () =>
+      process.env.NODE_ENV !== "production" || process.env.E2E_TEST_ID_ALLOWED === "1",
     TimeoutError,
     ResendError,
   };
@@ -99,6 +101,8 @@ describe("POST /api/contact — body size cap", () => {
     const oversize = "x".repeat(32 * 1024 + 1);
     const res = await POST(makeRequest(undefined, { rawBody: oversize }));
     expect(res.status).toBe(413);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toBe("Message is too long. Please shorten and try again.");
     expect(sendContactEmail).not.toHaveBeenCalled();
   });
 });
@@ -131,6 +135,24 @@ describe("POST /api/contact — origin check", () => {
   it("continues when Origin is a localhost URL", async () => {
     const { POST } = await import("./route");
     const res = await POST(makeRequest(baseBody, { headers: { origin: "http://localhost:3013" } }));
+    expect(res.status).toBe(200);
+  });
+
+  it("continues when Origin is the literal 'null' (Lockdown Mode / sandboxed iframe)", async () => {
+    const { POST } = await import("./route");
+    const res = await POST(makeRequest(baseBody, { headers: { origin: "null" } }));
+    expect(res.status).toBe(200);
+  });
+
+  it("continues when Origin is empty/whitespace", async () => {
+    const { POST } = await import("./route");
+    const res = await POST(makeRequest(baseBody, { headers: { origin: "   " } }));
+    expect(res.status).toBe(200);
+  });
+
+  it("continues when Origin is malformed/unparseable", async () => {
+    const { POST } = await import("./route");
+    const res = await POST(makeRequest(baseBody, { headers: { origin: "::::not a url::::" } }));
     expect(res.status).toBe(200);
   });
 
@@ -247,6 +269,28 @@ describe("POST /api/contact — testId forwarding", () => {
     const call = (sendContactEmail as ReturnType<typeof vi.fn>).mock.calls[0][0];
     expect(call.testId).toBeUndefined();
   });
+
+  it("suppresses a string testId when NODE_ENV is production", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("E2E_TEST_ID_ALLOWED", "");
+    const { POST } = await import("./route");
+    const { sendContactEmail } = await import("@/lib/mail");
+    const res = await POST(makeRequest({ ...baseBody, testId: "case-99" }));
+    expect(res.status).toBe(200);
+    const call = (sendContactEmail as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(call.testId).toBeUndefined();
+  });
+
+  it("forwards a string testId under NODE_ENV=production when E2E_TEST_ID_ALLOWED=1", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("E2E_TEST_ID_ALLOWED", "1");
+    const { POST } = await import("./route");
+    const { sendContactEmail } = await import("@/lib/mail");
+    const res = await POST(makeRequest({ ...baseBody, testId: "case-99" }));
+    expect(res.status).toBe(200);
+    const call = (sendContactEmail as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(call.testId).toBe("case-99");
+  });
 });
 
 describe("POST /api/contact — vendor error mapping and logging discipline", () => {
@@ -281,5 +325,25 @@ describe("POST /api/contact — vendor error mapping and logging discipline", ()
     expect(warnSpy).toHaveBeenCalledTimes(1);
     expect(warnSpy.mock.calls[0][0]).toBe("resend_4xx_5xx");
     assertNoUserInputLogged(body);
+  });
+
+  it("returns 502 on an unexpected error and logs only 'resend_unexpected'", async () => {
+    const mail = await import("@/lib/mail");
+    (mail.sendContactEmail as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error("boom"));
+
+    const { POST } = await import("./route");
+    const body = { ...baseBody, source: "contact" as const };
+    const res = await POST(makeRequest(body));
+    expect(res.status).toBe(502);
+
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy.mock.calls[0][0]).toBe("resend_unexpected");
+    assertNoUserInputLogged(body);
+
+    const json = (await res.json()) as { error: string };
+    expect(json.error).not.toContain(body.name);
+    expect(json.error).not.toContain(body.email);
+    expect(json.error).not.toContain(body.message);
+    expect(json.error).not.toContain(body.source);
   });
 });

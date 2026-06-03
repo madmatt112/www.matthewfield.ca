@@ -127,6 +127,38 @@ test.describe("contact form SSR-leak guard", () => {
   }
 });
 
+test.describe("contact form double-submit latch", () => {
+  let testId: string;
+
+  test.beforeEach(async ({ page }) => {
+    testId = randomUUID();
+    await page.addInitScript((id) => {
+      (window as unknown as { __TEST_ID: string }).__TEST_ID = id;
+    }, testId);
+    await resetMockBucket(testId);
+  });
+
+  test("rapid double submit records exactly one email", async ({ page }) => {
+    await page.goto("/contact");
+
+    await page.getByLabel("Name", { exact: true }).fill("Test Human");
+    await page.getByLabel("Email", { exact: true }).fill("tester@example.com");
+    await page
+      .getByLabel("Message", { exact: true })
+      .fill("Rapid double-submit should only send a single email message.");
+
+    const button = page.getByRole("button", { name: "Send" });
+    await button.click({ clickCount: 2, delay: 0 });
+
+    await expect(
+      page.getByRole("heading", { name: "Thanks — your message is on its way." }),
+    ).toBeVisible();
+
+    const state = await fetchMockState(testId);
+    expect(state.calls).toHaveLength(1);
+  });
+});
+
 test.describe("contact form honeypot", () => {
   let testId: string;
 

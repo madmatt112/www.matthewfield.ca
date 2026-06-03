@@ -65,6 +65,7 @@ export function ContactForm(props: { source?: "profile" | "contact" }): React.JS
   const [state, setState] = React.useState<FormState>({ kind: "idle" });
   const [fields, setFields] = React.useState<Fields>(INITIAL_FIELDS);
   const [attemptId, setAttemptId] = React.useState(0);
+  const inFlightRef = React.useRef(false);
   const honeypotRef = React.useRef<HTMLInputElement>(null);
   const formRef = React.useRef<HTMLFormElement>(null);
   const successHeadingRef = React.useRef<HTMLHeadingElement>(null);
@@ -118,7 +119,8 @@ export function ContactForm(props: { source?: "profile" | "contact" }): React.JS
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (state.kind === "submitting") return;
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
 
     setAttemptId((n) => n + 1);
     setState({ kind: "submitting" });
@@ -141,75 +143,79 @@ export function ContactForm(props: { source?: "profile" | "contact" }): React.JS
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), SUBMIT_TIMEOUT_MS);
 
-    let response: Response;
     try {
-      response = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      });
-    } catch {
-      setState({ kind: "server-error", status: "network" });
-      return;
-    } finally {
-      clearTimeout(timer);
-    }
-
-    if (response.status === 200) {
-      setFields(INITIAL_FIELDS);
-      setState({ kind: "success" });
-      return;
-    }
-
-    if (response.status === 400) {
-      let body: unknown = null;
+      let response: Response;
       try {
-        body = await response.json();
+        response = await fetch("/api/contact", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
       } catch {
-        // fall through to unknown server-error
+        setState({ kind: "server-error", status: "network" });
+        return;
+      } finally {
+        clearTimeout(timer);
       }
-      if (
-        typeof body === "object" &&
-        body !== null &&
-        "errors" in body &&
-        isFieldErrors((body as { errors: unknown }).errors)
-      ) {
-        const raw = (body as { errors: Partial<FieldErrors> }).errors;
-        const errors: FieldErrors = {
-          name: raw.name,
-          email: raw.email,
-          message: raw.message,
-        };
-        setState({ kind: "validation-error", errors });
+
+      if (response.status === 200) {
+        setFields(INITIAL_FIELDS);
+        setState({ kind: "success" });
         return;
       }
-      setState({ kind: "server-error", status: "unknown" });
-      return;
-    }
 
-    if (
-      response.status === 429 ||
-      response.status === 502 ||
-      response.status === 503 ||
-      response.status === 504
-    ) {
-      const status = response.status as 429 | 502 | 503 | 504;
-      let retryAfterSeconds: number | undefined;
-      if (status === 503) {
-        const header = response.headers.get("Retry-After");
-        const parsed = header === null ? NaN : Number.parseInt(header, 10);
-        if (Number.isFinite(parsed) && parsed >= 0) retryAfterSeconds = parsed;
+      if (response.status === 400) {
+        let body: unknown = null;
+        try {
+          body = await response.json();
+        } catch {
+          // fall through to unknown server-error
+        }
+        if (
+          typeof body === "object" &&
+          body !== null &&
+          "errors" in body &&
+          isFieldErrors((body as { errors: unknown }).errors)
+        ) {
+          const raw = (body as { errors: Partial<FieldErrors> }).errors;
+          const errors: FieldErrors = {
+            name: raw.name,
+            email: raw.email,
+            message: raw.message,
+          };
+          setState({ kind: "validation-error", errors });
+          return;
+        }
+        setState({ kind: "server-error", status: "unknown" });
+        return;
       }
-      setState({
-        kind: "server-error",
-        status,
-        ...(retryAfterSeconds !== undefined ? { retryAfterSeconds } : {}),
-      });
-      return;
-    }
 
-    setState({ kind: "server-error", status: "unknown" });
+      if (
+        response.status === 429 ||
+        response.status === 502 ||
+        response.status === 503 ||
+        response.status === 504
+      ) {
+        const status = response.status as 429 | 502 | 503 | 504;
+        let retryAfterSeconds: number | undefined;
+        if (status === 503) {
+          const header = response.headers.get("Retry-After");
+          const parsed = header === null ? NaN : Number.parseInt(header, 10);
+          if (Number.isFinite(parsed) && parsed >= 0) retryAfterSeconds = parsed;
+        }
+        setState({
+          kind: "server-error",
+          status,
+          ...(retryAfterSeconds !== undefined ? { retryAfterSeconds } : {}),
+        });
+        return;
+      }
+
+      setState({ kind: "server-error", status: "unknown" });
+    } finally {
+      inFlightRef.current = false;
+    }
   }
 
   function handleRetry() {

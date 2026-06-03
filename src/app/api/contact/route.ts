@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { ResendError, TimeoutError, sendContactEmail } from "@/lib/mail";
+import { ResendError, TimeoutError, sendContactEmail, testIdForwardingAllowed } from "@/lib/mail";
 
 const MAX_BODY_BYTES = 32 * 1024;
 const VENDOR_ERROR_MESSAGE =
@@ -38,13 +38,16 @@ function isAcceptedHost(host: string): boolean {
 }
 
 function originAllowed(req: Request): boolean {
-  const origin = req.headers.get("origin");
+  const rawOrigin = req.headers.get("origin")?.trim();
+  // Treat `null`, empty/whitespace, and unparseable Origin values as absent.
+  // Lockdown Mode, privacy browsers, and sandboxed iframes send `Origin: null`.
+  const origin = rawOrigin && rawOrigin !== "null" ? rawOrigin : null;
   const referer = req.headers.get("referer");
   if (origin) {
     try {
       return isAcceptedHost(new URL(origin).host);
     } catch {
-      return false;
+      return true;
     }
   }
   if (referer) {
@@ -71,7 +74,10 @@ function firstFieldErrors(error: z.ZodError): Record<string, string> {
 export async function POST(req: Request): Promise<Response> {
   const raw = await req.arrayBuffer();
   if (raw.byteLength > MAX_BODY_BYTES) {
-    return Response.json({ error: "Payload too large." }, { status: 413 });
+    return Response.json(
+      { error: "Message is too long. Please shorten and try again." },
+      { status: 413 },
+    );
   }
 
   if (!originAllowed(req)) {
@@ -101,7 +107,10 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   const source = sourceSchema.parse(parsedRecord.source);
-  const testId = typeof parsedRecord.testId === "string" ? parsedRecord.testId : undefined;
+  const testId =
+    testIdForwardingAllowed() && typeof parsedRecord.testId === "string"
+      ? parsedRecord.testId
+      : undefined;
 
   try {
     await sendContactEmail({ ...result.data, source, testId });
@@ -117,7 +126,8 @@ export async function POST(req: Request): Promise<Response> {
       console.warn("resend_4xx_5xx");
       return Response.json({ error: VENDOR_ERROR_MESSAGE }, { status: 502 });
     }
-    throw err;
+    console.warn("resend_unexpected");
+    return Response.json({ error: VENDOR_ERROR_MESSAGE }, { status: 502 });
   }
 
   return Response.json({ ok: true }, { status: 200 });

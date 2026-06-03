@@ -7,14 +7,10 @@ import { siteConfig } from "../../src/config/site";
 // phone-sized viewport representative of the target audience.
 const MOBILE_VIEWPORT = { width: 375, height: 667 };
 
-// /profile, /blog, and /projects are no longer placeholders — /profile is the
-// Velite-sourced professional-profile page, /blog is the live blog index
-// (blog-enhanced/blog-core specs), and /projects is the live gallery page
-// (project-showcase spec, Task 22). All other nav targets still render the
-// placeholder shell with `name === item.label`.
-const navItemsWithLabelH1 = siteConfig.navItems.filter(
-  (item) => item.href !== "/profile" && item.href !== "/blog" && item.href !== "/projects",
-);
+// Every nav target now renders real content (the "under construction"
+// placeholder shell has been fully replaced by the profile, projects,
+// contributions, blog, resources, and playground specs), so there are no
+// placeholder routes left to assert.
 
 test.describe("desktop navigation", () => {
   for (const item of siteConfig.navItems) {
@@ -34,21 +30,19 @@ test.describe("desktop navigation", () => {
   }
 });
 
-test.describe("placeholder pages", () => {
-  const placeholderRoutes = navItemsWithLabelH1.filter((item) => item.href !== "/playground");
-
-  for (const item of placeholderRoutes) {
-    test(`${item.href} renders placeholder with "under construction" text`, async ({ page }) => {
-      await page.goto(item.href);
-      await expect(page.getByRole("heading", { level: 1, name: item.label })).toBeVisible();
-      await expect(page.getByText("This section is under construction.")).toBeVisible();
+test.describe("live nav pages", () => {
+  for (const href of ["/contributions", "/resources"] as const) {
+    test(`${href} renders real content (no placeholder copy)`, async ({ page }) => {
+      await page.goto(href);
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      await expect(page.getByText("This section is under construction.")).toHaveCount(0);
     });
   }
 
-  test("/playground renders playground placeholder (no site chrome)", async ({ page }) => {
+  test("/playground renders the playground gallery (no site chrome)", async ({ page }) => {
     await page.goto("/playground");
     await expect(page.getByRole("heading", { level: 1, name: "Playground" })).toBeVisible();
-    await expect(page.getByText("This section is under construction.")).toBeVisible();
+    await expect(page.getByText("This section is under construction.")).toHaveCount(0);
     // Playground route group has no header — site nav should not be present.
     await expect(page.getByRole("navigation", { name: "Primary" })).toHaveCount(0);
   });

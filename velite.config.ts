@@ -64,11 +64,11 @@ const profile = defineCollection({
   single: true,
   schema: s
     .object({
-      title: s.string(),
-      description: s.string(),
-      headline: s.string(),
-      location: s.string(),
-      availability: s.string(),
+      title: s.string().max(200),
+      description: s.string().max(500),
+      headline: s.string().max(200),
+      location: s.string().max(200),
+      availability: s.string().max(200),
       headshot: s.image().optional(),
       body: s.mdx(),
     })
@@ -130,11 +130,7 @@ const posts = defineCollection({
       // hiddenFromLists: true or remain drafts. Authors of essays whose slug
       // merely begins with `fixture-` (e.g. `fixture-driven-testing`) are
       // unaffected — only the explicit roster fires.
-      if (
-        KNOWN_FIXTURE_SLUGS.has(data.slug) &&
-        !data.draft &&
-        data.hiddenFromLists !== true
-      ) {
+      if (KNOWN_FIXTURE_SLUGS.has(data.slug) && !data.draft && data.hiddenFromLists !== true) {
         throw new Error(
           `[velite/posts] ${fileRel}: slug '${data.slug}' is in the KNOWN_FIXTURE_SLUGS roster but is published without hiddenFromLists: true. Either rename the slug, mark it draft, or set hiddenFromLists: true.`,
         );
@@ -145,11 +141,7 @@ const posts = defineCollection({
       const content = meta.content;
       let rejectionTree;
       try {
-        rejectionTree = unified()
-          .use(remarkParse)
-          .use(remarkGfm)
-          .use(remarkMdx)
-          .parse(content);
+        rejectionTree = unified().use(remarkParse).use(remarkGfm).use(remarkMdx).parse(content);
       } catch (parseErr) {
         throw new Error(
           `[velite/posts] ${fileRel}: mdx-parse-failure — ${(parseErr as Error).message}`,
@@ -177,9 +169,7 @@ const posts = defineCollection({
           if (v.trimStart().startsWith("<!--") && v.trimEnd().endsWith("-->")) {
             return;
           }
-          throw new Error(
-            `[velite/posts] ${fileRel}: html rejected — ${v.slice(0, 80)}`,
-          );
+          throw new Error(`[velite/posts] ${fileRel}: html rejected — ${v.slice(0, 80)}`);
         }
         if (t === "mdxFlowExpression" || t === "mdxTextExpression") {
           // MDX-comment carve-out. MDX2's grammar excludes HTML comments
@@ -191,27 +181,16 @@ const posts = defineCollection({
           if (/^\/\*[\s\S]*?\*\/$/.test(v)) {
             return;
           }
-          throw new Error(
-            `[velite/posts] ${fileRel}: ${t} rejected — ${v.slice(0, 80)}`,
-          );
+          throw new Error(`[velite/posts] ${fileRel}: ${t} rejected — ${v.slice(0, 80)}`);
         }
-        if (
-          t === "mdxJsxFlowElement" ||
-          t === "mdxJsxTextElement" ||
-          t === "mdxjsEsm"
-        ) {
+        if (t === "mdxJsxFlowElement" || t === "mdxJsxTextElement" || t === "mdxjsEsm") {
           const snippet = String(node.value ?? t).slice(0, 80);
-          throw new Error(
-            `[velite/posts] ${fileRel}: ${t} rejected — ${snippet}`,
-          );
+          throw new Error(`[velite/posts] ${fileRel}: ${t} rejected — ${snippet}`);
         }
       });
 
       // 4.3 — Reading-time transform (markdown-only stack, no remark-mdx).
-      const readingTree = unified()
-        .use(remarkParse)
-        .use(remarkGfm)
-        .parse(content);
+      const readingTree = unified().use(remarkParse).use(remarkGfm).parse(content);
       const words = countWordsFromMdast(readingTree as Parameters<typeof countWordsFromMdast>[0]);
       const readingTime = Math.max(1, Math.round(words / 238));
 
@@ -300,7 +279,10 @@ const projects = defineCollection({
       date: s.isodate(),
       cover: s.image(),
       coverAlt: s.string().min(1).max(250),
-      tags: s.array(s.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)).max(8).default([]),
+      tags: s
+        .array(s.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/))
+        .max(8)
+        .default([]),
       status: s.enum(["active", "archived", "concept"]).default("active"),
       ogImage: s.image().optional(),
       updated: s.isodate().optional(),
@@ -411,7 +393,9 @@ const projects = defineCollection({
       // (Task 9) plus the integration assertion in Task 28.1 will detect the regression —
       // count of emitted warnings will exceed the count of draft fixtures.
       if (data.draft === true && process.env.PROJECTS_INCLUDE_DRAFTS === "1") {
-        console.error(`[velite/projects] PROJECTS_INCLUDE_DRAFTS=1 — including draft project: ${slug}`);
+        console.error(
+          `[velite/projects] PROJECTS_INCLUDE_DRAFTS=1 — including draft project: ${slug}`,
+        );
       }
 
       return { ...data, slug };
@@ -457,7 +441,9 @@ export default defineConfig({
   // complete, before .velite/ is written to disk. CHOSEN_PATH: HOOK
   // (see .spec-workflow/specs/blog-enhanced/Implementation Logs/task-6.4-velite-api-spike.md).
   prepare(data) {
-    const posts = (data as { posts?: Array<{ slug: string; series?: string; seriesOrder?: number }> }).posts ?? [];
+    const posts =
+      (data as { posts?: Array<{ slug: string; series?: string; seriesOrder?: number }> }).posts ??
+      [];
     const bySeries = new Map<string, Array<{ slug: string; order: number }>>();
     for (const post of posts) {
       if (typeof post.series !== "string" || typeof post.seriesOrder !== "number") continue;

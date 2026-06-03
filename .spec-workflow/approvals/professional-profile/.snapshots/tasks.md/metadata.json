@@ -1,6 +1,6 @@
 {
   "filePath": ".spec-workflow/specs/professional-profile/tasks.md",
-  "currentVersion": 3,
+  "currentVersion": 4,
   "snapshots": [
     {
       "version": 1,
@@ -25,6 +25,14 @@
       "trigger": "revision_requested",
       "approvalId": "approval_1778696834019_cy7vbz4mm",
       "approvalTitle": "professional-profile: tasks (revised)"
+    },
+    {
+      "version": 4,
+      "filename": "snapshot-004.json",
+      "timestamp": "2026-06-03T02:26:10.865Z",
+      "trigger": "approved",
+      "approvalId": "approval_1780439823065_it64renhb",
+      "approvalTitle": "professional-profile tasks v4 (post-r3 adversarial; +R1 harness fix 25.1, task-28 split, stale-[x] de-assertions, task 31 real-send smoke)"
     }
   ]
 }

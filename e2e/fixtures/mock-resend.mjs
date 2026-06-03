@@ -9,6 +9,11 @@ if (!Number.isFinite(PORT) || PORT <= 0) {
 const DEFAULT_BUCKET = "__untagged__";
 /** @type {Map<string, Array<{ testId: string, body: unknown }>>} */
 const buckets = new Map();
+// Per-testId forced-response mode for /emails. Value is the `status` query param:
+// a numeric HTTP code (e.g. "502", "503") or "timeout" to hang (never respond,
+// so the client's AbortController fires). Cleared by /__reset.
+/** @type {Map<string, string>} */
+const modes = new Map();
 let counter = 0;
 
 function readJsonBody(req) {
@@ -48,16 +53,49 @@ const server = http.createServer(async (req, res) => {
       const bucket = buckets.get(testId) ?? [];
       bucket.push({ testId, body });
       buckets.set(testId, bucket);
+
+      const mode = modes.get(testId);
+      if (mode) {
+        // "timeout": hang without responding so the client's AbortController fires.
+        if (mode === "timeout") return;
+        if (mode === "503") {
+          const body503 = JSON.stringify({ error: "service_unavailable" });
+          res.writeHead(503, {
+            "content-type": "application/json",
+            "content-length": Buffer.byteLength(body503),
+            "retry-after": "60",
+          });
+          return res.end(body503);
+        }
+        const code = Number(mode);
+        if (Number.isFinite(code)) {
+          return send(res, code, { error: "forced" });
+        }
+      }
+
       counter += 1;
       return send(res, 200, { id: `mock-${counter}` });
+    }
+
+    if (req.method === "POST" && url.pathname === "/__mode") {
+      const testId = url.searchParams.get("testId") || DEFAULT_BUCKET;
+      const status = url.searchParams.get("status");
+      if (status) {
+        modes.set(testId, status);
+      } else {
+        modes.delete(testId);
+      }
+      return send(res, 200, { ok: true });
     }
 
     if (req.method === "POST" && url.pathname === "/__reset") {
       const testId = url.searchParams.get("testId");
       if (testId) {
         buckets.delete(testId);
+        modes.delete(testId);
       } else {
         buckets.clear();
+        modes.clear();
       }
       return send(res, 200, { ok: true });
     }
@@ -80,6 +118,7 @@ server.listen(PORT, "127.0.0.1", () => {
 
 function shutdown() {
   server.close(() => process.exit(0));
+  server.closeAllConnections();
 }
 process.on("SIGTERM", shutdown);
 process.on("SIGINT", shutdown);

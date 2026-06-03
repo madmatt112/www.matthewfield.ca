@@ -36,6 +36,7 @@ export default defineConfig({
     // Without this, Build 1 e2e tests targeting `/blog/fixture-*` and the
     // `/blog/component-preview/[name]` registry return 404 (Task 35 v4 pin).
     env: {
+      ...process.env,
       BLOG_INCLUDE_DRAFTS: "1",
     },
   },
