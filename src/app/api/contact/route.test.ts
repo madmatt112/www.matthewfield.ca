@@ -156,6 +156,32 @@ describe("POST /api/contact — origin check", () => {
     expect(res.status).toBe(200);
   });
 
+  it("continues when Origin matches the request's own Host (same-origin, env unset)", async () => {
+    // Production serves from www.matthewfield.ca but NEXT_PUBLIC_SITE_URL may be
+    // unset/mismatched; the same-origin Host check must still allow it.
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "");
+    const { POST } = await import("./route");
+    const res = await POST(
+      makeRequest(baseBody, {
+        headers: { origin: "https://www.matthewfield.ca", host: "www.matthewfield.ca" },
+      }),
+    );
+    expect(res.status).toBe(200);
+  });
+
+  it("returns 403 when a foreign Origin is sent to our Host (CSRF, env unset)", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "");
+    const { POST } = await import("./route");
+    const { sendContactEmail } = await import("@/lib/mail");
+    const res = await POST(
+      makeRequest(baseBody, {
+        headers: { origin: "https://evil.example", host: "www.matthewfield.ca" },
+      }),
+    );
+    expect(res.status).toBe(403);
+    expect(sendContactEmail).not.toHaveBeenCalled();
+  });
+
   it("continues when both Origin and Referer are absent", async () => {
     const { POST } = await import("./route");
     const req = new Request("https://matthewfield.ca/api/contact", {

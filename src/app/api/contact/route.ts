@@ -16,7 +16,15 @@ const bodySchema = z
 
 const sourceSchema = z.enum(["profile", "contact"]).optional().catch(undefined);
 
-function isAcceptedHost(host: string): boolean {
+function isAcceptedHost(host: string, selfHost?: string | null): boolean {
+  // Same-origin: a request whose Origin/Referer host equals the host it was
+  // actually sent to (its own Host header) is trusted. This is the canonical
+  // CSRF check — a cross-origin attacker's browser still sends the target's
+  // Host (which it cannot override), so its foreign Origin won't match. It is
+  // robust to apex/www/preview/custom domains without requiring
+  // NEXT_PUBLIC_SITE_URL to be set to the exact serving host.
+  if (selfHost && host === selfHost) return true;
+
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
   if (siteUrl) {
     try {
@@ -43,16 +51,17 @@ function originAllowed(req: Request): boolean {
   // Lockdown Mode, privacy browsers, and sandboxed iframes send `Origin: null`.
   const origin = rawOrigin && rawOrigin !== "null" ? rawOrigin : null;
   const referer = req.headers.get("referer");
+  const selfHost = req.headers.get("host");
   if (origin) {
     try {
-      return isAcceptedHost(new URL(origin).host);
+      return isAcceptedHost(new URL(origin).host, selfHost);
     } catch {
       return true;
     }
   }
   if (referer) {
     try {
-      return isAcceptedHost(new URL(referer).host);
+      return isAcceptedHost(new URL(referer).host, selfHost);
     } catch {
       return false;
     }
