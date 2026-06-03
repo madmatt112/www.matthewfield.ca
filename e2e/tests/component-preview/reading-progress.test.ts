@@ -47,18 +47,14 @@ test.describe("component preview: reading-progress", () => {
     expect(fillWidth).toBeGreaterThan(0);
     expect(fillWidth).toBeLessThan(parentWidth);
 
-    const lightColor = await fill.evaluate(
-      (el) => window.getComputedStyle(el).backgroundColor,
-    );
+    const lightColor = await fill.evaluate((el) => window.getComputedStyle(el).backgroundColor);
 
     // Dark theme.
     await page.emulateMedia({ colorScheme: "dark" });
     await page.goto(PATH);
     await expect(bar).toBeVisible();
 
-    const darkColor = await fill.evaluate(
-      (el) => window.getComputedStyle(el).backgroundColor,
-    );
+    const darkColor = await fill.evaluate((el) => window.getComputedStyle(el).backgroundColor);
 
     // Theme-parity proof: computed fill color must differ.
     expect(lightColor).not.toBe(darkColor);

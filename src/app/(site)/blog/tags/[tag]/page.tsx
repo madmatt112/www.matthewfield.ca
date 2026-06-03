@@ -26,11 +26,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function TagPage({
-  params,
-}: {
-  params: Promise<RouteParams>;
-}) {
+export default async function TagPage({ params }: { params: Promise<RouteParams> }) {
   const { tag } = await params;
   const posts = getPostsByTag(tag);
   if (posts.length === 0) notFound();

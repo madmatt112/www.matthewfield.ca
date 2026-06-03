@@ -28,14 +28,7 @@
 
 import { spawnSync, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import {
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import http from "node:http";
 import os from "node:os";
 import path from "node:path";
@@ -208,10 +201,7 @@ async function waitForReady(url, timeoutMs = 10_000) {
 function waitForChildReady(child, timeoutMs = 10_000) {
   return new Promise((resolve, reject) => {
     let buf = "";
-    const t = setTimeout(
-      () => reject(new Error("child server did not signal READY")),
-      timeoutMs,
-    );
+    const t = setTimeout(() => reject(new Error("child server did not signal READY")), timeoutMs);
     child.stdout.on("data", (b) => {
       buf += b.toString();
       if (buf.includes("READY")) {
@@ -264,15 +254,9 @@ let server;
 async function main() {
   log(`# Pagefind v3-mechanism spike — ${new Date().toISOString()}`);
   log(`# Repo: ${REPO_ROOT}`);
-  log(
-    "# DEVIATION: serving a minimal static fixture via Node http rather than",
-  );
-  log(
-    "# `pnpm build` + `next start`, because the working tree has in-flight",
-  );
-  log(
-    "# blog-core changes that may not typecheck cleanly. The spike validates",
-  );
+  log("# DEVIATION: serving a minimal static fixture via Node http rather than");
+  log("# `pnpm build` + `next start`, because the working tree has in-flight");
+  log("# blog-core changes that may not typecheck cleanly. The spike validates");
   log("# the pipeline mechanism (wget + pagefind), not blog-core's build.");
 
   // Step 1 (deviation): build minimal fixture site, not pnpm build.
@@ -295,12 +279,9 @@ async function main() {
 
   // Step 4: direct URL reachability of the unlinked page (criterion 1).
   log("--- Step 4: direct URL reachability ---");
-  const direct = await fetch(
-    `http://localhost:${SITE_PORT}/__spike/unlinked.html`,
-  );
+  const direct = await fetch(`http://localhost:${SITE_PORT}/__spike/unlinked.html`);
   const directBody = await direct.text();
-  results.c1_direct_url =
-    direct.ok && directBody.includes("SPIKE-UNLINKED-CANARY-PHRASE");
+  results.c1_direct_url = direct.ok && directBody.includes("SPIKE-UNLINKED-CANARY-PHRASE");
   log(
     results.c1_direct_url
       ? "PASS: unlinked page reachable via direct URL."
@@ -321,9 +302,7 @@ async function main() {
       `http://localhost:${SITE_PORT}/`,
     ].join(" "),
   );
-  const walkedUnlinked = existsSync(
-    path.join(WGET_OUT, "__spike", "unlinked.html"),
-  );
+  const walkedUnlinked = existsSync(path.join(WGET_OUT, "__spike", "unlinked.html"));
   results.c2_link_walk_canary = !walkedUnlinked;
   log(
     results.c2_link_walk_canary
@@ -333,10 +312,7 @@ async function main() {
 
   // Step 6+7: --input-file should retrieve the unlinked page (criterion 3).
   log("--- Step 6-7: --input-file retrieval ---");
-  writeFileSync(
-    URLS_FILE,
-    `http://localhost:${SITE_PORT}/__spike/unlinked.html\n`,
-  );
+  writeFileSync(URLS_FILE, `http://localhost:${SITE_PORT}/__spike/unlinked.html\n`);
   rmSync(WGET_OUT, { recursive: true, force: true });
   runBash(
     "wget --input-file",
@@ -350,9 +326,7 @@ async function main() {
       `http://localhost:${SITE_PORT}/`,
     ].join(" "),
   );
-  results.c3_input_file_retrieved = existsSync(
-    path.join(WGET_OUT, "__spike", "unlinked.html"),
-  );
+  results.c3_input_file_retrieved = existsSync(path.join(WGET_OUT, "__spike", "unlinked.html"));
   log(
     results.c3_input_file_retrieved
       ? "PASS: --input-file retrieved the unlinked page."
@@ -376,14 +350,9 @@ async function main() {
   // Without --adjust-extension wget would save it as `spike-extensionless`
   // (no .html), so the presence of the .html file specifically proves the
   // flag is doing its job. The /blog/ directory-index check is incidental.
-  const extLeafHtml = htmlFiles.some((f) =>
-    f.endsWith(`${path.sep}spike-extensionless.html`),
-  );
-  const blogIndex = htmlFiles.some((f) =>
-    f.endsWith(path.join("blog", "index.html")),
-  );
-  results.c4_adjust_extension =
-    htmlFiles.length > 0 && extLeafHtml && blogIndex;
+  const extLeafHtml = htmlFiles.some((f) => f.endsWith(`${path.sep}spike-extensionless.html`));
+  const blogIndex = htmlFiles.some((f) => f.endsWith(path.join("blog", "index.html")));
+  results.c4_adjust_extension = htmlFiles.length > 0 && extLeafHtml && blogIndex;
   log(`html files in mirror: ${htmlFiles.length}`);
   log(`  ${htmlFiles.join("\n  ")}`);
   log(`spike-extensionless.html present: ${extLeafHtml}`);
@@ -398,11 +367,10 @@ async function main() {
   // pagefind devDependency yet, so jq returns empty; fall back to
   // pnpm dlx pagefind@latest and record the resolved version.
   log("--- Step 9: run pagefind ---");
-  const pinned = spawnSync(
-    "jq",
-    ["-r", '.devDependencies.pagefind // ""', "package.json"],
-    { cwd: REPO_ROOT, encoding: "utf8" },
-  );
+  const pinned = spawnSync("jq", ["-r", '.devDependencies.pagefind // ""', "package.json"], {
+    cwd: REPO_ROOT,
+    encoding: "utf8",
+  });
   const pinnedVer = (pinned.stdout || "").trim();
   log(`jq -r .devDependencies.pagefind => "${pinnedVer}"`);
   let pfCmd;
@@ -420,19 +388,12 @@ async function main() {
   });
   log((verRes.stdout || "").trim());
   if (verRes.stderr) logErr((verRes.stderr || "").trim());
-  const verMatch = (verRes.stdout || "").match(
-    /pagefind\s+v?([0-9]+\.[0-9]+\.[0-9]+)/i,
-  );
-  pagefindVersion = verMatch
-    ? verMatch[1]
-    : (verRes.stdout || "").trim() || "unknown";
+  const verMatch = (verRes.stdout || "").match(/pagefind\s+v?([0-9]+\.[0-9]+\.[0-9]+)/i);
+  pagefindVersion = verMatch ? verMatch[1] : (verRes.stdout || "").trim() || "unknown";
   log(`Resolved Pagefind version: ${pagefindVersion}`);
 
   rmSync(PF_OUT, { recursive: true, force: true });
-  runBash(
-    "pagefind index build",
-    `${pfCmd} --site ${WGET_OUT} --output-path ${PF_OUT}`,
-  );
+  runBash("pagefind index build", `${pfCmd} --site ${WGET_OUT} --output-path ${PF_OUT}`);
 
   // Step 10: canary phrase in pagefind index (criterion 5).
   // Pagefind v1.x stores fragments as gzip-compressed .pf_fragment files;
@@ -495,8 +456,7 @@ async function main() {
   log(`master-timeout child exit=${r.status} elapsed=${elapsed}ms`);
   if (r.stdout) log(r.stdout.trimEnd());
   if (r.stderr) logErr(r.stderr.trimEnd());
-  results.c6_master_timeout =
-    r.status !== 0 && elapsed <= budgetMs + 1000;
+  results.c6_master_timeout = r.status !== 0 && elapsed <= budgetMs + 1000;
   log(
     results.c6_master_timeout
       ? "PASS: master timeout smoke test completed."

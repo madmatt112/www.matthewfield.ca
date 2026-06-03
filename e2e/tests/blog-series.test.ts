@@ -10,16 +10,12 @@ import { expect, test } from "@playwright/test";
 const PATH = "/blog/fixture-series-1";
 
 test.describe("blog series-navigator — Build 1 axis (fixture-series-1)", () => {
-  test("renders both members; current is marked aria-current=page", async ({
-    page,
-  }) => {
+  test("renders both members; current is marked aria-current=page", async ({ page }) => {
     await page.goto(PATH);
 
     const nav = page.locator('nav[aria-label="Series navigation"]');
     await expect(nav).toBeVisible();
-    await expect(nav.locator(".series-navigator-title")).toHaveText(
-      "Fixture Series",
-    );
+    await expect(nav.locator(".series-navigator-title")).toHaveText("Fixture Series");
 
     const items = nav.locator("ol > li");
     await expect(items).toHaveCount(2);
@@ -34,10 +30,7 @@ test.describe("blog series-navigator — Build 1 axis (fixture-series-1)", () =>
     await expect(first.locator("a")).toHaveCount(0);
 
     // Sibling post: rendered as a link to /blog/fixture-series-2.
-    await expect(second.locator("a")).toHaveAttribute(
-      "href",
-      "/blog/fixture-series-2",
-    );
+    await expect(second.locator("a")).toHaveAttribute("href", "/blog/fixture-series-2");
     await expect(second.locator("a")).toHaveText("Fixture: fixture-series-2");
   });
 });

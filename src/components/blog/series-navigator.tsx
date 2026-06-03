@@ -10,11 +10,7 @@ type SeriesNavigatorProps = {
   seriesName: string;
 };
 
-export function SeriesNavigator({
-  posts,
-  currentSlug,
-  seriesName,
-}: SeriesNavigatorProps) {
+export function SeriesNavigator({ posts, currentSlug, seriesName }: SeriesNavigatorProps) {
   // Req 2.6: render nothing for single-post series.
   if (posts.length < 2) return null;
 

@@ -38,12 +38,7 @@ const entry: RegistryEntry = {
           aria-label="Copy code to clipboard"
         />
       </div>
-      <div
-        id="copy-status"
-        role="status"
-        aria-live="polite"
-        className="sr-only"
-      />
+      <div id="copy-status" role="status" aria-live="polite" className="sr-only" />
       <CopyButton />
     </>
   ),

@@ -12,10 +12,7 @@ import { describe, expect, test } from "vitest";
 
 const PAGES = ["about", "now", "colophon"] as const;
 
-const SENTINELS = [
-  "Placeholder content.",
-  "Replaced in a downstream spec.",
-] as const;
+const SENTINELS = ["Placeholder content.", "Replaced in a downstream spec."] as const;
 
 function stripFrontmatter(source: string): string {
   // YAML frontmatter is delimited by `---` on its own line at the start.

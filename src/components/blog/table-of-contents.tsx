@@ -11,19 +11,13 @@ export function TableOfContents({ entries }: TableOfContentsProps) {
   if (entries.length < 2) return null;
 
   return (
-    <nav
-      aria-label="On this page"
-      data-pagefind-ignore="all"
-      className="table-of-contents"
-    >
+    <nav aria-label="On this page" data-pagefind-ignore="all" className="table-of-contents">
       <ol className="toc-list">
         {entries.map((entry) => (
           <li
             key={entry.id}
             data-depth={entry.depth}
-            className={
-              entry.depth === 3 ? "toc-entry ml-4" : "toc-entry"
-            }
+            className={entry.depth === 3 ? "toc-entry ml-4" : "toc-entry"}
           >
             <a href={`#${entry.id}`} className="toc-link">
               {entry.text}

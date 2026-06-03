@@ -46,16 +46,13 @@ const entry: RegistryEntry = {
         <ol className="pagefind-ui__results">
           <li className="pagefind-ui__result">
             <h3 className="pagefind-ui__result-title">
-              <Link
-                className="pagefind-ui__result-link"
-                href="/blog/sample-result"
-              >
+              <Link className="pagefind-ui__result-link" href="/blog/sample-result">
                 Sample result
               </Link>
             </h3>
             <p className="pagefind-ui__result-excerpt">
-              Sample excerpt copy used to verify text color inherits the
-              site&apos;s --foreground token via --pagefind-ui-text.
+              Sample excerpt copy used to verify text color inherits the site&apos;s --foreground
+              token via --pagefind-ui-text.
             </p>
           </li>
         </ol>

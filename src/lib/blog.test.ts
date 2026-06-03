@@ -189,10 +189,7 @@ describe("end-to-end reading-time identity (fixture-reading-time)", () => {
     // stack the Velite transform uses (velite.config.ts §4.3). Strip
     // frontmatter to match `meta.content` (the input Velite's transform
     // receives — frontmatter is parsed separately into the schema fields).
-    const filePath = path.resolve(
-      process.cwd(),
-      "content/posts/fixture-reading-time.mdx",
-    );
+    const filePath = path.resolve(process.cwd(), "content/posts/fixture-reading-time.mdx");
     const raw = readFileSync(filePath, "utf8");
     const body = raw.replace(/^---\n[\s\S]*?\n---\n?/, "");
 
@@ -221,7 +218,10 @@ describe("isHiddenFromLists", () => {
 
   it("does NOT treat the unrelated `fixture-draft-do-not-publish` slug as roster-hidden", () => {
     // Verifies the audit is an EXACT-set membership, not a prefix scan.
-    const post = { slug: "fixture-draft-do-not-publish", hiddenFromLists: undefined } as unknown as Post;
+    const post = {
+      slug: "fixture-draft-do-not-publish",
+      hiddenFromLists: undefined,
+    } as unknown as Post;
     expect(isHiddenFromLists(post)).toBe(false);
   });
 });
@@ -477,8 +477,7 @@ describe("extractToc — fixture-driven heading parsing", () => {
     // only h2/h3.
     const post: Post = {
       slug: "synthetic-h4",
-      bodyHtml:
-        '<h2 id="a">A</h2><h3 id="b">B</h3><h4 id="c">C</h4><h2 id="d">D</h2>',
+      bodyHtml: '<h2 id="a">A</h2><h3 id="b">B</h3><h4 id="c">C</h4><h2 id="d">D</h2>',
     } as Post;
     const toc = extractToc(post);
     expect(toc.map((e) => e.id)).toEqual(["a", "b", "d"]);

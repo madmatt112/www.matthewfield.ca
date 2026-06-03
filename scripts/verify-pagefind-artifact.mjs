@@ -17,10 +17,10 @@ if (!existsSync(targetDir)) {
 }
 
 function checksum(dir) {
-  return execSync(
-    `(cd ${dir} && find . -type f | sort | xargs sha256sum) | sha256sum`,
-    { encoding: "utf-8", shell: "/bin/bash" },
-  ).trim();
+  return execSync(`(cd ${dir} && find . -type f | sort | xargs sha256sum) | sha256sum`, {
+    encoding: "utf-8",
+    shell: "/bin/bash",
+  }).trim();
 }
 
 const sourceSum = checksum(sourceDir);

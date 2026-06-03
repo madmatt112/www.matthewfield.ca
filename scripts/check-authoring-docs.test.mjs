@@ -103,9 +103,7 @@ test("CLI — no docs written → non-zero, 'author doc not found' stderr line p
   try {
     const r = runScript(dir);
     assert.notEqual(r.status, 0);
-    const notFoundLines = r.stderr
-      .split("\n")
-      .filter((l) => l.includes("author doc not found"));
+    const notFoundLines = r.stderr.split("\n").filter((l) => l.includes("author doc not found"));
     assert.equal(
       notFoundLines.length,
       AUTHORING_DOCS.length,

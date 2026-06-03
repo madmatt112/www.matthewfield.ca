@@ -47,7 +47,10 @@ test.describe("projects gallery", () => {
 
   test("renders the expected published cards", async ({ page }) => {
     const expected = expectedPublishedProjects();
-    test.skip(expected.length === 0, "No published projects under this build flavor; see empty-state test.");
+    test.skip(
+      expected.length === 0,
+      "No published projects under this build flavor; see empty-state test.",
+    );
 
     await page.goto("/projects");
 

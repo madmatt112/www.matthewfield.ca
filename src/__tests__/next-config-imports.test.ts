@@ -12,7 +12,7 @@ import { describe, expect, it } from "vitest";
  * `process.exit(1)` from killing the suite if a guard ever fires.
  */
 describe("next.config.ts contract: named-import surface", () => {
-  it("test runner sets process.env.VITEST=\"true\" (gate precondition)", () => {
+  it('test runner sets process.env.VITEST="true" (gate precondition)', () => {
     expect(process.env.VITEST).toBe("true");
   });
 

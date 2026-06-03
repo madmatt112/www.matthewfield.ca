@@ -103,10 +103,7 @@ export function getVisiblePublishedPosts(): Post[] {
   return getPublishedPosts().filter((p) => !isHiddenFromLists(p));
 }
 
-export function getSeriesGroups(options: { includeHidden?: boolean } = {}): Map<
-  string,
-  Post[]
-> {
+export function getSeriesGroups(options: { includeHidden?: boolean } = {}): Map<string, Post[]> {
   const groups = new Map<string, Post[]>();
   const source = options.includeHidden ? getPublishedPosts() : getVisiblePublishedPosts();
   for (const p of source) {
@@ -130,11 +127,7 @@ export function getSeriesGroups(options: { includeHidden?: boolean } = {}): Map<
   return groups;
 }
 
-function relatedPostsFromList(
-  query: Post,
-  candidates: Post[],
-  limit: number,
-): RelatedPostMeta[] {
+function relatedPostsFromList(query: Post, candidates: Post[], limit: number): RelatedPostMeta[] {
   let excludeSeries = false;
   if (typeof query.series === "string" && query.series.length > 0) {
     let count = 0;
@@ -184,9 +177,7 @@ export function getRelatedPosts(slug: string, limit = 3): RelatedPostMeta[] {
   // hidden fixtures can match each other in dev/CI. Production never
   // serves hidden posts, so this branch can't leak hidden slugs onto a
   // real post's rail.
-  const candidates = isHiddenFromLists(query)
-    ? getPublishedPosts()
-    : getVisiblePublishedPosts();
+  const candidates = isHiddenFromLists(query) ? getPublishedPosts() : getVisiblePublishedPosts();
   return relatedPostsFromList(query, candidates, limit);
 }
 

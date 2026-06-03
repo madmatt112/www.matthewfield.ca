@@ -15,10 +15,7 @@ const THEMES: Array<"light" | "dark"> = ["light", "dark"];
 // COPIED (non-exported in sibling suites) — setupTheme / assertTheme / AXE_TAGS.
 const AXE_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 
-async function setupTheme(
-  page: import("@playwright/test").Page,
-  theme: "light" | "dark",
-) {
+async function setupTheme(page: import("@playwright/test").Page, theme: "light" | "dark") {
   if (theme === "dark") {
     await page.addInitScript(
       ({ key, value }) => {
@@ -29,10 +26,7 @@ async function setupTheme(
   }
 }
 
-async function assertTheme(
-  page: import("@playwright/test").Page,
-  theme: "light" | "dark",
-) {
+async function assertTheme(page: import("@playwright/test").Page, theme: "light" | "dark") {
   if (theme === "dark") {
     await expect(page.locator("html")).toHaveClass(/\bdark\b/);
   } else {
@@ -46,9 +40,7 @@ const IFRAME_SLUG = "starfield";
 
 test.describe("playground E2E (parameterized by theme)", () => {
   for (const theme of THEMES) {
-    test(`gallery → same-page sample renders inside the container (${theme})`, async ({
-      page,
-    }) => {
+    test(`gallery → same-page sample renders inside the container (${theme})`, async ({ page }) => {
       await setupTheme(page, theme);
       await page.goto("/playground");
       await assertTheme(page, theme);
@@ -115,11 +107,7 @@ test.describe("playground E2E (parameterized by theme)", () => {
 // pageerror listeners; assert no errors on the gallery + both landing pages.
 // No Pagefind carve-out — the search dialog is never opened here.
 test.describe("playground console / page-error cleanliness", () => {
-  const PATHS = [
-    "/playground",
-    `/playground/${SAME_PAGE_SLUG}`,
-    `/playground/${IFRAME_SLUG}`,
-  ];
+  const PATHS = ["/playground", `/playground/${SAME_PAGE_SLUG}`, `/playground/${IFRAME_SLUG}`];
 
   for (const theme of THEMES) {
     for (const path of PATHS) {

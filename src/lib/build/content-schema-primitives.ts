@@ -103,7 +103,9 @@ export function isoDate() {
  */
 export function uniqueByKind(
   links: ReadonlyArray<{ kind: string }>,
-  ctx: { addIssue: (issue: { code: "custom"; message: string; path: (string | number)[] }) => void },
+  ctx: {
+    addIssue: (issue: { code: "custom"; message: string; path: (string | number)[] }) => void;
+  },
 ): void {
   const seen = new Map<string, number>();
   links.forEach((link, index) => {

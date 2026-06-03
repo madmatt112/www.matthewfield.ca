@@ -125,11 +125,9 @@ test.describe("blog search dialog (Build 2)", () => {
 
     await page.locator(PAGEFIND_INPUT).fill("MATTHEWFIELD-SEARCH-SMOKE");
 
-    const fixtureResult = page
-      .locator(PAGEFIND_RESULT_LINK)
-      .filter({
-        has: page.locator("xpath=ancestor-or-self::a[contains(@href, '/blog/fixture-search')]"),
-      });
+    const fixtureResult = page.locator(PAGEFIND_RESULT_LINK).filter({
+      has: page.locator("xpath=ancestor-or-self::a[contains(@href, '/blog/fixture-search')]"),
+    });
 
     // Robust fallback: locate by href directly since Pagefind's link class
     // is the canonical result anchor.

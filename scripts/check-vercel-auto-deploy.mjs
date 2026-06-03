@@ -52,19 +52,13 @@ const { VERCEL_TOKEN, VERCEL_PROJECT_ID, MIGRATION_DEADLINE } = process.env;
 
 const missing = [];
 if (!VERCEL_TOKEN) {
-  missing.push(
-    "VERCEL_TOKEN — set to a Vercel API token with read access to the project",
-  );
+  missing.push("VERCEL_TOKEN — set to a Vercel API token with read access to the project");
 }
 if (!VERCEL_PROJECT_ID) {
-  missing.push(
-    "VERCEL_PROJECT_ID — set to the Vercel project ID (prj_...) for this site",
-  );
+  missing.push("VERCEL_PROJECT_ID — set to the Vercel project ID (prj_...) for this site");
 }
 if (!MIGRATION_DEADLINE) {
-  missing.push(
-    "MIGRATION_DEADLINE — set to an ISO-8601 date string, e.g. 2026-06-01",
-  );
+  missing.push("MIGRATION_DEADLINE — set to an ISO-8601 date string, e.g. 2026-06-01");
 }
 if (missing.length > 0) {
   for (const m of missing) console.error(`${TAG} missing env var: ${m}`);

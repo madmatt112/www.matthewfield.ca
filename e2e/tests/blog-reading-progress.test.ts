@@ -81,10 +81,7 @@ test.describe("blog reading-progress bar — prefers-reduced-motion (Req 5.5)", 
     await page.goto(PATH);
     await scrollHalfway(page);
 
-    const { transitionSeconds, animationSeconds } = await readMotionDurations(
-      page,
-      FILL_SELECTOR,
-    );
+    const { transitionSeconds, animationSeconds } = await readMotionDurations(page, FILL_SELECTOR);
 
     expect(transitionSeconds).toBe(0);
     expect(animationSeconds).toBe(0);
@@ -100,10 +97,7 @@ test.describe("blog reading-progress bar — prefers-reduced-motion (Req 5.5)", 
     await page.goto(PATH);
     await scrollHalfway(page);
 
-    const { transitionSeconds, animationSeconds } = await readMotionDurations(
-      page,
-      FILL_SELECTOR,
-    );
+    const { transitionSeconds, animationSeconds } = await readMotionDurations(page, FILL_SELECTOR);
 
     // At least one must be non-zero. The default CSS sets
     // `--reading-progress-transition: 100ms ease-out` → transitionSeconds === 0.1.

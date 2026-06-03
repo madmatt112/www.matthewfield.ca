@@ -17,7 +17,7 @@ pages.
 
 - Entries at run time (contributions + resources): 0
 - /contributions: not yet measured (no entries at launch)
-- /resources:     not yet measured (no entries at launch)
+- /resources: not yet measured (no entries at launch)
 
 Note: at launch both `content/contributions.yaml` and `content/resources.yaml`
 are the empty-list literal `[]`, so `.velite/contributions.json` and

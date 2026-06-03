@@ -37,9 +37,7 @@ async function readRenderedHeadingIds(page: Page): Promise<string[]> {
   return page.evaluate(() => {
     const article = document.querySelector("article");
     if (!article) return [];
-    const headings = Array.from(
-      article.querySelectorAll<HTMLElement>("h2[id], h3[id]"),
-    );
+    const headings = Array.from(article.querySelectorAll<HTMLElement>("h2[id], h3[id]"));
     return headings.map((h) => h.id);
   });
 }
@@ -151,8 +149,6 @@ test.describe("blog TOC three-source parity — Build 2 axis", () => {
     expect(extractTocIds).toEqual(bodyHtmlIds);
     expect(bodyHtmlIds).toContain("setup");
     expect(bodyHtmlIds).toContain("setup-1");
-    expect(bodyHtmlIds.indexOf("setup-1")).toBeGreaterThan(
-      bodyHtmlIds.indexOf("setup"),
-    );
+    expect(bodyHtmlIds.indexOf("setup-1")).toBeGreaterThan(bodyHtmlIds.indexOf("setup"));
   });
 });

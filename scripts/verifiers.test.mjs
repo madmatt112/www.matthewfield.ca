@@ -170,11 +170,7 @@ describe("verify-pagefind-artifact.mjs", () => {
 
   test("fail: divergent file content → exit 1 + mismatch diagnostic", () => {
     const root = mkTmp();
-    setupArtifact(
-      root,
-      { "pagefind.js": "x=1" },
-      { "pagefind.js": "x=2" },
-    );
+    setupArtifact(root, { "pagefind.js": "x=1" }, { "pagefind.js": "x=2" });
     const r = runScript(artifactScript, [], { cwd: root });
     assert.notEqual(r.status, 0);
     assert.match(r.stderr, /mismatch/);
@@ -182,11 +178,7 @@ describe("verify-pagefind-artifact.mjs", () => {
 
   test("fail: extra file in target → exit 1 + diff diagnostic", () => {
     const root = mkTmp();
-    setupArtifact(
-      root,
-      { "pagefind.js": "x=1" },
-      { "pagefind.js": "x=1", "extra.js": "y=2" },
-    );
+    setupArtifact(root, { "pagefind.js": "x=1" }, { "pagefind.js": "x=1", "extra.js": "y=2" });
     const r = runScript(artifactScript, [], { cwd: root });
     assert.notEqual(r.status, 0);
     assert.match(r.stderr, /mismatch/);
@@ -205,15 +197,11 @@ describe("verify-deploy.mjs", () => {
 
   /** @param {Record<string, {status:number, body?:string, throw?:string}>} map */
   function runDeploy(map) {
-    return spawnSync(
-      "node",
-      ["--import", fetchMockLoader, deployScript, deployUrl],
-      {
-        encoding: "utf-8",
-        cwd: repoRoot,
-        env: { ...process.env, FETCH_MOCK: JSON.stringify(map) },
-      },
-    );
+    return spawnSync("node", ["--import", fetchMockLoader, deployScript, deployUrl], {
+      encoding: "utf-8",
+      cwd: repoRoot,
+      env: { ...process.env, FETCH_MOCK: JSON.stringify(map) },
+    });
   }
 
   test("pass: all three checks 200 + valid JSON → exit 0", () => {

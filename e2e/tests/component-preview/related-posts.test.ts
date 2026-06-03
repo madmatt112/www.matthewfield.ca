@@ -24,10 +24,7 @@ test.describe("component preview: related-posts", () => {
 
     // Spec contract: data-pagefind-ignore="all" + aria-labelledby="related-heading".
     await expect(aside).toHaveAttribute("data-pagefind-ignore", "all");
-    await expect(aside).toHaveAttribute(
-      "aria-labelledby",
-      "related-heading",
-    );
+    await expect(aside).toHaveAttribute("aria-labelledby", "related-heading");
 
     // Heading id matches.
     await expect(page.locator(HEADING_SELECTOR)).toBeVisible();
@@ -39,18 +36,14 @@ test.describe("component preview: related-posts", () => {
     await expect(titles.nth(1)).toContainText("Fixture Related Post 2");
     await expect(titles.nth(2)).toContainText("Fixture Related Post 3");
 
-    const lightColor = await titles
-      .nth(0)
-      .evaluate((el) => window.getComputedStyle(el).color);
+    const lightColor = await titles.nth(0).evaluate((el) => window.getComputedStyle(el).color);
 
     // Dark theme.
     await page.emulateMedia({ colorScheme: "dark" });
     await page.goto(PATH);
     await expect(aside).toBeVisible();
 
-    const darkColor = await titles
-      .nth(0)
-      .evaluate((el) => window.getComputedStyle(el).color);
+    const darkColor = await titles.nth(0).evaluate((el) => window.getComputedStyle(el).color);
 
     // Theme-parity proof: computed color must differ.
     expect(lightColor).not.toBe(darkColor);

@@ -45,8 +45,7 @@ function synth(
   return { added, title, url, category };
 }
 
-const asResource = (r: Record<string, unknown>): Resource =>
-  r as unknown as Resource;
+const asResource = (r: Record<string, unknown>): Resource => r as unknown as Resource;
 
 // ---------------------------------------------------------------------------
 // Comparator — three deterministic keys (added desc, title asc, url asc)
@@ -146,9 +145,7 @@ describe("getResourcesGroupedByCategory", () => {
   });
 
   it("omits empty groups (Req 5.6)", () => {
-    mockResources.value = [
-      synth("2025-01-01", "only-reading", "https://or.example", "reading"),
-    ];
+    mockResources.value = [synth("2025-01-01", "only-reading", "https://or.example", "reading")];
     const groups = getResourcesGroupedByCategory();
     expect(groups.map((g) => g.category)).toEqual(["reading"]);
     expect(groups).toHaveLength(1);

@@ -41,9 +41,7 @@ export function ProjectCard({ project, eager = false }: ProjectCardProps) {
         </div>
         {project.status !== "active" || project.featured ? (
           <div className="flex flex-wrap gap-2">
-            {project.status !== "active" ? (
-              <StatusBadge status={project.status} />
-            ) : null}
+            {project.status !== "active" ? <StatusBadge status={project.status} /> : null}
             {project.featured ? (
               <span className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                 Featured

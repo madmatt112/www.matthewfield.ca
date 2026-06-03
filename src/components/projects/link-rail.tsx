@@ -28,10 +28,7 @@ export function LinkRail({ links }: LinkRailProps) {
     <nav aria-label="Project links">
       <ul className="flex flex-wrap gap-2">
         {links.map((link) => {
-          const Icon =
-            link.kind != null && link.kind in KIND_ICONS
-              ? KIND_ICONS[link.kind]
-              : null;
+          const Icon = link.kind != null && link.kind in KIND_ICONS ? KIND_ICONS[link.kind] : null;
           return (
             <li key={link.url}>
               <a

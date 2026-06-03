@@ -43,14 +43,9 @@ test.describe("component preview: footnotes", () => {
     // Back-reference links present and have aria-labels.
     const backrefs = page.locator(BACKREF_SELECTOR);
     await expect(backrefs).toHaveCount(3);
-    await expect(backrefs.first()).toHaveAttribute(
-      "aria-label",
-      "Back to reference 1",
-    );
+    await expect(backrefs.first()).toHaveAttribute("aria-label", "Back to reference 1");
 
-    const lightColor = await backrefs
-      .first()
-      .evaluate((el) => window.getComputedStyle(el).color);
+    const lightColor = await backrefs.first().evaluate((el) => window.getComputedStyle(el).color);
 
     // Dark theme.
     await page.emulateMedia({ colorScheme: "dark" });

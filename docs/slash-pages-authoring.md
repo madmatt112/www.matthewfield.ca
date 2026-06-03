@@ -33,7 +33,7 @@ One optional field is also defined:
 
 `s.isodate()` (the Velite schema type used for `updated`) does NOT pin a bare
 date to midnight locally — it calls `new Date(v).toISOString()`, which
-re-serializes *whatever you wrote*. A date-only value like `2026-05-29` becomes
+re-serializes _whatever you wrote_. A date-only value like `2026-05-29` becomes
 `2026-05-29T00:00:00.000Z` (UTC midnight). The `formatContentDate` formatter is
 UTC-pinned, so it renders "May 29, 2026" consistently in every timezone.
 
@@ -58,11 +58,11 @@ updated: "2026-05-29"
 
 ## Which file renders which page
 
-| MDX file                    | Route       | Notes                                         |
-|-----------------------------|-------------|-----------------------------------------------|
-| `content/pages/about.mdx`  | `/about`    | Indexable. No `updated` required.             |
-| `content/pages/now.mdx`    | `/now`      | `updated` is required — see below.            |
-| `content/pages/colophon.mdx` | `/colophon` | Indexable. External links: same-tab only.   |
+| MDX file                     | Route       | Notes                                     |
+| ---------------------------- | ----------- | ----------------------------------------- |
+| `content/pages/about.mdx`    | `/about`    | Indexable. No `updated` required.         |
+| `content/pages/now.mdx`      | `/now`      | `updated` is required — see below.        |
+| `content/pages/colophon.mdx` | `/colophon` | Indexable. External links: same-tab only. |
 
 `/sitemap` and `/slashes` have no backing MDX file. They are component-only
 pages that read `siteConfig.slashPages` and the content-library helpers
@@ -88,7 +88,7 @@ If you need to reference an external tool or project from the colophon, write:
 Not:
 
 ```mdx
-[Next.js](https://nextjs.org){target="_blank"}
+[Next.js](https://nextjs.org){target="\_blank"}
 ```
 
 ## Updating /now

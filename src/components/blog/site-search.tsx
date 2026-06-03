@@ -102,7 +102,9 @@ export function SiteSearch() {
 
         const [, uiModule] = await Promise.all([
           // The pagefind runtime is served as a static asset; bypass bundler.
-          import(/* webpackIgnore: true */ /* @vite-ignore */ /* turbopackIgnore: true */ "/pagefind/pagefind.js" as string),
+          import(
+            /* webpackIgnore: true */ /* @vite-ignore */ /* turbopackIgnore: true */ "/pagefind/pagefind.js" as string
+          ),
           import("@pagefind/default-ui"),
         ]);
 
@@ -157,13 +159,10 @@ export function SiteSearch() {
   }, [open]);
 
   // Click delegation: close dialog when a result link is clicked.
-  const onDialogBodyClick = React.useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      const target = e.target as HTMLElement;
-      if (target.closest("a[href]")) setOpen(false);
-    },
-    [],
-  );
+  const onDialogBodyClick = React.useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.closest("a[href]")) setOpen(false);
+  }, []);
 
   return (
     <>
@@ -194,9 +193,7 @@ export function SiteSearch() {
           }}
         >
           <DialogTitle className="sr-only">Search</DialogTitle>
-          <DialogDescription className="sr-only">
-            Search posts on this site.
-          </DialogDescription>
+          <DialogDescription className="sr-only">Search posts on this site.</DialogDescription>
           {state === "unavailable" ? (
             <div>
               <h2 className="text-lg font-semibold">Search</h2>
@@ -207,10 +204,7 @@ export function SiteSearch() {
                 You can still browse posts via the{" "}
                 {/* Plain anchor per design Req 1.9a v4 — degrades without JS. */}
                 {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-                <a
-                  href="/blog"
-                  className="text-primary underline underline-offset-4"
-                >
+                <a href="/blog" className="text-primary underline underline-offset-4">
                   blog index
                 </a>
                 .

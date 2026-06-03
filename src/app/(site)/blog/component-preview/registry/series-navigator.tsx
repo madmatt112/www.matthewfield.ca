@@ -11,11 +11,7 @@ const posts = [
 const entry: RegistryEntry = {
   kind: "component",
   component: () => (
-    <SeriesNavigator
-      posts={posts}
-      currentSlug="fixture-series-2"
-      seriesName="Fixture Series"
-    />
+    <SeriesNavigator posts={posts} currentSlug="fixture-series-2" seriesName="Fixture Series" />
   ),
 };
 export default entry;

@@ -244,10 +244,7 @@ export function runChokepointScan(filePath: string): ScanFinding[] {
       if (arg) {
         if (ts.isStringLiteral(arg) && isContentSpecifier(arg.text)) {
           findings.push({ kind: "dynamic-string", node });
-        } else if (
-          ts.isNoSubstitutionTemplateLiteral(arg) &&
-          isContentSpecifier(arg.text)
-        ) {
+        } else if (ts.isNoSubstitutionTemplateLiteral(arg) && isContentSpecifier(arg.text)) {
           findings.push({ kind: "dynamic-template", node });
         }
       }
@@ -256,10 +253,7 @@ export function runChokepointScan(filePath: string): ScanFinding[] {
     // require("#site/content") bare (not part of a tracked variable init).
     if (ts.isCallExpression(node) && isRequireCallOfContent(node)) {
       const parent = node.parent;
-      const isVarInit =
-        parent &&
-        ts.isVariableDeclaration(parent) &&
-        parent.initializer === node;
+      const isVarInit = parent && ts.isVariableDeclaration(parent) && parent.initializer === node;
       if (!isVarInit) {
         findings.push({ kind: "require-bare", node });
       }
@@ -302,9 +296,7 @@ export function runChokepointScan(filePath: string): ScanFinding[] {
           const renamed = el.propertyName !== undefined;
           if (fromImport) {
             findings.push({
-              kind: renamed
-                ? "namespace-destructure-renamed"
-                : "namespace-destructure",
+              kind: renamed ? "namespace-destructure-renamed" : "namespace-destructure",
               node: el,
             });
           } else {

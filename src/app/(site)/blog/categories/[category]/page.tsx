@@ -26,11 +26,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function CategoryPage({
-  params,
-}: {
-  params: Promise<RouteParams>;
-}) {
+export default async function CategoryPage({ params }: { params: Promise<RouteParams> }) {
   const { category } = await params;
   const posts = getPostsByCategory(category);
   if (posts.length === 0) notFound();

@@ -29,9 +29,7 @@ const repoRoot = path.resolve(__dirname, "..");
 // multi-level IDs, but blog-enhanced has authoring-time dangling refs
 // the verifier shouldn't fail on yet — its `_Depends on:` cross-spec
 // edges land in a later task).
-const TASKS_PATHS = [
-  path.join(repoRoot, ".spec-workflow/specs/blog-core/tasks.md"),
-];
+const TASKS_PATHS = [path.join(repoRoot, ".spec-workflow/specs/blog-core/tasks.md")];
 
 // ---------------------------------------------------------------------------
 // Pinned regexes.
@@ -112,8 +110,7 @@ export function parseTasks(text) {
   // (but not including) the next header for a Depends-on footer.
   for (let h = 0; h < headers.length; h += 1) {
     const { id, line: startLine } = headers[h];
-    const endLine =
-      h + 1 < headers.length ? headers[h + 1].line : lines.length;
+    const endLine = h + 1 < headers.length ? headers[h + 1].line : lines.length;
 
     /** @type {{ deps: string[], depsLine: number | null, depsRaw: string | null }} */
     const record = { deps: [], depsLine: null, depsRaw: null };

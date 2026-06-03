@@ -2,11 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, test } from "vitest";
 
-import {
-  playgroundItems,
-  landingParams,
-  embedParams,
-} from "#playground/manifest";
+import { playgroundItems, landingParams, embedParams } from "#playground/manifest";
 
 /**
  * Manifest↔route integrity test (Task 11, Req 10.1).
@@ -33,9 +29,7 @@ describe("playground manifest integrity", () => {
   }
 
   test("landingParams covers all slugs", () => {
-    expect(landingParams(playgroundItems)).toEqual(
-      slugs.map((slug) => ({ slug })),
-    );
+    expect(landingParams(playgroundItems)).toEqual(slugs.map((slug) => ({ slug })));
   });
 
   test("embedParams is exactly the iframeIsolated slugs", () => {
@@ -47,12 +41,7 @@ describe("playground manifest integrity", () => {
 
   for (const item of playgroundItems) {
     test(`item module exists for "${item.slug}"`, () => {
-      const modulePath = path.join(
-        process.cwd(),
-        "playground",
-        item.slug,
-        "index.tsx",
-      );
+      const modulePath = path.join(process.cwd(), "playground", item.slug, "index.tsx");
       expect(fs.existsSync(modulePath)).toBe(true);
     });
   }

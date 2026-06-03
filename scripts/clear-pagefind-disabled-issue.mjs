@@ -24,8 +24,7 @@ import { spawnSync } from "node:child_process";
 const TAG = "[clear-pagefind-disabled-issue]";
 
 const ISSUE_LABEL = "pagefind-disabled";
-const CLOSE_COMMENT =
-  "Pagefind has been re-enabled — closing this issue automatically.";
+const CLOSE_COMMENT = "Pagefind has been re-enabled — closing this issue automatically.";
 
 const DRY_RUN = process.env.CLEAR_PAGEFIND_DRY_RUN === "1";
 
@@ -55,16 +54,7 @@ function quoteForLog(s) {
 
 async function main() {
   const list = runGh(
-    [
-      "issue",
-      "list",
-      "--label",
-      ISSUE_LABEL,
-      "--state",
-      "open",
-      "--json",
-      "number",
-    ],
+    ["issue", "list", "--label", ISSUE_LABEL, "--state", "open", "--json", "number"],
     { stubStdout: "[]" },
   );
 
@@ -92,13 +82,7 @@ async function main() {
   let failures = 0;
   for (const issue of issues) {
     if (!issue || typeof issue.number !== "number") continue;
-    const close = runGh([
-      "issue",
-      "close",
-      String(issue.number),
-      "--comment",
-      CLOSE_COMMENT,
-    ]);
+    const close = runGh(["issue", "close", String(issue.number), "--comment", CLOSE_COMMENT]);
     if (close.status !== 0) {
       console.error(
         `${TAG} gh issue close #${issue.number} failed (exit ${close.status})` +

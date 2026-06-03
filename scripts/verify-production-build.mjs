@@ -42,10 +42,7 @@ const SENTINEL = path.join(repoRoot, ".velite", ".build1-sentinel");
 // Node's globSync does not traverse hidden dot-directories under `**` by
 // default — explicit `.next/...` prefixes required. `out/**` retained for
 // future `next export` topologies.
-const SCAN_ROOTS = [
-  ".next/server/app/**",
-  "out/**",
-];
+const SCAN_ROOTS = [".next/server/app/**", "out/**"];
 
 // Emit shapes per Next.js 16 App Router static output:
 //   - Top-level routes emit flat files: .next/server/app/blog.html (NOT
@@ -59,10 +56,7 @@ const SCAN_ROOTS = [
 //     route-named directory. Both shapes are listed for forward/back
 //     compatibility.
 const EMIT_SHAPES = {
-  postPage: [
-    ".next/server/app/blog/**/*.html",
-    ".next/server/app/blog/**/*.rsc",
-  ],
+  postPage: [".next/server/app/blog/**/*.html", ".next/server/app/blog/**/*.rsc"],
   indexPage: [
     // Next.js 16 flat: server/app/blog.html
     ".next/server/app/blog.html",
@@ -73,22 +67,13 @@ const EMIT_SHAPES = {
     ".next/server/app/blog/index.html",
     ".next/server/app/blog/index.rsc",
   ],
-  tags: [
-    ".next/server/app/blog/tags/**/*.html",
-    ".next/server/app/blog/tags/**/*.rsc",
-  ],
+  tags: [".next/server/app/blog/tags/**/*.html", ".next/server/app/blog/tags/**/*.rsc"],
   categories: [
     ".next/server/app/blog/categories/**/*.html",
     ".next/server/app/blog/categories/**/*.rsc",
   ],
-  sitemap: [
-    ".next/server/app/sitemap.xml",
-    ".next/server/app/sitemap.xml.body",
-  ],
-  feed: [
-    ".next/server/app/feed.xml/**",
-    ".next/server/app/feed.xml.body",
-  ],
+  sitemap: [".next/server/app/sitemap.xml", ".next/server/app/sitemap.xml.body"],
+  feed: [".next/server/app/feed.xml/**", ".next/server/app/feed.xml.body"],
 };
 
 const errors = [];
@@ -208,9 +193,7 @@ function main() {
     (p) => !KNOWN_FIXTURE_SLUGS.has(p.slug) && p.hiddenFromLists !== true,
   );
   const hasPosts = nonDrafts.length >= 1;
-  const hasTagged = visibleNonDrafts.some(
-    (p) => Array.isArray(p.tags) && p.tags.length > 0,
-  );
+  const hasTagged = visibleNonDrafts.some((p) => Array.isArray(p.tags) && p.tags.length > 0);
   const hasCategorized = visibleNonDrafts.some(
     (p) => Array.isArray(p.categories) && p.categories.length > 0,
   );

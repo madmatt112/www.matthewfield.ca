@@ -77,14 +77,14 @@ error). `label` is optional (1–60 chars); when omitted the page renders a
 default label for the kind. `url` follows the same http(s)-only rule as
 `repoUrl`.
 
-| `kind`       | Typical use                          | Default label    |
-|--------------|--------------------------------------|------------------|
-| `pr`         | A merged or open pull request        | Pull request     |
-| `commit`     | A direct commit                      | Commit           |
-| `issue`      | An issue you filed or resolved       | Issue            |
-| `release`    | A tagged release you shipped         | Release          |
-| `writeup`    | A blog post / writeup of the work    | Write-up         |
-| `discussion` | A discussion / RFC thread            | Discussion       |
+| `kind`       | Typical use                       | Default label |
+| ------------ | --------------------------------- | ------------- |
+| `pr`         | A merged or open pull request     | Pull request  |
+| `commit`     | A direct commit                   | Commit        |
+| `issue`      | An issue you filed or resolved    | Issue         |
+| `release`    | A tagged release you shipped      | Release       |
+| `writeup`    | A blog post / writeup of the work | Write-up      |
+| `discussion` | A discussion / RFC thread         | Discussion    |
 
 ### Forge-mapping convention
 
@@ -153,12 +153,12 @@ date (or simply re-run the build after UTC midnight).
 
 `category` is a closed enum. The canonical slugs and their display labels are:
 
-| Slug              | Display label   |
-|-------------------|-----------------|
-| `devops-tools`    | DevOps Tools    |
-| `blogs-and-feeds` | Blogs & Feeds   |
-| `reading`         | Reading         |
-| `fun-stuff`       | Fun Stuff       |
+| Slug              | Display label |
+| ----------------- | ------------- |
+| `devops-tools`    | DevOps Tools  |
+| `blogs-and-feeds` | Blogs & Feeds |
+| `reading`         | Reading       |
+| `fun-stuff`       | Fun Stuff     |
 
 ### Display label vs slug
 
@@ -229,7 +229,7 @@ Three states are distinguished by the loader:
 - **Empty / null / zero-byte file** — a file that is blank, whitespace-only, or
   parses to `null` is a BUILD ERROR, not a silent fallback. The loader throws a
   named diagnostic: `<basename> is empty or null. To represent zero entries,
-  write the explicit empty list literal: []`. A top-level value that parses to a
+write the explicit empty list literal: []`. A top-level value that parses to a
   non-list (e.g. a mapping) is likewise a named build error.
 
 The distinction is deliberate: a truly empty file is almost always an accident

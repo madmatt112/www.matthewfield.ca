@@ -158,11 +158,7 @@ export function walkToField(
       node = node._def?.out ?? node._def?.in;
       continue;
     }
-    if (
-      typeName === "ZodOptional" ||
-      typeName === "ZodNullable" ||
-      typeName === "ZodDefault"
-    ) {
+    if (typeName === "ZodOptional" || typeName === "ZodNullable" || typeName === "ZodDefault") {
       node = node._def?.innerType;
       continue;
     }
@@ -200,10 +196,7 @@ export function walkToField(
  * both `invalid_enum_value` AND `invalid_type` on enum fields. Returns `[]` when
  * the field is not an enum or the walk fails (the member list is then omitted).
  */
-export function formatEnumMembers(
-  schema: ZodNodeLike,
-  path: (string | number)[],
-): string[] {
+export function formatEnumMembers(schema: ZodNodeLike, path: (string | number)[]): string[] {
   const node = walkToField(schema, path);
   if (node == null) return [];
   // Unwrap any residual wrappers around the leaf (e.g. enum().optional()).
@@ -213,11 +206,7 @@ export function formatEnumMembers(
     if (typeName === "ZodEnum") {
       return leaf._def?.values ?? [];
     }
-    if (
-      typeName === "ZodOptional" ||
-      typeName === "ZodNullable" ||
-      typeName === "ZodDefault"
-    ) {
+    if (typeName === "ZodOptional" || typeName === "ZodNullable" || typeName === "ZodDefault") {
       leaf = leaf._def?.innerType;
       continue;
     }
@@ -240,10 +229,7 @@ function levenshtein(a: string, b: string): number {
     row[0] = i;
     for (let j = 1; j <= n; j += 1) {
       const temp = row[j];
-      row[j] =
-        a[i - 1] === b[j - 1]
-          ? prev
-          : Math.min(prev + 1, row[j] + 1, row[j - 1] + 1);
+      row[j] = a[i - 1] === b[j - 1] ? prev : Math.min(prev + 1, row[j] + 1, row[j - 1] + 1);
       prev = temp;
     }
   }
@@ -285,11 +271,7 @@ function objectShapeKeys(schema: ZodNodeLike, path: (string | number)[]): string
     if (typeName === "ZodObject") {
       return leaf.shape ? Object.keys(leaf.shape) : [];
     }
-    if (
-      typeName === "ZodOptional" ||
-      typeName === "ZodNullable" ||
-      typeName === "ZodDefault"
-    ) {
+    if (typeName === "ZodOptional" || typeName === "ZodNullable" || typeName === "ZodDefault") {
       leaf = leaf._def?.innerType;
       continue;
     }
@@ -317,10 +299,7 @@ function valueAtPath(entry: unknown, path: (string | number)[]): unknown {
  * of strings — one per issue, each potentially multi-line when hints are
  * appended (each hint on its own `Hint: `-prefixed line).
  */
-export function formatZodIssues(
-  issues: ZodIssueLike[],
-  context: FormatContext,
-): string[] {
+export function formatZodIssues(issues: ZodIssueLike[], context: FormatContext): string[] {
   const { basename, entry, index, schema } = context;
   const identifierField = basename.startsWith("contributions") ? "repo" : "title";
 
@@ -338,7 +317,8 @@ export function formatZodIssues(
           ? `unknown key '${keyPath}' (did you mean '${suggestion}'?)`
           : `unknown key '${keyPath}'`;
       });
-      const line = `${basename}: ${locator}: ${parts.join("; ")} - ${issue.message ?? ""}`.trimEnd();
+      const line =
+        `${basename}: ${locator}: ${parts.join("; ")} - ${issue.message ?? ""}`.trimEnd();
       return appendHints(line, issue, context.hints);
     }
 
@@ -364,11 +344,7 @@ export function formatZodIssues(
  * Appends hints (contract item 6) as their own `Hint: `-prefixed lines, capped
  * at three per message.
  */
-function appendHints(
-  line: string,
-  issue: ZodIssueLike,
-  hintFn: FormatContext["hints"],
-): string {
+function appendHints(line: string, issue: ZodIssueLike, hintFn: FormatContext["hints"]): string {
   if (!hintFn) return line;
   const hints = hintFn(issue).slice(0, 3);
   if (hints.length === 0) return line;

@@ -37,7 +37,6 @@ export const playgroundItems: PlaygroundItem[] = [
 
 // Pure partition helpers (F3) — the route generateStaticParams AND the Vitest integrity test
 // import these, so the test never imports a route page.tsx.
-export const landingParams = (items: PlaygroundItem[]) =>
-  items.map((it) => ({ slug: it.slug }));
+export const landingParams = (items: PlaygroundItem[]) => items.map((it) => ({ slug: it.slug }));
 export const embedParams = (items: PlaygroundItem[]) =>
   items.filter((it) => it.iframeIsolated).map((it) => ({ slug: it.slug }));

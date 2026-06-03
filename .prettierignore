@@ -15,3 +15,8 @@
 
 # Local tooling (not project code)
 /.claude
+
+# Chokepoint canary fixtures — pinned code shapes the scanner regexes match
+# verbatim; reformatting them silently breaks the canary tests.
+/src/__fixtures__/chokepoint-canary.ts
+/src/__fixtures__/content-chokepoint-canary.ts

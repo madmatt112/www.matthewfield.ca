@@ -17,13 +17,20 @@ import path from "node:path";
 
 import { execSync } from "node:child_process";
 
-import { afterAll, afterEach, beforeEach, describe, expect, expectTypeOf, it, test, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  expectTypeOf,
+  it,
+  test,
+  vi,
+} from "vitest";
 import type { Image } from "velite";
 
-import {
-  runChokepointScan,
-  type ScanFindingKind,
-} from "@/lib/build/check-projects-chokepoint";
+import { runChokepointScan, type ScanFindingKind } from "@/lib/build/check-projects-chokepoint";
 import {
   PROJECTS_DRAFT_LEAK_GUARD_MSG_PREVIEW,
   PROJECTS_DRAFT_LEAK_GUARD_MSG_PRODUCTION,
@@ -197,7 +204,7 @@ describe("getPublishedProjects — draft-leak guard THROW cases (Req 7.3)", () =
     expect(() => getPublishedProjects()).toThrow(PROJECTS_DRAFT_LEAK_GUARD_MSG_PREVIEW);
   });
 
-  it("throws PRODUCTION (looks-like-prod) when VERCEL=1 + VERCEL_ENV=\"\" + drafts=1", () => {
+  it('throws PRODUCTION (looks-like-prod) when VERCEL=1 + VERCEL_ENV="" + drafts=1', () => {
     process.env.VERCEL = "1";
     process.env.VERCEL_ENV = "";
     process.env.PROJECTS_INCLUDE_DRAFTS = "1";
@@ -347,7 +354,10 @@ describe("runChokepointScan — canary kind coverage (Case 8)", () => {
     const allKinds = Array.from(kinds);
     for (const [group, predicate] of Object.entries(groups)) {
       const matched = allKinds.some(predicate);
-      expect(matched, `missing finding for group "${group}" — kinds present: ${allKinds.join(", ")}`).toBe(true);
+      expect(
+        matched,
+        `missing finding for group "${group}" — kinds present: ${allKinds.join(", ")}`,
+      ).toBe(true);
     }
   });
 });
@@ -372,11 +382,11 @@ describe("canary regex sentinels — 17 pinned shapes (Case 9)", () => {
     ["named", /^import \{ projects \} from "#site\/content";$/m],
     ["named-renamed", /^import \{ projects as projectsRenamed \} from "#site\/content";$/m],
     ["namespace-member", /^const _nsMember = content\.projects;$/m],
-    ["namespace-destructure", /^  const \{ projects \} = content; \/\/ kind: namespace-destructure$/m],
     [
-      "namespace-destructure-renamed",
-      /^const \{ projects: _nsDestructured \} = content;$/m,
+      "namespace-destructure",
+      /^  const \{ projects \} = content; \/\/ kind: namespace-destructure$/m,
     ],
+    ["namespace-destructure-renamed", /^const \{ projects: _nsDestructured \} = content;$/m],
     ["barrel-star", /^export \* from "#site\/content";$/m],
     ["barrel-named", /^export \{ projects \} from "#site\/content";$/m],
     [
@@ -386,16 +396,13 @@ describe("canary regex sentinels — 17 pinned shapes (Case 9)", () => {
     // ES dynamic + type-only (3 shapes)
     ["dynamic-string", /^const _dynStr = import\("#site\/content"\);$/m],
     ["dynamic-template", /^const _dynTpl = import\(`#site\/content`\);$/m],
-    [
-      "type-only-named",
-      /^import type \{ projects as _projectsType \} from "#site\/content";$/m,
-    ],
+    ["type-only-named", /^import type \{ projects as _projectsType \} from "#site\/content";$/m],
     // CommonJS require (6 shapes)
-    ["require-named", /^  const \{ projects \} = require\("#site\/content"\); \/\/ kind: require-named$/m],
     [
-      "require-named-renamed",
-      /^const \{ projects: _reqNamed \} = require\("#site\/content"\);$/m,
+      "require-named",
+      /^  const \{ projects \} = require\("#site\/content"\); \/\/ kind: require-named$/m,
     ],
+    ["require-named-renamed", /^const \{ projects: _reqNamed \} = require\("#site\/content"\);$/m],
     ["require-namespace-member", /^const _reqNsMember = cjs\.projects;$/m],
     [
       "require-namespace-destructure",
@@ -497,15 +504,15 @@ describe("chokepoint allowlist self-test (Case 11)", () => {
 // emitted shape drifts, `pnpm typecheck` fails.
 // ---------------------------------------------------------------------------
 describe("Project type — compile-time type correctness (Case 12, Req 1.9)", () => {
-  it("Project[\"links\"] is ProjectLink[] | undefined", () => {
+  it('Project["links"] is ProjectLink[] | undefined', () => {
     expectTypeOf<Project["links"]>().toEqualTypeOf<ProjectLink[] | undefined>();
   });
 
-  it("Project[\"status\"] is the narrow enum union", () => {
+  it('Project["status"] is the narrow enum union', () => {
     expectTypeOf<Project["status"]>().toEqualTypeOf<"active" | "archived" | "concept">();
   });
 
-  it("Project[\"cover\"] is exactly the Velite-emitted Image type", () => {
+  it('Project["cover"] is exactly the Velite-emitted Image type', () => {
     // Exact-match via toEqualTypeOf (NOT toMatchTypeOf). If Velite's Image
     // shape drifts (e.g. gains a required field), this fails at typecheck.
     expectTypeOf<Project["cover"]>().toEqualTypeOf<Image>();
@@ -524,7 +531,10 @@ describe("author-controlled `updated` (Case 13, Req 1.5)", () => {
   const VELITE_CONFIG = path.join(REPO_ROOT, "velite.config.ts");
   const FIXTURE_SLUG = "fixture-published-second";
   const FIXTURE_MDX_REL = "content/projects/fixture-published-second.mdx";
-  const EXPECTED_UPDATED = "2025-12-01";
+  // velite's s.isodate() normalizes the author's `updated: 2025-12-01`
+  // frontmatter to a UTC-midnight ISO string. The date is still
+  // author-controlled (Req 1.5) — only the representation is normalized.
+  const EXPECTED_UPDATED = "2025-12-01T00:00:00.000Z";
 
   type VeliteEntry = { slug: string; updated?: string };
 
@@ -588,10 +598,10 @@ describe("author-controlled `updated` (Case 13, Req 1.5)", () => {
 
     let restoreNeeded = false;
     try {
-      execSync(
-        `git commit --amend --no-edit --date="2099-01-01T00:00:00Z" -- ${FIXTURE_MDX_REL}`,
-        { cwd: REPO_ROOT, stdio: "pipe" },
-      );
+      execSync(`git commit --amend --no-edit --date="2099-01-01T00:00:00Z" -- ${FIXTURE_MDX_REL}`, {
+        cwd: REPO_ROOT,
+        stdio: "pipe",
+      });
       restoreNeeded = true;
       execSync("pnpm velite build", { cwd: REPO_ROOT, stdio: "pipe" });
       const after = readVeliteProjects().find((e) => e.slug === FIXTURE_SLUG);

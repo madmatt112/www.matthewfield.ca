@@ -23,10 +23,7 @@ const EXTENDED_PAGES = [
 const THEMES: Array<"light" | "dark"> = ["light", "dark"];
 const AXE_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 
-async function setupTheme(
-  page: import("@playwright/test").Page,
-  theme: "light" | "dark",
-) {
+async function setupTheme(page: import("@playwright/test").Page, theme: "light" | "dark") {
   if (theme === "dark") {
     await page.addInitScript(
       ({ key, value }) => {
@@ -37,10 +34,7 @@ async function setupTheme(
   }
 }
 
-async function assertTheme(
-  page: import("@playwright/test").Page,
-  theme: "light" | "dark",
-) {
+async function assertTheme(page: import("@playwright/test").Page, theme: "light" | "dark") {
   if (theme === "dark") {
     await expect(page.locator("html")).toHaveClass(/\bdark\b/);
   } else {

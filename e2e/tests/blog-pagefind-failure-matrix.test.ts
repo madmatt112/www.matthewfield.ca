@@ -80,9 +80,7 @@ test.describe("blog pagefind failure matrix (Build 2)", () => {
     await assertUnavailableSurface(page);
   });
 
-  test("(d) strict CSP (script-src 'self') → unavailable surface", async ({
-    page,
-  }) => {
+  test("(d) strict CSP (script-src 'self') → unavailable surface", async ({ page }) => {
     // Inject a strict CSP via <meta http-equiv> before any document scripts
     // run. The pagefind runtime is loaded via dynamic import from
     // /pagefind/pagefind.js which is same-origin ('self') — but Pagefind

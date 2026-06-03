@@ -1,7 +1,8 @@
-import sharp from 'sharp';
-import { writeFileSync } from 'node:fs';
+import sharp from "sharp";
+import { writeFileSync } from "node:fs";
 
-const W = 1280, H = 854;
+const W = 1280,
+  H = 854;
 
 function makeGradient(c1, c2, outPath) {
   // create raw RGB buffer with a vertical gradient between c1 and c2
@@ -23,9 +24,9 @@ function makeGradient(c1, c2, outPath) {
     .toFile(outPath);
 }
 
-const base = '/home/mcf/repo/matthew-field.ca/content/projects';
+const base = "/home/mcf/repo/matthew-field.ca/content/projects";
 
 await makeGradient([70, 130, 180], [176, 196, 222], `${base}/fixture-placeholder-cover.png`); // steelblue → lightsteelblue
 await makeGradient([46, 139, 87], [144, 238, 144], `${base}/fixture-published-second-cover.png`); // seagreen → lightgreen
 
-console.log('done');
+console.log("done");

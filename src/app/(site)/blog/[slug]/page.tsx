@@ -62,11 +62,7 @@ export async function generateMetadata({
   return metadata;
 }
 
-export default async function BlogPostPage({
-  params,
-}: {
-  params: Promise<RouteParams>;
-}) {
+export default async function BlogPostPage({ params }: { params: Promise<RouteParams> }) {
   const { slug } = await params;
   const post = getPostBySlug(slug);
   if (!post) notFound();
@@ -84,7 +80,10 @@ export default async function BlogPostPage({
     // BLOG_INCLUDE_DRAFTS=1), include hidden series members so the
     // navigator can find its siblings. Production never serves hidden
     // posts, so this can't expose hidden series on a real post page.
-    const groups = getSeriesGroups({ includeHidden: post.draft === true || post.hiddenFromLists === true || KNOWN_FIXTURE_SLUGS.has(post.slug) });
+    const groups = getSeriesGroups({
+      includeHidden:
+        post.draft === true || post.hiddenFromLists === true || KNOWN_FIXTURE_SLUGS.has(post.slug),
+    });
     const members = groups.get(post.series);
     if (members && members.length >= 2) {
       seriesMembers = members.map((m) => ({
@@ -138,11 +137,7 @@ export default async function BlogPostPage({
           ) : null}
         </header>
         {seriesMembers.length >= 2 && typeof post.series === "string" ? (
-          <SeriesNavigator
-            posts={seriesMembers}
-            currentSlug={post.slug}
-            seriesName={post.series}
-          />
+          <SeriesNavigator posts={seriesMembers} currentSlug={post.slug} seriesName={post.series} />
         ) : null}
         <TableOfContents entries={tocEntries} />
         <div className="prose prose-lg dark:prose-invert max-w-[75ch] mt-8">

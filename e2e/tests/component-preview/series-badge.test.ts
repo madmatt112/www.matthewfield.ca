@@ -10,9 +10,7 @@ const PATH = "/blog/component-preview/series-badge";
 const BADGE_SELECTOR = ".series-badge";
 
 test.describe("component preview: series-badge", () => {
-  test("renders fixture text and color differs between light and dark themes", async ({
-    page,
-  }) => {
+  test("renders fixture text and color differs between light and dark themes", async ({ page }) => {
     // Light theme.
     await page.emulateMedia({ colorScheme: "light" });
     await page.goto(PATH);
@@ -22,18 +20,14 @@ test.describe("component preview: series-badge", () => {
     await expect(badge).toContainText("Fixture Series");
     await expect(badge).toContainText("Part 1 of 3");
 
-    const lightColor = await badge.evaluate(
-      (el) => window.getComputedStyle(el).color,
-    );
+    const lightColor = await badge.evaluate((el) => window.getComputedStyle(el).color);
 
     // Dark theme.
     await page.emulateMedia({ colorScheme: "dark" });
     await page.goto(PATH);
     await expect(badge).toBeVisible();
 
-    const darkColor = await badge.evaluate(
-      (el) => window.getComputedStyle(el).color,
-    );
+    const darkColor = await badge.evaluate((el) => window.getComputedStyle(el).color);
 
     // Theme-parity proof: computed color must differ.
     expect(lightColor).not.toBe(darkColor);

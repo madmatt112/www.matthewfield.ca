@@ -15,33 +15,23 @@ describe("ContributionLinkRail", () => {
   afterEach(cleanup);
 
   it("labels the group via aria-labelledby", () => {
-    const { getByRole } = render(
-      <ContributionLinkRail links={links} labelledBy={labelledBy} />,
-    );
+    const { getByRole } = render(<ContributionLinkRail links={links} labelledBy={labelledBy} />);
     expect(getByRole("group").getAttribute("aria-labelledby")).toBe(labelledBy);
   });
 
   it("renders links in array order with label-or-default text", () => {
-    const { getByRole } = render(
-      <ContributionLinkRail links={links} labelledBy={labelledBy} />,
-    );
+    const { getByRole } = render(<ContributionLinkRail links={links} labelledBy={labelledBy} />);
     const anchors = Array.from(getByRole("group").querySelectorAll("a"));
     expect(anchors.map((a) => a.getAttribute("href"))).toEqual([
       "https://example.com/pr",
       "https://example.com/commit",
       "https://example.com/discussion",
     ]);
-    expect(anchors.map((a) => a.textContent)).toEqual([
-      "Pull request",
-      "My commit",
-      "Discussion",
-    ]);
+    expect(anchors.map((a) => a.textContent)).toEqual(["Pull request", "My commit", "Discussion"]);
   });
 
   it("uses same-tab links: rel=noopener and no target", () => {
-    const { getByRole } = render(
-      <ContributionLinkRail links={links} labelledBy={labelledBy} />,
-    );
+    const { getByRole } = render(<ContributionLinkRail links={links} labelledBy={labelledBy} />);
     for (const anchor of getByRole("group").querySelectorAll("a")) {
       expect(anchor.getAttribute("rel")).toBe("noopener");
       expect(anchor.getAttribute("target")).toBeNull();

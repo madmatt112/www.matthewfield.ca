@@ -11,11 +11,7 @@ import { UpdatedBadge } from "@/components/projects/updated-badge";
 import { MDXContent } from "@/components/shared/mdx-content";
 import { siteConfig } from "@/config/site";
 import { formatContentDate } from "@/lib/format-date";
-import {
-  getProjectBySlug,
-  getPublishedProjects,
-  shouldShowUpdatedBadge,
-} from "@/lib/projects";
+import { getProjectBySlug, getPublishedProjects, shouldShowUpdatedBadge } from "@/lib/projects";
 
 export const dynamic = "force-static";
 
@@ -60,11 +56,7 @@ export async function generateMetadata({
   return metadata;
 }
 
-export default async function ProjectPage({
-  params,
-}: {
-  params: Promise<RouteParams>;
-}) {
+export default async function ProjectPage({ params }: { params: Promise<RouteParams> }) {
   const { slug } = await params;
   const project = getProjectBySlug(slug);
   if (!project) notFound();
@@ -74,17 +66,11 @@ export default async function ProjectPage({
     <div className="mx-auto w-full max-w-5xl px-4 py-12 sm:py-16 projects-article">
       <article>
         <header className="mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-            {project.title}
-          </h1>
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{project.title}</h1>
           <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
             <time dateTime={datetime}>{display}</time>
-            {showUpdated && project.updated ? (
-              <UpdatedBadge updated={project.updated} />
-            ) : null}
-            {project.status !== "active" ? (
-              <StatusBadge status={project.status} />
-            ) : null}
+            {showUpdated && project.updated ? <UpdatedBadge updated={project.updated} /> : null}
+            {project.status !== "active" ? <StatusBadge status={project.status} /> : null}
           </div>
         </header>
         <Image
@@ -96,9 +82,7 @@ export default async function ProjectPage({
           priority
           className="w-full h-auto"
         />
-        {project.links && project.links.length > 0 ? (
-          <LinkRail links={project.links} />
-        ) : null}
+        {project.links && project.links.length > 0 ? <LinkRail links={project.links} /> : null}
         <div className="mx-auto max-w-prose mt-8">
           <div className="prose dark:prose-invert">
             <MDXContent code={project.body} />

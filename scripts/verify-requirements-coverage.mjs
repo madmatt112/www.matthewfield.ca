@@ -27,14 +27,8 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..");
 
-const REQUIREMENTS_PATH = path.join(
-  repoRoot,
-  ".spec-workflow/specs/blog-core/requirements.md",
-);
-const TASKS_PATH = path.join(
-  repoRoot,
-  ".spec-workflow/specs/blog-core/tasks.md",
-);
+const REQUIREMENTS_PATH = path.join(repoRoot, ".spec-workflow/specs/blog-core/requirements.md");
+const TASKS_PATH = path.join(repoRoot, ".spec-workflow/specs/blog-core/tasks.md");
 
 // ---------------------------------------------------------------------------
 // Pinned regexes (mechanical contract — do not "simplify" without re-checking
@@ -284,8 +278,7 @@ function main() {
 
   const declaredRequirementIds = extractRequirementIds(reqText);
   const declaredTaskNumbers = extractTaskNumbers(tasksText);
-  const { citedRequirementIds, citedTaskNumbers, bullets } =
-    parseMatrix(tasksText);
+  const { citedRequirementIds, citedTaskNumbers, bullets } = parseMatrix(tasksText);
 
   /** @type {string[]} */
   const failures = [];
@@ -354,9 +347,7 @@ function main() {
   }
 
   // Count: requirements matched = number of declared AC-shaped IDs (N.M / N.Ma)
-  const acIds = [...declaredRequirementIds].filter(
-    (id) => id.includes(".") && !id.endsWith(".0"),
-  );
+  const acIds = [...declaredRequirementIds].filter((id) => id.includes(".") && !id.endsWith(".0"));
   const cited = acIds.filter((id) => citedRequirementIds.has(id));
   process.stdout.write(
     `[verify-requirements-coverage] OK — ${cited.length} requirements matched, ${citedTaskNumbers.size} tasks referenced (across ${bullets.length} matrix bullets)\n`,

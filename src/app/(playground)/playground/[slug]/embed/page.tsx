@@ -6,6 +6,10 @@ import { playgroundItems, embedParams } from "#playground/manifest";
 
 type Params = Promise<{ slug: string }>;
 
+// Hoist dynamic() out of render: each lazy component is created once at module
+// init, not per-render (React Compiler: no components-during-render).
+const itemComponents = new Map(playgroundItems.map((it) => [it.slug, dynamic(it.load)] as const));
+
 export const dynamicParams = false;
 
 export function generateStaticParams() {
@@ -22,6 +26,7 @@ export default async function ItemEmbed({ params }: { params: Params }) {
   const { slug } = await params;
   const it = playgroundItems.find((i) => i.slug === slug);
   if (!it || !it.iframeIsolated) notFound(); // a same-page slug's /embed cleanly 404s (Req 4.5)
-  const Item = dynamic(it.load);
+  const Item = itemComponents.get(it.slug)!;
+  // eslint-disable-next-line react-hooks/static-components -- Item is a module-level-stable dynamic() component from itemComponents (created once at module init, constant per slug), so the rule's state-reset concern does not apply.
   return <Item />; // full-bleed, NOT wrapped in PlaygroundFrame (Req 4.3)
 }

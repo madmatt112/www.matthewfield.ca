@@ -153,9 +153,7 @@ test.describe("blog surfaces under no-JS (TOC, footnotes, share, progress, searc
     }
   });
 
-  test("/blog/fixture-code search trigger button is hidden by <noscript> CSS", async ({
-    page,
-  }) => {
+  test("/blog/fixture-code search trigger button is hidden by <noscript> CSS", async ({ page }) => {
     await page.goto("/blog/fixture-code");
 
     const trigger = page.locator("[data-search-trigger]");

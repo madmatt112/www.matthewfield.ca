@@ -16,11 +16,9 @@ const entry: RegistryEntry = {
       <article className="min-h-[300vh] space-y-4">
         {Array.from({ length: PARAGRAPH_COUNT }, (_, i) => (
           <p key={i}>
-            Fixture paragraph {i + 1}. Lorem ipsum dolor sit amet, consectetur
-            adipiscing elit. Sed do eiusmod tempor incididunt ut labore et
-            dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-            exercitation ullamco laboris nisi ut aliquip ex ea commodo
-            consequat.
+            Fixture paragraph {i + 1}. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
+            do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+            quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
           </p>
         ))}
       </article>

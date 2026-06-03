@@ -114,17 +114,14 @@ export function checkChosenPath(chosen, diff) {
   /** @type {string[]} */
   const errors = [];
   const veliteTouched =
-    diff.modifiedFiles.has("velite.config.ts") ||
-    diff.addedFiles.has("velite.config.ts");
+    diff.modifiedFiles.has("velite.config.ts") || diff.addedFiles.has("velite.config.ts");
   const verifyScriptAdded = diff.addedFiles.has("scripts/verify-series-order.mjs");
   const pkgJsonHunk = diff.hunksByFile["package.json"] ?? "";
   const pkgBuildModified = /"build"\s*:/.test(pkgJsonHunk);
   const veliteHunk = diff.hunksByFile["velite.config.ts"] ?? "";
   // Detect the collision-check clause by looking for hook keys (prepare/
   // complete) OR a textual marker like `seriesOrder` in added lines.
-  const veliteHasCollisionClause = /^\+.*(prepare\b|complete\b|seriesOrder)/m.test(
-    veliteHunk,
-  );
+  const veliteHasCollisionClause = /^\+.*(prepare\b|complete\b|seriesOrder)/m.test(veliteHunk);
 
   if (chosen === "HOOK") {
     if (!veliteTouched) {
@@ -159,9 +156,7 @@ export function checkChosenPath(chosen, diff) {
       );
     }
   } else {
-    errors.push(
-      `[verify-chosen-path] CHOSEN_PATH is "${chosen}" — expected "HOOK" or "SCRIPT"`,
-    );
+    errors.push(`[verify-chosen-path] CHOSEN_PATH is "${chosen}" — expected "HOOK" or "SCRIPT"`);
   }
 
   return errors;
@@ -231,9 +226,7 @@ function main() {
   const diff = parseDiff(diffText);
   const errors = checkChosenPath(chosen, diff);
   if (errors.length === 0) {
-    process.stdout.write(
-      `[verify-chosen-path] OK — CHOSEN_PATH=${chosen}, diff aligns\n`,
-    );
+    process.stdout.write(`[verify-chosen-path] OK — CHOSEN_PATH=${chosen}, diff aligns\n`);
     process.exit(0);
   }
   for (const e of errors) process.stderr.write(e + "\n");

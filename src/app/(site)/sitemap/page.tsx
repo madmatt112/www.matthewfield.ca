@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { siteConfig } from "@/config/site";
 import { getVisiblePublishedPosts } from "@/lib/blog";
@@ -26,9 +27,9 @@ export default function SitemapPage() {
         <h2 className="text-xl font-semibold tracking-tight">Home</h2>
         <ul className="mt-3 space-y-1">
           <li>
-            <a href="/" className="text-base text-foreground underline-offset-4 hover:underline">
+            <Link href="/" className="text-base text-foreground underline-offset-4 hover:underline">
               Home
-            </a>
+            </Link>
           </li>
         </ul>
       </section>
@@ -38,12 +39,12 @@ export default function SitemapPage() {
         <ul className="mt-3 space-y-1">
           {siteConfig.navItems.map((item) => (
             <li key={item.href}>
-              <a
+              <Link
                 href={item.href}
                 className="text-base text-foreground underline-offset-4 hover:underline"
               >
                 {item.label}
-              </a>
+              </Link>
             </li>
           ))}
         </ul>
@@ -54,12 +55,12 @@ export default function SitemapPage() {
         <ul className="mt-3 space-y-1">
           {siteConfig.slashPages.map((page) => (
             <li key={page.href}>
-              <a
+              <Link
                 href={page.href}
                 className="text-base text-foreground underline-offset-4 hover:underline"
               >
                 {page.title}
-              </a>
+              </Link>
             </li>
           ))}
         </ul>
@@ -71,12 +72,12 @@ export default function SitemapPage() {
           <ul className="mt-3 space-y-1">
             {posts.map((post) => (
               <li key={post.slug}>
-                <a
+                <Link
                   href={`/blog/${post.slug}`}
                   className="text-base text-foreground underline-offset-4 hover:underline"
                 >
                   {post.title}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
@@ -89,12 +90,12 @@ export default function SitemapPage() {
           <ul className="mt-3 space-y-1">
             {projects.map((project) => (
               <li key={project.slug}>
-                <a
+                <Link
                   href={`/projects/${project.slug}`}
                   className="text-base text-foreground underline-offset-4 hover:underline"
                 >
                   {project.title}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>

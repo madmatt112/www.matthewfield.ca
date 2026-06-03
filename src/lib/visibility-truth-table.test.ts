@@ -27,11 +27,7 @@ import { isHiddenFromLists } from "@/lib/blog";
 const MINIMAL_MDX_BODY =
   "const{jsx:n}=arguments[0];return{default:function(){return n('span',{children:'body'})}};";
 
-function makePost(
-  slug: string,
-  hiddenFromLists: boolean,
-  excludeFromSearch: boolean,
-): Post {
+function makePost(slug: string, hiddenFromLists: boolean, excludeFromSearch: boolean): Post {
   return {
     title: `Truth-table post ${slug}`,
     description: `desc ${slug}`,
@@ -106,9 +102,7 @@ const ROWS: Row[] = [
 // Source of truth: that file's predicate is
 //   p.hiddenFromLists === true && !p.draft && p.excludeFromSearch !== true
 function extraSlugsFilter(post: Post): boolean {
-  return (
-    post.hiddenFromLists === true && !post.draft && post.excludeFromSearch !== true
-  );
+  return post.hiddenFromLists === true && !post.draft && post.excludeFromSearch !== true;
 }
 
 // ---- vi.mock setup ---------------------------------------------------------
@@ -145,7 +139,11 @@ vi.mock("@/components/shared/mdx-content", () => ({
 
 // Stub Next.js Link to avoid router context requirements in unit-test render.
 vi.mock("next/link", () => ({
-  default: ({ children, href, ...rest }: { children: React.ReactNode; href: string } & Record<string, unknown>) =>
+  default: ({
+    children,
+    href,
+    ...rest
+  }: { children: React.ReactNode; href: string } & Record<string, unknown>) =>
     React.createElement("a", { href, ...rest }, children),
 }));
 

@@ -11,9 +11,7 @@ import { expect, test } from "@playwright/test";
 const PATH = "/blog/fixture-related-a";
 
 test.describe("blog related-posts rail — Build 1 axis (fixture-related-a)", () => {
-  test("renders related rail with fixture-related-b as the top card", async ({
-    page,
-  }) => {
+  test("renders related rail with fixture-related-b as the top card", async ({ page }) => {
     await page.goto(PATH);
 
     const rail = page.locator('aside[aria-labelledby="related-heading"]');
@@ -21,12 +19,7 @@ test.describe("blog related-posts rail — Build 1 axis (fixture-related-a)", ()
     await expect(rail.locator("#related-heading")).toHaveText("Related posts");
 
     const firstCard = rail.locator(".related-posts-list > li").first();
-    await expect(firstCard.locator("a")).toHaveAttribute(
-      "href",
-      "/blog/fixture-related-b",
-    );
-    await expect(firstCard.locator(".related-card-title")).toHaveText(
-      "Fixture: fixture-related-b",
-    );
+    await expect(firstCard.locator("a")).toHaveAttribute("href", "/blog/fixture-related-b");
+    await expect(firstCard.locator(".related-card-title")).toHaveText("Fixture: fixture-related-b");
   });
 });

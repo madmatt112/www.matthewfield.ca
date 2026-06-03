@@ -17,10 +17,7 @@ export default function PlaygroundGallery() {
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-12">
       <div className="flex items-center justify-between">
-        <Link
-          href="/"
-          className="text-sm font-medium underline-offset-4 hover:underline"
-        >
+        <Link href="/" className="text-sm font-medium underline-offset-4 hover:underline">
           &larr; matthewfield.ca
         </Link>
         <ThemeToggle />

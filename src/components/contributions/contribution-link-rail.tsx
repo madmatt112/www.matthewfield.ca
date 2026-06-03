@@ -14,10 +14,7 @@ const DEFAULT_LABELS: Record<ContributionLink["kind"], string> = {
   discussion: "Discussion",
 };
 
-export function ContributionLinkRail({
-  links,
-  labelledBy,
-}: ContributionLinkRailProps) {
+export function ContributionLinkRail({ links, labelledBy }: ContributionLinkRailProps) {
   return (
     <div role="group" aria-labelledby={labelledBy} className="contrib-link-rail">
       {links.map((link) => (

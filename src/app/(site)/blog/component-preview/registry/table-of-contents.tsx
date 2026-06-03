@@ -17,9 +17,7 @@ const entries: TocEntry[] = [
 
 // A single-entry fixture so the Playwright smoke can assert
 // TableOfContents renders null when entries.length < 2 (Req 7.9).
-const singleEntry: TocEntry[] = [
-  { id: "only", text: "Only heading", depth: 2 },
-];
+const singleEntry: TocEntry[] = [{ id: "only", text: "Only heading", depth: 2 }];
 
 const entry: RegistryEntry = {
   kind: "component",

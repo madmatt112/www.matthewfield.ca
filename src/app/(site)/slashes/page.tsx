@@ -7,7 +7,8 @@ export const dynamic = "force-static";
 export function generateMetadata(): Metadata {
   return {
     title: "Slashes",
-    description: "An index of the standalone IndieWeb pages on matthewfield.ca and what each is for.",
+    description:
+      "An index of the standalone IndieWeb pages on matthewfield.ca and what each is for.",
     robots: { index: false },
   };
 }

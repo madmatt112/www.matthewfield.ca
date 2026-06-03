@@ -30,10 +30,7 @@ const repoRoot = path.resolve(__dirname, "..");
 
 const CONTRIBUTIONS_JSON = path.join(repoRoot, ".velite/contributions.json");
 const RESOURCES_JSON = path.join(repoRoot, ".velite/resources.json");
-const RUNS_LOG = path.join(
-  repoRoot,
-  "docs/contributions-and-resources-lighthouse-runs.md",
-);
+const RUNS_LOG = path.join(repoRoot, "docs/contributions-and-resources-lighthouse-runs.md");
 const CADENCE_N = 10;
 
 function fail(msg) {
@@ -58,9 +55,7 @@ function loadCollection(jsonPath) {
   }
 
   if (!Array.isArray(data)) {
-    fail(
-      `${path.relative(repoRoot, jsonPath)} is not an array — velite output shape changed?`,
-    );
+    fail(`${path.relative(repoRoot, jsonPath)} is not an array — velite output shape changed?`);
   }
 
   return data;
@@ -82,9 +77,7 @@ let lastCount = 0;
 if (existsSync(RUNS_LOG)) {
   const logText = readFileSync(RUNS_LOG, "utf-8");
   const matches = [
-    ...logText.matchAll(
-      /^-\s*Entries at run time \(contributions \+ resources\):\s*(\d+)\s*$/gm,
-    ),
+    ...logText.matchAll(/^-\s*Entries at run time \(contributions \+ resources\):\s*(\d+)\s*$/gm),
   ];
   const lastMatch = matches.at(-1);
   if (lastMatch) {

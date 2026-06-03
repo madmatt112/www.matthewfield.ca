@@ -124,9 +124,7 @@ function isRequireCallOfContent(node: ts.CallExpression): boolean {
 
 /** Returns the matched `ContentSymbol` for a name, or null. */
 function asContentSymbol(name: string): ContentSymbol | null {
-  return (CONTENT_SYMBOLS as readonly string[]).includes(name)
-    ? (name as ContentSymbol)
-    : null;
+  return (CONTENT_SYMBOLS as readonly string[]).includes(name) ? (name as ContentSymbol) : null;
 }
 
 /** Normalize a path to repo-relative POSIX form for allowlist comparison. */
@@ -339,10 +337,7 @@ export function runContentChokepointScan(
           for (const symbol of CONTENT_SYMBOLS) {
             findings.push({ symbol, kind: "dynamic-string", node });
           }
-        } else if (
-          ts.isNoSubstitutionTemplateLiteral(arg) &&
-          isContentSpecifier(arg.text)
-        ) {
+        } else if (ts.isNoSubstitutionTemplateLiteral(arg) && isContentSpecifier(arg.text)) {
           for (const symbol of CONTENT_SYMBOLS) {
             findings.push({ symbol, kind: "dynamic-template", node });
           }
@@ -353,10 +348,7 @@ export function runContentChokepointScan(
     // require("#site/content") bare (not part of a tracked variable init).
     if (ts.isCallExpression(node) && isRequireCallOfContent(node)) {
       const parent = node.parent;
-      const isVarInit =
-        parent &&
-        ts.isVariableDeclaration(parent) &&
-        parent.initializer === node;
+      const isVarInit = parent && ts.isVariableDeclaration(parent) && parent.initializer === node;
       if (!isVarInit) {
         for (const symbol of CONTENT_SYMBOLS) {
           findings.push({ symbol, kind: "require-bare", node });
@@ -366,10 +358,7 @@ export function runContentChokepointScan(
 
     // X.contributions / X.resources where X is a namespace-import / require
     // binding. eslint `importNames` cannot catch this shape.
-    if (
-      ts.isPropertyAccessExpression(node) &&
-      ts.isIdentifier(node.expression)
-    ) {
+    if (ts.isPropertyAccessExpression(node) && ts.isIdentifier(node.expression)) {
       const symbol = asContentSymbol(node.name.text);
       if (symbol !== null) {
         if (namespaceImportBindings.has(node.expression.text)) {
@@ -407,9 +396,7 @@ export function runContentChokepointScan(
           if (fromImport) {
             findings.push({
               symbol,
-              kind: renamed
-                ? "namespace-destructure-renamed"
-                : "namespace-destructure",
+              kind: renamed ? "namespace-destructure-renamed" : "namespace-destructure",
               node: el,
             });
           } else {
@@ -434,7 +421,5 @@ export function runContentChokepointScan(
   // in that symbol's authorized-helper allowlist. Cross-symbol imports survive
   // (e.g. `contributions.ts` importing `resources` is NOT allowlisted for
   // `resources`).
-  return findings.filter(
-    (finding) => !allowlist[finding.symbol].includes(relPath),
-  );
+  return findings.filter((finding) => !allowlist[finding.symbol].includes(relPath));
 }

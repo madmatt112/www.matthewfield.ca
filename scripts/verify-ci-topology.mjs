@@ -90,12 +90,8 @@ function findBuild2Job(jobs) {
   for (const [jobId, job] of Object.entries(jobs)) {
     if (!job || typeof job !== "object") continue;
     const steps = Array.isArray(job.steps) ? job.steps : [];
-    const hasBuild2 = steps.some(
-      (s) => s && typeof s === "object" && s.name === STEP_NAMES.build2,
-    );
-    const hasVerify = steps.some(
-      (s) => s && typeof s === "object" && s.name === STEP_NAMES.verify,
-    );
+    const hasBuild2 = steps.some((s) => s && typeof s === "object" && s.name === STEP_NAMES.build2);
+    const hasVerify = steps.some((s) => s && typeof s === "object" && s.name === STEP_NAMES.verify);
     if (hasBuild2 && hasVerify) return jobId;
   }
   return null;

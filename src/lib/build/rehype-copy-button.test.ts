@@ -38,9 +38,7 @@ function findElement(
 ): Element | undefined {
   if (node.type === "element" && predicate(node)) return node;
   const children =
-    node.type === "root" || node.type === "element"
-      ? (node.children as ElementContent[])
-      : [];
+    node.type === "root" || node.type === "element" ? (node.children as ElementContent[]) : [];
   for (const child of children) {
     const found = findElement(child, predicate);
     if (found) return found;
@@ -64,7 +62,12 @@ function runPlugin(tree: Root): Root {
 function getCopySource(tree: Root): string {
   const button = findElement(
     tree,
-    (el) => el.tagName === "button" && Boolean(el.properties?.["dataCopyButton"] !== undefined || el.properties?.["data-copy-button"] !== undefined),
+    (el) =>
+      el.tagName === "button" &&
+      Boolean(
+        el.properties?.["dataCopyButton"] !== undefined ||
+        el.properties?.["data-copy-button"] !== undefined,
+      ),
   );
   expect(button, "expected to find a copy <button>").toBeDefined();
   const props = button!.properties ?? {};

@@ -49,9 +49,7 @@ function findPrerenderedHtml(): string | null {
 }
 
 function getBodyHtml(): string {
-  const post = (posts as Array<{ slug: string; bodyHtml: string }>).find(
-    (p) => p.slug === SLUG,
-  );
+  const post = (posts as Array<{ slug: string; bodyHtml: string }>).find((p) => p.slug === SLUG);
   if (!post) throw new Error(`fixture post '${SLUG}' missing from #site/content`);
   return post.bodyHtml;
 }
@@ -112,8 +110,7 @@ describe("RSS body-parity (fixture-code)", () => {
   // The rendered page wraps the body in layout chrome; scope to <article>
   // when present so we compare prose against prose. Fall back to <main>,
   // then to the full document.
-  const pageScope =
-    pageRoot.querySelector("article") ?? pageRoot.querySelector("main") ?? pageRoot;
+  const pageScope = pageRoot.querySelector("article") ?? pageRoot.querySelector("main") ?? pageRoot;
 
   it("(a) <pre>/<code> elements with matching Shiki token-class patterns", () => {
     const feedPats = collectCodeClassPatterns(feedRoot);
@@ -168,12 +165,8 @@ describe("RSS body-parity (fixture-code)", () => {
   it("(d) inline <code> elements present in both trees", () => {
     // Inline = <code> that is NOT inside a <pre>. The fixture's prose has
     // two such spans ("const x = 1" and "code").
-    const feedInline = feedRoot
-      .querySelectorAll("code")
-      .filter((c) => c.closest("pre") === null);
-    const pageInline = pageScope
-      .querySelectorAll("code")
-      .filter((c) => c.closest("pre") === null);
+    const feedInline = feedRoot.querySelectorAll("code").filter((c) => c.closest("pre") === null);
+    const pageInline = pageScope.querySelectorAll("code").filter((c) => c.closest("pre") === null);
     expect(feedInline.length, "feed has no inline <code> spans").toBeGreaterThan(0);
     expect(pageInline.length, "rendered page has no inline <code> spans").toBeGreaterThan(0);
   });

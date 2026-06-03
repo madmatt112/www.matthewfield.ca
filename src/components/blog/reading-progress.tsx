@@ -53,10 +53,7 @@ export function ReadingProgress() {
 
   return (
     <div role="presentation" className="reading-progress">
-      <div
-        className="reading-progress-fill"
-        style={{ width: `${progress * 100}%` }}
-      />
+      <div className="reading-progress-fill" style={{ width: `${progress * 100}%` }} />
     </div>
   );
 }

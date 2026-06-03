@@ -22,9 +22,7 @@ export default function Starfield() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     type Star = { x: number; y: number; z: number };
     const STAR_COUNT = 400;

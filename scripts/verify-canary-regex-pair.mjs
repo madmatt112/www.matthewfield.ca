@@ -97,8 +97,7 @@ export function verifyCanaryRegexPair({ changedFiles, headSubject }) {
       ok: true,
       exitCode: 0,
       kase: "none-touched",
-      diagnostic:
-        "verify-canary-regex-pair: PASS (none-touched) — no tracked files in diff",
+      diagnostic: "verify-canary-regex-pair: PASS (none-touched) — no tracked files in diff",
     };
   }
   if (present.length === TRACKED_SET.length) {
@@ -106,8 +105,7 @@ export function verifyCanaryRegexPair({ changedFiles, headSubject }) {
       ok: true,
       exitCode: 0,
       kase: "all-touched",
-      diagnostic:
-        "verify-canary-regex-pair: PASS (all-touched) — both paired files in diff",
+      diagnostic: "verify-canary-regex-pair: PASS (all-touched) — both paired files in diff",
     };
   }
 

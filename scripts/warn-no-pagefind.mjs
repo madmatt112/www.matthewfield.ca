@@ -85,11 +85,7 @@ function quoteForLog(s) {
  * @param {string | undefined} deployUrl
  */
 function buildIssueBody(deployUrl) {
-  const lines = [
-    WARNING_MESSAGE,
-    "",
-    `_Last updated: ${new Date().toISOString()}_`,
-  ];
+  const lines = [WARNING_MESSAGE, "", `_Last updated: ${new Date().toISOString()}_`];
   if (deployUrl) {
     lines.push(`_Most recent deploy: ${deployUrl}_`);
   }
@@ -103,27 +99,17 @@ async function main() {
   console.log(`::warning::${WARNING_MESSAGE}`);
 
   if (!EVENT_NAME) {
-    console.error(
-      `${TAG} EVENT_NAME not set; emitted annotation only and exiting 0.`,
-    );
+    console.error(`${TAG} EVENT_NAME not set; emitted annotation only and exiting 0.`);
     return 0;
   }
 
   // Step 2 — branch on EVENT_NAME.
   if (EVENT_NAME === "pull_request") {
     if (!PR_NUMBER) {
-      console.error(
-        `${TAG} EVENT_NAME=pull_request but PR_NUMBER is not set.`,
-      );
+      console.error(`${TAG} EVENT_NAME=pull_request but PR_NUMBER is not set.`);
       return 2;
     }
-    const res = runGh([
-      "pr",
-      "comment",
-      PR_NUMBER,
-      "--body",
-      WARNING_MESSAGE,
-    ]);
+    const res = runGh(["pr", "comment", PR_NUMBER, "--body", WARNING_MESSAGE]);
     if (res.status !== 0) {
       console.error(
         `${TAG} gh pr comment failed (exit ${res.status})` +
@@ -138,16 +124,7 @@ async function main() {
   if (EVENT_NAME === "push" && REF === "refs/heads/main") {
     // Look up existing issue by label.
     const list = runGh(
-      [
-        "issue",
-        "list",
-        "--label",
-        ISSUE_LABEL,
-        "--state",
-        "open",
-        "--json",
-        "number,title,body",
-      ],
+      ["issue", "list", "--label", ISSUE_LABEL, "--state", "open", "--json", "number,title,body"],
       { stubStdout: "[]" },
     );
     if (list.status !== 0) {
@@ -162,9 +139,7 @@ async function main() {
     try {
       issues = JSON.parse(list.stdout || "[]");
     } catch (err) {
-      console.error(
-        `${TAG} failed to parse gh issue list JSON: ${err.message}`,
-      );
+      console.error(`${TAG} failed to parse gh issue list JSON: ${err.message}`);
       return 1;
     }
 
@@ -174,13 +149,7 @@ async function main() {
       : undefined;
 
     if (existing && typeof existing.number === "number") {
-      const edit = runGh([
-        "issue",
-        "edit",
-        String(existing.number),
-        "--body",
-        body,
-      ]);
+      const edit = runGh(["issue", "edit", String(existing.number), "--body", body]);
       if (edit.status !== 0) {
         console.error(
           `${TAG} gh issue edit #${existing.number} failed (exit ${edit.status})` +

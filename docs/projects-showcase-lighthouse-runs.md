@@ -14,7 +14,7 @@ projects, not test substrates.
 ## Run 1 — launch (2026-05-27)
 
 - Published projects at run time: 0
-- /projects:                    Perf 100 | A11y 98 | BP 100 | SEO 100
+- /projects: Perf 100 | A11y 98 | BP 100 | SEO 100
 - /projects/fixture-placeholder: Perf 100 | A11y 96 | BP 100 | SEO 100
 
 Source: Task 28.3 implementation log (Lighthouse 12.1.0, desktop preset,

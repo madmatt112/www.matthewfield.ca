@@ -1,7 +1,7 @@
 name: Verify Vercel token
 on:
   schedule:
-    - cron: "0 12 * * 1"  # Monday 12:00 UTC
+    - cron: "0 12 * * 1" # Monday 12:00 UTC
   workflow_dispatch:
 jobs:
   verify:

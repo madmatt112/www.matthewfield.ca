@@ -78,9 +78,7 @@ describe("runContentChokepointScan — canary kind coverage, both symbols (Case 
   for (const symbol of SYMBOLS) {
     for (const kind of ALL_KINDS) {
       it(`flags kind "${kind}" for symbol "${symbol}"`, () => {
-        const matched = findings.some(
-          (f) => f.symbol === symbol && f.kind === kind,
-        );
+        const matched = findings.some((f) => f.symbol === symbol && f.kind === kind);
         expect(
           matched,
           `no finding for symbol "${symbol}" kind "${kind}" — canary shape missing or scanner detection regressed`,
@@ -97,9 +95,7 @@ describe("runContentChokepointScan — canary kind coverage, both symbols (Case 
   });
 
   it("catches the namespace-member shape for resources too", () => {
-    const matched = findings.some(
-      (f) => f.symbol === "resources" && f.kind === "namespace-member",
-    );
+    const matched = findings.some((f) => f.symbol === "resources" && f.kind === "namespace-member");
     expect(matched).toBe(true);
   });
 });
@@ -158,7 +154,10 @@ describe("canary regex sentinels — pinned shapes, both symbols (Case 9)", () =
       "require-named-renamed",
       /^const \{ contributions: _reqContribRenamed, resources: _reqResRenamed \} =\n  require\("#site\/content"\);$/m,
     ],
-    ["require-namespace-member-contributions", /^const _reqNsContributions = cjs\.contributions;$/m],
+    [
+      "require-namespace-member-contributions",
+      /^const _reqNsContributions = cjs\.contributions;$/m,
+    ],
     ["require-namespace-member-resources", /^const _reqNsResources = cjs\.resources;$/m],
     [
       "require-namespace-destructure",
@@ -246,8 +245,7 @@ describe("content chokepoint per-symbol allowlist self-test (Case 11)", () => {
     // A non-allowlisted file importing a guarded symbol — the discriminator.
     fs.writeFileSync(
       outsiderPath,
-      'import { contributions } from "#site/content";\n' +
-        "export { contributions };\n",
+      'import { contributions } from "#site/content";\n' + "export { contributions };\n",
       "utf-8",
     );
   });
@@ -257,9 +255,7 @@ describe("content chokepoint per-symbol allowlist self-test (Case 11)", () => {
   });
 
   it("DEFAULT_CONTENT_ALLOWLIST is per-symbol (contributions/resources disjoint)", () => {
-    expect(DEFAULT_CONTENT_ALLOWLIST.contributions).toEqual([
-      "src/lib/contributions.ts",
-    ]);
+    expect(DEFAULT_CONTENT_ALLOWLIST.contributions).toEqual(["src/lib/contributions.ts"]);
     expect(DEFAULT_CONTENT_ALLOWLIST.resources).toEqual(["src/lib/resources.ts"]);
   });
 
@@ -282,10 +278,7 @@ describe("content chokepoint per-symbol allowlist self-test (Case 11)", () => {
   });
 
   it("a non-allowlisted file with a raw #site/content import IS a violation (discriminator)", () => {
-    const rel = path
-      .relative(tmpRoot, outsiderPath)
-      .split(path.sep)
-      .join("/");
+    const rel = path.relative(tmpRoot, outsiderPath).split(path.sep).join("/");
     // Sanity: the outsider is genuinely outside both per-symbol allowlists.
     expect(DEFAULT_CONTENT_ALLOWLIST.contributions).not.toContain(rel);
     expect(DEFAULT_CONTENT_ALLOWLIST.resources).not.toContain(rel);

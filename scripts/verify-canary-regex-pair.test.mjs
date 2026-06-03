@@ -17,10 +17,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  verifyCanaryRegexPair,
-  TRACKED_SET,
-} from "./verify-canary-regex-pair.mjs";
+import { verifyCanaryRegexPair, TRACKED_SET } from "./verify-canary-regex-pair.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixDir = path.join(__dirname, "__fixtures__/canary-pair");
@@ -33,8 +30,7 @@ function readDiff(name) {
     .filter((s) => s.length > 0);
 }
 
-const NORMAL_SUBJECT =
-  "test(project-showcase): extend chokepoint canary + regex list";
+const NORMAL_SUBJECT = "test(project-showcase): extend chokepoint canary + regex list";
 const REVERT_SUBJECT = 'Revert "extend chokepoint canary + regex list"';
 
 test("good-both.diff — both paths present → exit 0 (all-touched)", () => {

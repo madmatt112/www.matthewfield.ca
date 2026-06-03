@@ -11,8 +11,7 @@ type TaxonomyListProps = {
 };
 
 export function TaxonomyList({ kind, value, posts }: TaxonomyListProps) {
-  const heading =
-    kind === "tag" ? `Posts tagged ${value}` : `Posts in category ${value}`;
+  const heading = kind === "tag" ? `Posts tagged ${value}` : `Posts in category ${value}`;
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-12 sm:py-16">
       <h1 className="text-3xl font-semibold tracking-tight">{heading}</h1>

@@ -165,9 +165,7 @@ async function runWget(urlsPath) {
       if (signal) reject(new Error(`wget terminated by signal ${signal}`));
       else if (code === 0) resolve();
       else if (code === 8) {
-        errlog(
-          "wget exited 8 (one or more URLs returned a server/4xx response); continuing.",
-        );
+        errlog("wget exited 8 (one or more URLs returned a server/4xx response); continuing.");
         resolve();
       } else reject(new Error(`wget exited with code ${code}`));
     });

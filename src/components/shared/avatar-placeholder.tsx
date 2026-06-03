@@ -4,11 +4,7 @@ interface AvatarPlaceholderProps {
   label?: string;
 }
 
-export function AvatarPlaceholder({
-  size = 160,
-  initials = "MF",
-  label,
-}: AvatarPlaceholderProps) {
+export function AvatarPlaceholder({ size = 160, initials = "MF", label }: AvatarPlaceholderProps) {
   return (
     <svg
       role="img"

@@ -25,9 +25,7 @@ type SafeParseSchema = FormatContext["schema"] & {
  * unmanaged YAML — the loader's `test` matches all `content/**​/*.y(a)ml`, so any
  * future YAML collection flows through here and must register its schema).
  */
-export function makeContentYamlLoader(
-  schemasByBasename: Record<string, SafeParseSchema>,
-) {
+export function makeContentYamlLoader(schemasByBasename: Record<string, SafeParseSchema>) {
   return defineLoader({
     test: /\.(ya?ml)$/,
     load: (file) => {

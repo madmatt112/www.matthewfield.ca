@@ -14,9 +14,7 @@ const PATH = `/blog/${SLUG}`;
 const POST_URL = `${siteConfig.url}/blog/${SLUG}`;
 
 test.describe("blog share-bar — Build 1 axis (fixture-code)", () => {
-  test("X, LinkedIn, mailto anchors have correct target/rel/aria-label", async ({
-    page,
-  }) => {
+  test("X, LinkedIn, mailto anchors have correct target/rel/aria-label", async ({ page }) => {
     await page.goto(PATH);
 
     const shareSection = page.locator('section[aria-label="Share this post"]');
@@ -33,9 +31,7 @@ test.describe("blog share-bar — Build 1 axis (fixture-code)", () => {
     await expect(linkedin).toHaveAttribute("target", "_blank");
     await expect(linkedin).toHaveAttribute("rel", "noopener nofollow");
     const linkedinHref = await linkedin.getAttribute("href");
-    expect(linkedinHref).toMatch(
-      /^https:\/\/www\.linkedin\.com\/sharing\/share-offsite\/\?/,
-    );
+    expect(linkedinHref).toMatch(/^https:\/\/www\.linkedin\.com\/sharing\/share-offsite\/\?/);
     expect(linkedinHref).toContain(encodeURIComponent(POST_URL));
 
     const mail = shareSection.locator('a[aria-label="Share via email"]');

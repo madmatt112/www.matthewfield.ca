@@ -44,18 +44,14 @@ test.describe("component preview: share-bar", () => {
     expect(box!.width).toBeGreaterThanOrEqual(44);
     expect(box!.height).toBeGreaterThanOrEqual(44);
 
-    const lightColor = await button.evaluate(
-      (el) => window.getComputedStyle(el).color,
-    );
+    const lightColor = await button.evaluate((el) => window.getComputedStyle(el).color);
 
     // Dark theme.
     await page.emulateMedia({ colorScheme: "dark" });
     await page.goto(PATH);
     await expect(section).toBeVisible();
 
-    const darkColor = await button.evaluate(
-      (el) => window.getComputedStyle(el).color,
-    );
+    const darkColor = await button.evaluate((el) => window.getComputedStyle(el).color);
 
     // Theme-parity proof: computed color must differ.
     expect(lightColor).not.toBe(darkColor);

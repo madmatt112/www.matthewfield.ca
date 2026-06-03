@@ -17,9 +17,7 @@ function RelatedCard({ post }: RelatedCardProps) {
   return (
     <Link href={`/blog/${post.slug}`} className="related-card">
       <h3 className="related-card-title">{post.title}</h3>
-      {post.description ? (
-        <p className="related-card-description">{post.description}</p>
-      ) : null}
+      {post.description ? <p className="related-card-description">{post.description}</p> : null}
       <time dateTime={datetime} className="related-card-date">
         {display}
       </time>
@@ -32,11 +30,7 @@ export function RelatedPosts({ posts }: RelatedPostsProps) {
   if (posts.length === 0) return null;
 
   return (
-    <aside
-      aria-labelledby="related-heading"
-      data-pagefind-ignore="all"
-      className="related-posts"
-    >
+    <aside aria-labelledby="related-heading" data-pagefind-ignore="all" className="related-posts">
       <h2 id="related-heading" className="related-posts-heading">
         Related posts
       </h2>

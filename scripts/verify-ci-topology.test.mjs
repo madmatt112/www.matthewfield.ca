@@ -32,7 +32,10 @@ test("good.yml passes (0 errors) under PRE phase", () => {
 test("real ci.yml passes (0 errors) — default flag off", () => {
   const real = path.join(__dirname, "..", ".github/workflows/ci.yml");
   assert.deepEqual(
-    verify(readFileSync(real, "utf8"), "ci.yml", { literalsRequired: false, phase: "PHASE_PRE_23" }),
+    verify(readFileSync(real, "utf8"), "ci.yml", {
+      literalsRequired: false,
+      phase: "PHASE_PRE_23",
+    }),
     [],
   );
 });
@@ -97,10 +100,16 @@ test("good-enhanced.yml passes when flag is ON", () => {
 });
 
 test("bad-missing-pagefind-crawl — passes when flag OFF, fails when flag ON", () => {
-  const errsOff = run("bad-missing-pagefind-crawl.yml", { literalsRequired: false, phase: "PHASE_PRE_23" });
+  const errsOff = run("bad-missing-pagefind-crawl.yml", {
+    literalsRequired: false,
+    phase: "PHASE_PRE_23",
+  });
   assert.deepEqual(errsOff, []);
 
-  const errsOn = run("bad-missing-pagefind-crawl.yml", { literalsRequired: true, phase: "PHASE_PRE_23" });
+  const errsOn = run("bad-missing-pagefind-crawl.yml", {
+    literalsRequired: true,
+    phase: "PHASE_PRE_23",
+  });
   assert.ok(
     errsOn.some((e) => /missing step:.*Pagefind crawl \(Build 2\)/.test(e)),
     `expected missing-step diagnostic for Pagefind crawl, got: ${JSON.stringify(errsOn)}`,
@@ -108,10 +117,20 @@ test("bad-missing-pagefind-crawl — passes when flag OFF, fails when flag ON", 
 });
 
 test("bad-deploy-before-artifact — enhanced-order fails when flag ON", () => {
-  const errs = run("bad-deploy-before-artifact.yml", { literalsRequired: true, phase: "PHASE_PRE_23" });
+  const errs = run("bad-deploy-before-artifact.yml", {
+    literalsRequired: true,
+    phase: "PHASE_PRE_23",
+  });
   assert.ok(
-    errs.some((e) => /enhanced-order: step "Verify Pagefind artifact in .vercel\/output".*must follow "Vercel build"/.test(e)
-                  || /enhanced-order: step "Vercel deploy \(Build 2\)".*must follow "Verify Pagefind artifact in .vercel\/output"/.test(e)),
+    errs.some(
+      (e) =>
+        /enhanced-order: step "Verify Pagefind artifact in .vercel\/output".*must follow "Vercel build"/.test(
+          e,
+        ) ||
+        /enhanced-order: step "Vercel deploy \(Build 2\)".*must follow "Verify Pagefind artifact in .vercel\/output"/.test(
+          e,
+        ),
+    ),
     `expected enhanced-order diagnostic for deploy/artifact, got: ${JSON.stringify(errs)}`,
   );
 });
@@ -132,7 +151,11 @@ test("meta-gate — PHASE_POST_23.3 with flag explicitly =0 fails", () => {
     silent: true,
   });
   assert.ok(
-    errs.some((e) => /meta-gate: env var BLOG_ENHANCED_CI_LITERALS_REQUIRED is explicitly =0 at PHASE_POST_23\.3/.test(e)),
+    errs.some((e) =>
+      /meta-gate: env var BLOG_ENHANCED_CI_LITERALS_REQUIRED is explicitly =0 at PHASE_POST_23\.3/.test(
+        e,
+      ),
+    ),
     `expected meta-gate-explicit-zero diagnostic, got: ${JSON.stringify(errs)}`,
   );
 });
@@ -144,5 +167,9 @@ test("meta-gate — PHASE_POST_23.3 with flag unset warns but passes", () => {
     phase: "PHASE_POST_23.3",
     silent: true,
   });
-  assert.deepEqual(errs, [], `expected no errors when flag unset under PHASE_POST, got: ${JSON.stringify(errs)}`);
+  assert.deepEqual(
+    errs,
+    [],
+    `expected no errors when flag unset under PHASE_POST, got: ${JSON.stringify(errs)}`,
+  );
 });

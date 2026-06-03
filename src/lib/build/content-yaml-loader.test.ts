@@ -92,7 +92,9 @@ describe("makeContentYamlLoader — envelope errors (verbatim messages)", () => 
 
   it("throws the named empty/null error for the `~` literal", () => {
     const loader = makeContentYamlLoader(schemas);
-    expect(() => loader.load(fakeVFile("/content/contributions.yaml", "~\n"))).toThrow(emptyMessage);
+    expect(() => loader.load(fakeVFile("/content/contributions.yaml", "~\n"))).toThrow(
+      emptyMessage,
+    );
   });
 
   it("throws the named empty/null error for the `null` literal", () => {

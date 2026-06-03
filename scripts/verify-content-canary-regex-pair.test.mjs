@@ -19,10 +19,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  verifyContentCanaryRegexPair,
-  TRACKED_SET,
-} from "./verify-content-canary-regex-pair.mjs";
+import { verifyContentCanaryRegexPair, TRACKED_SET } from "./verify-content-canary-regex-pair.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixDir = path.join(__dirname, "__fixtures__/content-canary-pair");
@@ -37,8 +34,7 @@ function readDiff(name) {
 
 const NORMAL_SUBJECT =
   "test(contributions-and-resources): extend content chokepoint canary + regex list";
-const REVERT_SUBJECT =
-  'Revert "extend content chokepoint canary + regex list"';
+const REVERT_SUBJECT = 'Revert "extend content chokepoint canary + regex list"';
 
 test("good-both.diff — both paths present → exit 0 (all-touched)", () => {
   const result = verifyContentCanaryRegexPair({
@@ -65,10 +61,7 @@ test("bad-only-canary.diff — only canary → non-zero, names test file", () =>
   });
   assert.notEqual(result.exitCode, 0);
   assert.equal(result.kase, "strict-subset");
-  assert.match(
-    result.diagnostic,
-    /src\/lib\/build\/check-content-chokepoint\.test\.ts/,
-  );
+  assert.match(result.diagnostic, /src\/lib\/build\/check-content-chokepoint\.test\.ts/);
 });
 
 test("bad-only-test.diff — only test file → non-zero, names canary", () => {
@@ -78,10 +71,7 @@ test("bad-only-test.diff — only test file → non-zero, names canary", () => {
   });
   assert.notEqual(result.exitCode, 0);
   assert.equal(result.kase, "strict-subset");
-  assert.match(
-    result.diagnostic,
-    /src\/__fixtures__\/content-chokepoint-canary\.ts/,
-  );
+  assert.match(result.diagnostic, /src\/__fixtures__\/content-chokepoint-canary\.ts/);
 });
 
 test("revert HEAD + empty diff → non-zero (revert-shape)", () => {
@@ -102,10 +92,7 @@ test("revert HEAD + strict subset (only canary) → non-zero (revert-shape)", ()
   assert.notEqual(result.exitCode, 0);
   assert.equal(result.kase, "revert-shape-subset");
   assert.match(result.diagnostic, /Revert-shape commit touches paired files/);
-  assert.match(
-    result.diagnostic,
-    /src\/lib\/build\/check-content-chokepoint\.test\.ts/,
-  );
+  assert.match(result.diagnostic, /src\/lib\/build\/check-content-chokepoint\.test\.ts/);
 });
 
 test("revert HEAD + full re-apply (both files) → exit 0 (all-touched)", () => {
@@ -119,12 +106,8 @@ test("revert HEAD + full re-apply (both files) → exit 0 (all-touched)", () => 
 
 test("TRACKED_SET sanity — exactly two paths, independent of projects pair", () => {
   assert.equal(TRACKED_SET.length, 2);
-  assert.ok(
-    TRACKED_SET.includes("src/__fixtures__/content-chokepoint-canary.ts"),
-  );
-  assert.ok(
-    TRACKED_SET.includes("src/lib/build/check-content-chokepoint.test.ts"),
-  );
+  assert.ok(TRACKED_SET.includes("src/__fixtures__/content-chokepoint-canary.ts"));
+  assert.ok(TRACKED_SET.includes("src/lib/build/check-content-chokepoint.test.ts"));
   // Must NOT carry the projects-pair paths (separate gate).
   assert.ok(!TRACKED_SET.includes("src/__fixtures__/chokepoint-canary.ts"));
   assert.ok(!TRACKED_SET.includes("src/lib/projects.test.ts"));

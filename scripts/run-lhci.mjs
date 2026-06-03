@@ -93,11 +93,9 @@ function exitWith(code) {
   process.exit(code);
 }
 
-child.on("exit", (code, signal) => exitWith(signal ? 1 : code ?? 0));
+child.on("exit", (code, signal) => exitWith(signal ? 1 : (code ?? 0)));
 child.on("error", (err) => {
-  process.stderr.write(
-    `run-lhci: failed to spawn pnpm exec lhci: ${err.message}\n`,
-  );
+  process.stderr.write(`run-lhci: failed to spawn pnpm exec lhci: ${err.message}\n`);
   exitWith(1);
 });
 process.on("SIGINT", () => {

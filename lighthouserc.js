@@ -61,22 +61,15 @@ module.exports = {
         // `/blog/fixture-code` (a single URL would otherwise pick up
         // assertions from multiple matrix entries).
         return {
-          matchingUrlPattern:
-            url.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
+          matchingUrlPattern: url.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
           assertions: {
             "categories:performance": ["error", { minScore: 0.9 }],
             "categories:accessibility": ["error", { minScore: 0.9 }],
             "categories:best-practices": ["error", { minScore: 0.9 }],
-            "categories:seo": [
-              isFixturePost ? "warn" : "error",
-              { minScore: 0.9 },
-            ],
+            "categories:seo": [isFixturePost ? "warn" : "error", { minScore: 0.9 }],
             // TODO(task-36): replace placeholder with measured value once
             // real-world byte budgets are pinned per URL.
-            "total-byte-weight": [
-              "error",
-              { maxNumericValue: TODO_BYTE_WEIGHT_PLACEHOLDER },
-            ],
+            "total-byte-weight": ["error", { maxNumericValue: TODO_BYTE_WEIGHT_PLACEHOLDER }],
           },
         };
       }),

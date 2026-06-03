@@ -45,14 +45,10 @@ try {
 }
 
 if (!Array.isArray(projects)) {
-  fail(
-    `${path.relative(repoRoot, PROJECTS_JSON)} is not an array — velite output shape changed?`,
-  );
+  fail(`${path.relative(repoRoot, PROJECTS_JSON)} is not an array — velite output shape changed?`);
 }
 
-const currentCount = projects.filter(
-  (p) => !p.draft && !/^fixture-/.test(p.slug),
-).length;
+const currentCount = projects.filter((p) => !p.draft && !/^fixture-/.test(p.slug)).length;
 
 // Parse the latest run entry's published-count line from the runs log.
 // Format pinned in docs/projects-showcase-lighthouse-runs.md:

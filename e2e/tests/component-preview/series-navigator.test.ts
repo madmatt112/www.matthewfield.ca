@@ -33,18 +33,14 @@ test.describe("component preview: series-navigator", () => {
     await expect(links.nth(0)).toContainText("Part 1");
     await expect(links.nth(1)).toContainText("Part 3");
 
-    const lightColor = await current.evaluate(
-      (el) => window.getComputedStyle(el).color,
-    );
+    const lightColor = await current.evaluate((el) => window.getComputedStyle(el).color);
 
     // Dark theme.
     await page.emulateMedia({ colorScheme: "dark" });
     await page.goto(PATH);
     await expect(nav).toBeVisible();
 
-    const darkColor = await current.evaluate(
-      (el) => window.getComputedStyle(el).color,
-    );
+    const darkColor = await current.evaluate((el) => window.getComputedStyle(el).color);
 
     // Theme-parity proof: computed color must differ.
     expect(lightColor).not.toBe(darkColor);

@@ -92,9 +92,7 @@ test.describe("blog code-block wrapper structure (theme parity)", () => {
       await expect(wrapper).toBeVisible();
       await expect(wrapper).toHaveAttribute("data-code-block", "");
       // v3 contract: the wrapper must NOT carry data-code-language.
-      const hasLangAttr = await wrapper.evaluate((el) =>
-        el.hasAttribute("data-code-language"),
-      );
+      const hasLangAttr = await wrapper.evaluate((el) => el.hasAttribute("data-code-language"));
       expect(hasLangAttr).toBe(false);
 
       const copyButton = wrapper.locator("button[data-copy-button]").first();

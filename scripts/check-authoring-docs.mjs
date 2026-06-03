@@ -108,9 +108,7 @@ export function main(docs) {
     const { exitCode: docExit, missing } = checkHeadings(docText, headings);
 
     for (const heading of missing) {
-      console.log(
-        `::warning::${TAG} canonical heading missing from ${rel}: "${heading}"`,
-      );
+      console.log(`::warning::${TAG} canonical heading missing from ${rel}: "${heading}"`);
     }
 
     if (docExit !== 0) exitCode = 1;

@@ -10,7 +10,10 @@ type PrevNextNavProps = {
 export function PrevNextNav({ previous, next }: PrevNextNavProps) {
   if (previous === null && next === null) return null;
   return (
-    <nav aria-label="Post navigation" className="flex flex-col gap-4 sm:flex-row sm:justify-between">
+    <nav
+      aria-label="Post navigation"
+      className="flex flex-col gap-4 sm:flex-row sm:justify-between"
+    >
       {previous ? (
         <Link
           href={`/blog/${previous.slug}`}

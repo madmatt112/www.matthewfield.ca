@@ -22,10 +22,9 @@ const ALLOWED_CALLERS = new Set([
 
 let output = "";
 try {
-  output = execSync(
-    `git grep -nE "\\bgetPublishedPosts\\(\\)" -- 'src/**/*.ts' 'src/**/*.tsx'`,
-    { encoding: "utf-8" },
-  ).trim();
+  output = execSync(`git grep -nE "\\bgetPublishedPosts\\(\\)" -- 'src/**/*.ts' 'src/**/*.tsx'`, {
+    encoding: "utf-8",
+  }).trim();
 } catch (err) {
   // `git grep` exits non-zero when there are no matches. That's a clean state.
   if (err && typeof err.status === "number" && err.status === 1) {

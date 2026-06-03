@@ -31,16 +31,11 @@ import { formatContentDate } from "@/lib/format-date";
 
 // Minimal synthetic factory — only the comparator-relevant fields
 // (date, repo, title) are exercised; the full Velite shape is irrelevant.
-function synth(
-  date: string,
-  repo: string,
-  title: string,
-): Record<string, unknown> {
+function synth(date: string, repo: string, title: string): Record<string, unknown> {
   return { date, repo, title };
 }
 
-const asContrib = (c: Record<string, unknown>): Contribution =>
-  c as unknown as Contribution;
+const asContrib = (c: Record<string, unknown>): Contribution => c as unknown as Contribution;
 
 // ---------------------------------------------------------------------------
 // Comparator — three deterministic keys (date desc, repo asc, title asc)

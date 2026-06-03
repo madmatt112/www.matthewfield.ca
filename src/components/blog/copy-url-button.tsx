@@ -3,10 +3,7 @@
 import { Check, Link as LinkIcon, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import {
-  announceCopyStatus,
-  copyToClipboard,
-} from "@/components/blog/clipboard";
+import { announceCopyStatus, copyToClipboard } from "@/components/blog/clipboard";
 
 type CopyURLButtonProps = {
   url: string;

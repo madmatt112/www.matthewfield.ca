@@ -2,11 +2,7 @@
 
 import { useEffect } from "react";
 
-import {
-  announceCopyStatus,
-  copyToClipboard,
-  decodeUtf8B64,
-} from "@/components/blog/clipboard";
+import { announceCopyStatus, copyToClipboard, decodeUtf8B64 } from "@/components/blog/clipboard";
 
 /**
  * <CopyButton /> — DOM-marker client hydrator.
@@ -31,17 +27,12 @@ import {
  */
 export function CopyButton() {
   useEffect(() => {
-    const buttons = Array.from(
-      document.querySelectorAll<HTMLButtonElement>("[data-copy-button]"),
-    );
+    const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-copy-button]"));
 
     // Per-button reset timer so multiple buttons can be in different states.
     const timers = new WeakMap<HTMLButtonElement, number>();
 
-    function setState(
-      btn: HTMLButtonElement,
-      state: "idle" | "copying" | "copied" | "failed",
-    ) {
+    function setState(btn: HTMLButtonElement, state: "idle" | "copying" | "copied" | "failed") {
       btn.setAttribute("data-copy-state", state);
       const label =
         state === "copied"

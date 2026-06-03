@@ -100,7 +100,7 @@ appending one object to the `playgroundItems` array. The entry shape is:
   the manifest itself server/build-safe (no `"use client"`, no React runtime
   import, no browser global at module scope).
 - `frame` (a `PlaygroundFrameHint`) is only meaningful for `iframeIsolated:
-  true` items and sizes the host `<iframe>`. Use `{ aspectRatio: "16 / 10" }`
+true` items and sizes the host `<iframe>`. Use `{ aspectRatio: "16 / 10" }`
   for a visualization that fills its box, or `{ height: "600px" }` for a fixed
   height. If omitted on an iframe item the host falls back to a `16 / 10`
   aspect; the iframe's default `300×150` would clip viewport-escaping content,
@@ -215,8 +215,8 @@ not enforced sandboxes:
   authentication and store no user data at launch.
 - **The relaxed CSP is an authorship privilege, not a sandbox.** The
   `/playground/*` routes opt out of the site Content-Security-Policy so items
-  can use inline code and external resources freely. This is acceptable *only
-  because* items are first-party. The relaxed CSP does **not** sandbox an item —
+  can use inline code and external resources freely. This is acceptable _only
+  because_ items are first-party. The relaxed CSP does **not** sandbox an item —
   it is permission to author freely, not a containment boundary. Treat item code
   with the same care as the rest of the site.
 

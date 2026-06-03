@@ -109,12 +109,10 @@ test.describe("component preview: pagefind-ui", () => {
     await expect(page.locator(ROOT_SELECTOR)).toBeVisible();
     await expect(page.locator("html")).toHaveClass(/\bdark\b/);
 
-    const linkDark: Colors = await page
-      .locator(RESULT_LINK_SELECTOR)
-      .evaluate((el) => {
-        const cs = window.getComputedStyle(el);
-        return { color: cs.color, backgroundColor: cs.backgroundColor };
-      });
+    const linkDark: Colors = await page.locator(RESULT_LINK_SELECTOR).evaluate((el) => {
+      const cs = window.getComputedStyle(el);
+      return { color: cs.color, backgroundColor: cs.backgroundColor };
+    });
 
     // Re-read the rebound CSS variables under the dark cascade. The
     // package's own selectors apply background-color via these variables

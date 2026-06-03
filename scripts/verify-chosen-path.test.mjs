@@ -8,11 +8,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  readChosenPath,
-  parseDiff,
-  checkChosenPath,
-} from "./verify-chosen-path.mjs";
+import { readChosenPath, parseDiff, checkChosenPath } from "./verify-chosen-path.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixDir = path.join(__dirname, "__fixtures__/chosen-path");

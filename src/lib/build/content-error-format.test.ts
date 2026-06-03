@@ -171,9 +171,7 @@ describe("(e) schema-walk + unwrap table", () => {
     // never descends through them). This SYNTHETIC fixture — a pipeline wrapping
     // an object — exercises the defensive row only.
     const objectStage = s.object({ kind: s.enum(["x", "y", "z"]) });
-    const syntheticPipeline = objectStage.pipe(
-      s.object({ kind: s.enum(["x", "y", "z"]) }),
-    );
+    const syntheticPipeline = objectStage.pipe(s.object({ kind: s.enum(["x", "y", "z"]) }));
 
     const members = formatEnumMembers(syntheticPipeline as never, ["kind"]);
     expect(members).toEqual(["x", "y", "z"]);

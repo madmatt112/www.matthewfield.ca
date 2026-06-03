@@ -43,10 +43,7 @@ test.describe("component preview: copy-button", () => {
 
     // After click, state flips to "copied" (sync after the await chain).
     await expect(button).toHaveAttribute("data-copy-state", "copied");
-    await expect(button).toHaveAttribute(
-      "aria-label",
-      "Code copied to clipboard",
-    );
+    await expect(button).toHaveAttribute("aria-label", "Code copied to clipboard");
 
     // Clipboard round-trip: navigator.clipboard.readText() must return
     // the decoded source the rehype plugin would have encoded.
@@ -56,9 +53,7 @@ test.describe("component preview: copy-button", () => {
     // Status announcement landed in the #copy-status aria-live region.
     await expect(page.locator(STATUS_SELECTOR)).toHaveText("Code copied");
 
-    const lightColor = await button.evaluate(
-      (el) => window.getComputedStyle(el).color,
-    );
+    const lightColor = await button.evaluate((el) => window.getComputedStyle(el).color);
 
     // Dark theme.
     await page.emulateMedia({ colorScheme: "dark" });

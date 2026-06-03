@@ -17,8 +17,7 @@ const entry: RegistryEntry = {
       <ol>
         <li id="user-content-fn-1">
           <p>
-            First footnote definition. Renders as item 1 in the footnotes
-            section.{" "}
+            First footnote definition. Renders as item 1 in the footnotes section.{" "}
             <a
               href="#user-content-fnref-1"
               data-footnote-backref=""
@@ -31,8 +30,7 @@ const entry: RegistryEntry = {
         </li>
         <li id="user-content-fn-2">
           <p>
-            Second footnote definition. Verifies inline-adjacent references
-            resolve independently.{" "}
+            Second footnote definition. Verifies inline-adjacent references resolve independently.{" "}
             <a
               href="#user-content-fnref-2"
               data-footnote-backref=""
@@ -45,8 +43,7 @@ const entry: RegistryEntry = {
         </li>
         <li id="user-content-fn-3">
           <p>
-            Third footnote definition. Last in source, last in the rendered
-            list.{" "}
+            Third footnote definition. Last in source, last in the rendered list.{" "}
             <a
               href="#user-content-fnref-3"
               data-footnote-backref=""

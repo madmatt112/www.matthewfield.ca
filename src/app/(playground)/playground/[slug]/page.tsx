@@ -8,6 +8,11 @@ import PlaygroundFrame from "../../_components/playground-frame";
 
 type Params = Promise<{ slug: string }>; // Next 16: params is async (matches blog/[slug])
 
+// Hoist dynamic() out of render: each lazy component is created once at module
+// init, not per-render (React Compiler: no components-during-render). Keyed by
+// slug so the per-slug client item is still SSR'd + hydrated.
+const itemComponents = new Map(playgroundItems.map((it) => [it.slug, dynamic(it.load)] as const));
+
 export const dynamicParams = false; // unknown slug → 404 (Req 3.2)
 
 export function generateStaticParams() {
@@ -49,11 +54,12 @@ export default async function ItemLanding({ params }: { params: Params }) {
     );
   }
 
-  const Item = dynamic(it.load); // SSR'd + hydrated client item; per-render (varies by slug)
+  const Item = itemComponents.get(it.slug)!; // SSR'd + hydrated client item (varies by slug)
   return (
     <>
       <noscript>This experiment needs JavaScript.</noscript> {/* Req 3.5 */}
       <PlaygroundFrame>
+        {/* eslint-disable-next-line react-hooks/static-components -- Item is a module-level-stable dynamic() component from itemComponents (created once at module init, constant per slug), so the rule's state-reset concern does not apply. */}
         <Item />
       </PlaygroundFrame>
     </>
