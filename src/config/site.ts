@@ -34,7 +34,10 @@ type SiteConfig = {
 export const siteConfig: SiteConfig = {
   name: "Matthew Field",
   description: "Infrastructure/Platform/DevOps engineer",
-  url: "https://matthewfield.ca",
+  // Canonical host = the actual serving host: the apex 301/307-redirects to
+  // www, so www is canonical for SEO (canonical/OG/sitemap/feed all derive
+  // from this) and is the trusted origin for the contact endpoint.
+  url: "https://www.matthewfield.ca",
   language: "en-CA",
   ogImage: "/images/og-default.png",
   navItems: [

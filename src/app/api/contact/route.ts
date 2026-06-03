@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { siteConfig } from "@/config/site";
 import { ResendError, TimeoutError, sendContactEmail, testIdForwardingAllowed } from "@/lib/mail";
 
 const MAX_BODY_BYTES = 32 * 1024;
@@ -25,6 +26,15 @@ function isAcceptedHost(host: string, selfHost?: string | null): boolean {
   // NEXT_PUBLIC_SITE_URL to be set to the exact serving host.
   if (selfHost && host === selfHost) return true;
 
+  // Committed source of truth for the production origin — does not depend on a
+  // runtime env var being present in the deploy.
+  try {
+    if (new URL(siteConfig.url).host === host) return true;
+  } catch {
+    // ignore malformed config
+  }
+
+  // Optional per-environment override (e.g. a non-default preview host).
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
   if (siteUrl) {
     try {

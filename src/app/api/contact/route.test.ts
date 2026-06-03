@@ -157,14 +157,26 @@ describe("POST /api/contact — origin check", () => {
   });
 
   it("continues when Origin matches the request's own Host (same-origin, env unset)", async () => {
-    // Production serves from www.matthewfield.ca but NEXT_PUBLIC_SITE_URL may be
-    // unset/mismatched; the same-origin Host check must still allow it.
+    // A custom/preview host that is neither siteConfig.url nor *.vercel.app —
+    // only the same-origin Host check can allow it. Proves the form works on
+    // any serving host without NEXT_PUBLIC_SITE_URL being set.
     vi.stubEnv("NEXT_PUBLIC_SITE_URL", "");
     const { POST } = await import("./route");
     const res = await POST(
       makeRequest(baseBody, {
-        headers: { origin: "https://www.matthewfield.ca", host: "www.matthewfield.ca" },
+        headers: { origin: "https://custom.example", host: "custom.example" },
       }),
+    );
+    expect(res.status).toBe(200);
+  });
+
+  it("continues when Origin matches siteConfig.url host (env unset, no Host header)", async () => {
+    // The committed source of truth must allow the production origin even when
+    // NEXT_PUBLIC_SITE_URL is unset and no Host header is present.
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "");
+    const { POST } = await import("./route");
+    const res = await POST(
+      makeRequest(baseBody, { headers: { origin: "https://www.matthewfield.ca" } }),
     );
     expect(res.status).toBe(200);
   });
@@ -175,7 +187,7 @@ describe("POST /api/contact — origin check", () => {
     const { sendContactEmail } = await import("@/lib/mail");
     const res = await POST(
       makeRequest(baseBody, {
-        headers: { origin: "https://evil.example", host: "www.matthewfield.ca" },
+        headers: { origin: "https://evil.example", host: "custom.example" },
       }),
     );
     expect(res.status).toBe(403);

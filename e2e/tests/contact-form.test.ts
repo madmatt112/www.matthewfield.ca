@@ -113,7 +113,7 @@ test.describe("contact form happy path (parameterized)", () => {
     await page.goto("/profile");
     const href = await page.locator('link[rel="canonical"]').getAttribute("href");
     expect(href).not.toBeNull();
-    expect(href!).toMatch(/^https:\/\/matthewfield\.ca\//);
+    expect(href!).toMatch(/^https:\/\/www\.matthewfield\.ca\//);
   });
 });
 
