@@ -1,0 +1,22 @@
+{
+  "filePath": ".spec-workflow/specs/visual-design/requirements.md",
+  "currentVersion": 2,
+  "snapshots": [
+    {
+      "version": 1,
+      "filename": "snapshot-001.json",
+      "timestamp": "2026-06-08T19:32:48.470Z",
+      "trigger": "initial",
+      "approvalId": "approval_1780947168277_fjyq3771c",
+      "approvalTitle": "visual-design — Requirements"
+    },
+    {
+      "version": 2,
+      "filename": "snapshot-002.json",
+      "timestamp": "2026-06-08T20:16:44.727Z",
+      "trigger": "approved",
+      "approvalId": "approval_1780949644650_ajymkcwbs",
+      "approvalTitle": "visual-design — Requirements (v4, converged)"
+    }
+  ]
+}
