@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { pages } from "#site/content";
 
 import { MDXContent } from "@/components/shared/mdx-content";
+import { SectionKicker } from "@/components/shared/section-kicker";
 import { formatContentDate } from "@/lib/format-date";
 
 // Velite's pages schema requires content/pages/now.mdx (task 8). If that
@@ -34,12 +35,13 @@ export function generateMetadata(): Metadata {
 export default function NowPage() {
   const { datetime, display } = formatContentDate(nowPage.updated);
   return (
-    <article className="mx-auto w-full max-w-3xl px-4 py-16 sm:py-24">
-      <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{nowPage.title}</h1>
+    <article className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+      <SectionKicker label="now" />
+      <h1 className="mt-3 font-display text-3xl tracking-tight sm:text-4xl">{nowPage.title}</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         Last updated <time dateTime={datetime}>{display}</time>
       </p>
-      <div className="mt-6 text-base leading-relaxed text-foreground">
+      <div className="prose dark:prose-invert max-w-measure mt-6">
         <MDXContent code={nowPage.body} />
       </div>
     </article>

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 
+import { StatusCallout } from "@/components/shared/status-callout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -232,27 +233,20 @@ export function ContactForm(props: { source?: "profile" | "contact" }): React.JS
   return (
     <div className="min-h-[28rem]">
       {state.kind === "success" ? (
-        <div role="status" tabIndex={-1} className="rounded-md border border-input p-4">
+        <StatusCallout tone="success" role="status" tabIndex={-1}>
           <h2 ref={successHeadingRef} tabIndex={-1} className="text-xl font-semibold">
             Thanks — your message is on its way.
           </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            I respond to every human. Expect a reply soon.
-          </p>
-        </div>
+          <p className="mt-2 text-sm">I respond to every human. Expect a reply soon.</p>
+        </StatusCallout>
       ) : state.kind === "server-error" ? (
-        <div
-          ref={serverErrorRegionRef}
-          role="status"
-          tabIndex={-1}
-          className="rounded-md border border-destructive/40 p-4"
-        >
+        <StatusCallout tone="error" role="status" tabIndex={-1} ref={serverErrorRegionRef}>
           <h2 tabIndex={-1} className="text-xl font-semibold">
             {SERVER_ERROR_COPY[state.status].heading}
           </h2>
           <p className="mt-2 text-sm">{SERVER_ERROR_COPY[state.status].body}</p>
           {state.status === 503 && state.retryAfterSeconds !== undefined ? (
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-sm">
               Try again in about {state.retryAfterSeconds} seconds.
             </p>
           ) : null}
@@ -269,7 +263,7 @@ export function ContactForm(props: { source?: "profile" | "contact" }): React.JS
               Or reach out on LinkedIn
             </a>
           </div>
-        </div>
+        </StatusCallout>
       ) : (
         <form ref={formRef} onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
           {validationErrors ? (

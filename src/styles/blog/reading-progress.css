@@ -9,18 +9,28 @@
 
 :root {
   --reading-progress-track: transparent;
-  --reading-progress-fill: oklch(0.55 0.2 240);
+  --reading-progress-fill: var(--brand);
   --reading-progress-transition: 100ms ease-out;
 }
 
 .dark {
-  --reading-progress-fill: oklch(0.7 0.16 240);
+  --reading-progress-fill: var(--brand);
 }
 
 @media (prefers-reduced-motion: reduce) {
   :root,
   .dark {
     --reading-progress-transition: 0ms;
+  }
+
+  /* The site-wide reduced-motion rule in globals.css collapses durations to
+     0.01ms (not 0) so transition/animation end events still fire. The bar's
+     width tween carries no such done-event dependency, so force a genuine 0
+     here. A class selector with !important beats the universal * !important
+     (equal importance → higher specificity wins). */
+  .reading-progress-fill {
+    transition-duration: 0s !important;
+    animation-duration: 0s !important;
   }
 }
 

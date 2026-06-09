@@ -5,6 +5,17 @@
 
 @import "tailwindcss";
 
+/* Exclude non-source doc dirs from Tailwind v4 automatic content detection.
+   .spec-workflow holds spec/review markdown that contains literal example
+   classes (e.g. `bg-[var(...)]`); scanning them generates invalid CSS that
+   the build's CSS parser rejects. Path is relative to this file. */
+@source not "../../.spec-workflow";
+@source not "../../e2e";
+
+/* Long-form prose styling. The plugin's layered rules are themed via the
+   --tw-prose-* custom properties (NOT competing layered rules) below. */
+@plugin "@tailwindcss/typography";
+
 /* tokens.css is intentionally unlayered — unlayered CSS cascades above
    Tailwind's layered base/components/utilities, ensuring token values
    take priority. Do not wrap this import in a @layer declaration. */
@@ -24,6 +35,11 @@
 @import "./blog/share-bar.css";
 @import "./blog/table-of-contents.css";
 
+/* Print/PDF profile slice — owned by Task 12. All rules live under
+   @media print; token custom properties are re-declared there to force a
+   light, readable CV regardless of the on-screen theme. */
+@import "./print.css";
+
 /* Class-based dark mode: next-themes toggles the `dark` class on <html>;
    without this declaration Tailwind v4's `dark:` variant falls back to
    prefers-color-scheme and ignores the toggle. */
@@ -39,12 +55,32 @@ body {
   color: var(--foreground);
 }
 
+/* Reduced-motion (R7.3): generalizes the per-file handling in
+   reading-progress.css site-wide. Collapses transition/animation durations
+   to ~0 while keeping Radix overlay open/close usable — the 0.01ms (not 0)
+   value lets enter/leave still fire their done events so portals mount and
+   unmount correctly. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Maps Tailwind color / radius utilities onto the design tokens declared in
    tokens.css. The token set is owned by the design system
    (.spec-workflow/steering/design-system.md); keep this mapping aligned with
    tokens.css when roles are added or changed. shadcn/ui was the starting point,
    not an upstream tracked for parity. */
 @theme inline {
+  /* Serif display face (Fraunces) wired via next/font as --font-display on
+     <html>; exposed here so the `font-display` utility resolves on headings.
+     Geist Sans/Mono ride Tailwind v4's built-in --font-sans/--font-mono. */
+  --font-display: var(--font-display);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -60,6 +96,15 @@ body {
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-visited: var(--brand-visited);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -80,6 +125,37 @@ body {
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  /* Prose measure: --container-* namespace yields a max-w-measure utility. */
+  --container-measure: 75ch;
+  /* Z-index scale: v4 z utility reads the --z-index-* namespace (NOT --z-*),
+     generating z-base / z-sticky / z-overlay / z-toast. */
+  --z-index-base: 0;
+  --z-index-sticky: 40;
+  --z-index-overlay: 50;
+  --z-index-toast: 60;
+}
+
+/* Theme @tailwindcss/typography to the design tokens. The plugin reads the
+   --tw-prose-* custom properties for its colors, so setting them here retargets
+   its layered rules WITHOUT competing layered selectors. Both the light set and
+   the --tw-prose-invert-* set are mapped to the SAME token roles so dark-mode
+   prose (dark:prose-invert) resolves links to --brand, not the plugin default.
+   Headings inherit the display serif (--font-display). */
+.prose {
+  --tw-prose-body: var(--foreground);
+  --tw-prose-headings: var(--foreground);
+  --tw-prose-links: var(--brand);
+  --tw-prose-captions: var(--muted-foreground);
+  --tw-prose-borders: var(--border);
+
+  --tw-prose-invert-body: var(--foreground);
+  --tw-prose-invert-headings: var(--foreground);
+  --tw-prose-invert-links: var(--brand);
+  --tw-prose-invert-captions: var(--muted-foreground);
+  --tw-prose-invert-borders: var(--border);
+}
+.prose :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-display);
 }
 
 /* Shiki dual-theme cascade (Req 9.2, 9.3, 9.5).

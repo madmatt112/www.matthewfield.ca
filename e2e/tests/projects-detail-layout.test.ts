@@ -46,7 +46,7 @@ const VIEWPORT = { width: 1280, height: 720 } as const;
 // the px-4 wrapper, so its measured width is the full 1024px at this viewport.
 const EXPECTED_IMG_WIDTH = 1024;
 const EXPECTED_H1_WIDTH = 992;
-const PROSE_MAX_WIDTH = 700; // Tailwind `max-w-prose` ~ 65ch ≈ 700px (tolerance below)
+const PROSE_MAX_WIDTH = 825; // `max-w-measure` 75ch ≈ 825px (measured; tolerance below)
 const PROSE_TOLERANCE = 20;
 const OTHER_TOLERANCE = 10;
 

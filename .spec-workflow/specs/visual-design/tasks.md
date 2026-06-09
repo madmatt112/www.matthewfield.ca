@@ -11,7 +11,7 @@ prose-migration (Task 18) lands as one change so the site is never mid-migration
 
 ## Phase 1: Token foundation (R2, R5, R6, R7)
 
-- [ ] 1. Add the rust brand accent token family + brand focus ring
+- [x] 1. Add the rust brand accent token family + brand focus ring
   - File: src/styles/tokens.css, src/styles/globals.css
   - In `tokens.css`, add matched `:root`/`.dark` pairs: `--brand` (light `oklch(0.50 0.13 42)` / dark `oklch(0.75 0.12 55)`), `--brand-foreground` (light `oklch(0.99 0 0)` / dark `oklch(0.205 0 0)`), and `--brand-visited` (light `oklch(0.50 0.06 42)` / dark `oklch(0.72 0.05 55)`)
   - Repoint `--ring` to `var(--brand)` in **both** `:root` and `.dark` (was zero-chroma)
@@ -23,7 +23,7 @@ prose-migration (Task 18) lands as one change so the site is never mid-migration
   - _Requirements: R2 AC1, R2 AC2, R2 AC4, R5 AC2_
   - _Prompt: Implement the task for spec visual-design, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Design-systems engineer fluent in OKLCH and Tailwind v4 @theme | Task: Add the `--brand`/`--brand-foreground`/`--brand-visited` matched pairs and repoint `--ring` to brand in tokens.css, and map the brand colors in the globals.css @theme inline block, per design §1 | Restrictions: Use the exact OKLCH values from design §1; keep all neutral roles at chroma 0 (do NOT recolor --primary); do not add arbitrary Tailwind values; match the existing :root/.dark pair formatting | Success: text-brand/bg-brand/text-brand-visited utilities resolve, --ring is brand in both themes, brand link ≥4.5:1 and ring ≥3:1 matching the design §1 pre-computed figures (rendered-DOM axe check is Task 21), tsc + build clean. Set this task to [-] before starting; after it works, call log-implementation, then mark it [x]_
 
-- [ ] 2. Add the success / warning / info status roles
+- [x] 2. Add the success / warning / info status roles
   - File: src/styles/tokens.css, src/styles/globals.css
   - Add matched `:root`/`.dark` pairs for `--success` (`oklch(0.50 0.15 150)` / `oklch(0.74 0.15 150)`), `--warning` (`oklch(0.52 0.12 85)` / `oklch(0.76 0.13 85)`), `--info` (`oklch(0.52 0.14 240)` / `oklch(0.74 0.13 240)`), each with a `-foreground` (near-white light / near-black dark); leave `--destructive` unchanged
   - Map `--color-success(/-foreground)`, `--color-warning(/-foreground)`, `--color-info(/-foreground)` in `@theme`
@@ -33,7 +33,7 @@ prose-migration (Task 18) lands as one change so the site is never mid-migration
   - _Requirements: R6 AC1, R6 AC3, R5 AC1_
   - _Prompt: Implement the task for spec visual-design, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Design-systems engineer | Task: Add success/warning/info matched pairs + foregrounds to tokens.css and map them in the globals.css @theme block, per design §1 status table | Restrictions: Use the exact OKLCH values; do not touch --destructive; hold --warning's hue (85) away from brand's 42–55; confirm the ≥4.6 margin over the /10 tint on both background and card, both themes, against the design §1 status figures (axe rendered-DOM check is Task 21) | Success: text-success/-warning/-info + bg-*/10 utilities resolve, all three match the design §1 status figures (≥4.6:1 over their tint on background and card in both themes), build clean. Set [-] before starting; log-implementation then [x] when done_
 
-- [ ] 3. Add the measure + z-index layout tokens
+- [x] 3. Add the measure + z-index layout tokens
   - File: src/styles/globals.css
   - In `@theme`, add `--container-measure: 75ch` (the `--container-*` namespace yields `max-w-measure`) and the z-index scale using Tailwind v4's **`--z-index-*`** namespace (NOT `--z-*`): `--z-index-base: 0`, `--z-index-sticky: 40`, `--z-index-overlay: 50`, `--z-index-toast: 60` — the v4 `z` utility reads `themeKeys: ["--z-index"]`, so these generate `z-base`/`z-sticky`/`z-overlay`/`z-toast`; `--z-sticky` would generate nothing
   - Note the header's current `z-40` is already a valid static v4 step (so this tokenization is a naming/clarity improvement, not a grep-gate fix); verify a `z-sticky` utility actually generates before relying on it
@@ -44,7 +44,7 @@ prose-migration (Task 18) lands as one change so the site is never mid-migration
 
 ## Phase 2: Typography system (R4) — blocked by Phase 1
 
-- [ ] 4. Add the Fraunces serif display face via next/font
+- [x] 4. Add the Fraunces serif display face via next/font
   - File: src/app/layout.tsx, src/styles/globals.css
   - Register `Fraunces` through `next/font/google` (self-hosted at build, CSP-safe), latin subset, `display: "swap"`, variable weight, exposed as `--font-display` on `<html>` alongside the existing Geist Sans/Mono variables
   - Map `--font-display` in the `@theme` block so a `font-display`/serif utility resolves for headings
@@ -54,7 +54,7 @@ prose-migration (Task 18) lands as one change so the site is never mid-migration
   - _Requirements: R4 AC1, R4 AC2, R4 AC4_
   - _Prompt: Implement the task for spec visual-design, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Next.js performance engineer | Task: Add Fraunces via next/font/google mirroring the existing Geist setup in layout.tsx, expose it as --font-display on the `<html>` element, and map --font-display in the @theme block | Restrictions: Self-host via next/font only (no external font origin — CSP font-src 'self'); variable, latin subset, display swap; headings-only glyph use; do not add client JS | Success: --font-display variable is present on the `<html>` element, the serif resolves on a heading utility, build clean, no CSP/font console errors. Set [-] before starting; log-implementation then [x]_
 
-- [ ] 5. Add @tailwindcss/typography and theme `.prose` to tokens
+- [x] 5. Add @tailwindcss/typography and theme `.prose` to tokens
   - File: src/styles/globals.css, package.json
   - Add `@tailwindcss/typography` as a dependency and the v4 `@plugin "@tailwindcss/typography";` directive in `globals.css`
   - Theme **both** variable sets to token roles: `--tw-prose-body/-headings → foreground`, `--tw-prose-links → brand`, `--tw-prose-captions → muted-foreground`, `--tw-prose-borders → border`, **and** the matching `--tw-prose-invert-*` set to the same token roles (so dark-mode prose links resolve to `--brand`, not the plugin default)
@@ -69,7 +69,7 @@ prose-migration (Task 18) lands as one change so the site is never mid-migration
 
 ## Phase 3: Signature + interactive components (R3, R2, R6) — blocked by Phases 1–2
 
-- [ ] 6. Create the Wordmark component
+- [x] 6. Create the Wordmark component
   - File: src/components/layout/wordmark.tsx, src/components/layout/wordmark.test.tsx
   - `Wordmark({ className?, asLink? })` renders mono `mf` + brand `/`; when `asLink` (default true) wraps in `Link href="/"` with accessible name "Matthew Field — home"
   - Unit test: renders the `mf/` text/structure, the `/` carries the brand class, and (as link) links to `/` with the accessible name
@@ -78,7 +78,7 @@ prose-migration (Task 18) lands as one change so the site is never mid-migration
   - _Requirements: R3 AC3, R8 AC1_
   - _Prompt: Implement the task for spec visual-design, first run spec-workflow-guide to get the workflow guide then implement the task: Role: React/TypeScript component author | Task: Create the Wordmark component per design "Components → Wordmark" and a colocated Vitest test | Restrictions: kebab-case file, one PascalCase named export, no default export, no barrel; mono font + brand `/` via tokens (no literals); accessible name "Matthew Field — home" | Success: component renders mf/ with a brand-colored slash, links to / when asLink, unit test passes, tsc clean. Set [-] before starting; log-implementation then [x]_
 
-- [ ] 7. Create the SectionKicker component
+- [x] 7. Create the SectionKicker component
   - File: src/components/shared/section-kicker.tsx, src/components/shared/section-kicker.test.tsx
   - `SectionKicker({ label, className? })` renders `<p class="font-mono text-xs uppercase tracking-widest text-brand">/ {label}</p>`
   - Unit test: renders `/ {label}`, mono/uppercase/tracked classes, brand color
@@ -87,7 +87,7 @@ prose-migration (Task 18) lands as one change so the site is never mid-migration
   - _Requirements: R3 AC1, R3 AC3, R3 AC5_
   - _Prompt: Implement the task for spec visual-design, first run spec-workflow-guide to get the workflow guide then implement the task: Role: React/TypeScript component author | Task: Create SectionKicker per design "Components → SectionKicker" plus a colocated Vitest test | Restrictions: kebab-case file, named export only, tokens only (no literal colors/sizes), text-xs/uppercase/tracking-widest/font-mono/text-brand | Success: renders `/ {label}` with the brand slash in the mono kicker style, unit test passes, tsc clean. Set [-] before starting; log-implementation then [x]_
 
-- [ ] 8. Add the Button `brand` variant + ring and link edits
+- [x] 8. Add the Button `brand` variant + ring and link edits
   - File: src/components/ui/button.tsx
   - Add CVA `variant: "brand"` → `bg-brand text-brand-foreground hover:bg-brand/90`
   - Change the shared focus utility `focus-visible:ring-ring/50` → `focus-visible:ring-ring` (full-alpha brand ring, meets non-text 1.4.11 per design §1 ring-alpha note)
@@ -98,7 +98,7 @@ prose-migration (Task 18) lands as one change so the site is never mid-migration
   - _Requirements: R2 AC3, R5 AC2, R8 AC4_
   - _Prompt: Implement the task for spec visual-design, first run spec-workflow-guide to get the workflow guide then implement the task: Role: shadcn/ui maintainer | Task: Add the brand CVA variant and make the two edits (ring-ring/50 → ring-ring; link variant text-primary → text-brand) in button.tsx per design "Components → Button" | Restrictions: Do not change the default/secondary/ghost variants or --primary; brand variant is a small control, never a surface; keep the existing ring width (ring-[3px]) | Success: the brand variant renders bg-brand/text-brand-foreground, link buttons are brand, focus ring is full-alpha brand and clears ≥3:1, existing button tests pass. Set [-] before starting; log-implementation then [x]_
 
-- [ ] 9. Status feedback: StatusCallout pairing color + icon
+- [x] 9. Status feedback: StatusCallout pairing color + icon
   - File: src/components/shared/status-callout.tsx (new) and/or src/components/shared/contact-form.tsx
   - Provide consistent status feedback that pairs a status role color with a lucide icon + text: `StatusCallout({ tone: "success"|"warning"|"info"|"error", icon, children })` → `bg-<tone>/10 text-<tone>` with an accessible-named icon; OR, if the contact form's existing feedback markup already suffices, realize this as the same tokenized utility convention there (decide at implementation)
   - Wire the contact-form result state to use it so state is never color-alone (R5.3/R6.2)
@@ -109,7 +109,7 @@ prose-migration (Task 18) lands as one change so the site is never mid-migration
 
 ## Phase 4: Motion, print, brand artifacts (R7, R8) — blocked by Phases 1–2
 
-- [ ] 10. Reduced-motion rule + no-flash theme toggle
+- [x] 10. Reduced-motion rule + no-flash theme toggle
   - File: src/styles/globals.css, src/components/layout/theme-provider.tsx
   - Add a global `@media (prefers-reduced-motion: reduce)` rule in `globals.css` reducing transition/animation durations to ~0 site-wide (generalizing the per-file handling in `reading-progress.css`)
   - Add `disableTransitionOnChange` to the `NextThemesProvider` in `theme-provider.tsx`
@@ -118,7 +118,7 @@ prose-migration (Task 18) lands as one change so the site is never mid-migration
   - _Requirements: R7 AC3, R10 AC3_
   - _Prompt: Implement the task for spec visual-design, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Front-end engineer | Task: Add the global prefers-reduced-motion rule to globals.css and set disableTransitionOnChange on ThemeProvider per design §4 | Restrictions: One-line provider prop (no new component); the reduced-motion rule is global but must not break Radix overlay open/close usability; suppressHydrationWarning already on the `<html>` element — don't duplicate | Success: theme toggle does not flash, reduced-motion users get ~0 transition durations, theme-toggle E2E stays green. Set [-] before starting; log-implementation then [x]_
 
-- [ ] 11. Fold the reading-progress fill into the brand role
+- [x] 11. Fold the reading-progress fill into the brand role
   - File: src/styles/blog/reading-progress.css
   - Replace the one-off blue fill (the `:root` fill `oklch(0.55 0.2 240)` at line 12 and the `.dark` fill `oklch(0.7 0.16 240)` at line 17) with `var(--brand)` so the site's only pre-existing chroma becomes the brand role
   - Purpose: Single accent — no second chromatic color (design Code Reuse)
@@ -126,7 +126,7 @@ prose-migration (Task 18) lands as one change so the site is never mid-migration
   - _Requirements: R2 AC1, R1 AC1_
   - _Prompt: Implement the task for spec visual-design, first run spec-workflow-guide to get the workflow guide then implement the task: Role: CSS maintainer | Task: Swap the reading-progress blue fill for var(--brand) in both light/dark blocks | Restrictions: Use the token, not a literal; keep the existing reduced-motion branch; the reading-progress parity E2E must stay green (brand light ≠ dark) | Success: the reading-progress bar renders in brand in both themes, parity E2E green. Set [-] before starting; log-implementation then [x]_
 
-- [ ] 12. Print/PDF profile stylesheet
+- [x] 12. Print/PDF profile stylesheet
   - File: src/styles/print.css (new), src/styles/globals.css (import)
   - Add `src/styles/print.css` imported from `globals.css` (mirroring the `blog/*.css` slice convention) under `@media print`
   - **Re-declare token custom properties under `@media print { :root, .dark { … } }`** to force light: neutral surfaces (`--background: white`, `--foreground: black`, `--card`/`--popover`/`--muted: white`, `--border: #ccc`, `--muted-foreground: #444`) **and** brand ink (`--brand: oklch(0.45 0.13 42)`, `--brand-visited: oklch(0.45 0.06 42)`, `--brand-foreground: white`) so a CV printed from dark mode is readable
@@ -136,7 +136,7 @@ prose-migration (Task 18) lands as one change so the site is never mid-migration
   - _Requirements: R8 AC5_
   - _Prompt: Implement the task for spec visual-design, first run spec-workflow-guide to get the workflow guide then implement the task: Role: CSS engineer experienced with print stylesheets | Task: Create print.css per design §5 — re-declare neutral + brand tokens under @media print to force light, and scope the chrome-hiding/measure rules to the profile route — and import it from globals.css | Restrictions: Must re-declare the custom properties (utility classes alone won't override .dark on the `<html>` element); brand ink must be on-white-legible rust; keep email/social as text, hide the contact form | Success: printing /profile from BOTH light and dark mode yields a light, high-contrast CV with legible rust kicker labels/links at the 75ch measure. Set [-] before starting; log-implementation then [x]_
 
-- [ ] 13. Favicon / brand-mark icon set
+- [x] 13. Favicon / brand-mark icon set
   - File: src/app/icon.svg (new), src/app/apple-icon.png (new), src/app/favicon.ico (regenerate)
   - Add `icon.svg` (the `/` path-mark in a rounded square, brand on neutral) and `apple-icon.png` (180×180) via the Next.js App Router metadata-file convention; regenerate `favicon.ico` to match; brand-on-neutral so it reads in light and dark browser chrome
   - Purpose: A favicon set matching the wordmark (R8.1)
@@ -144,7 +144,7 @@ prose-migration (Task 18) lands as one change so the site is never mid-migration
   - _Requirements: R8 AC1_
   - _Prompt: Implement the task for spec visual-design, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Brand/asset engineer | Task: Create the icon.svg + apple-icon.png (180×180) metadata files and regenerate favicon.ico, all expressing the `/` path-mark brand-on-neutral, per design §5 | Restrictions: Use the App Router metadata-file convention (not manual `<link>` tags); brand-on-neutral for both browser chromes; keep file sizes small | Success: the new icons are served, the tab/bookmark icon shows the path-mark, build clean. Set [-] before starting; log-implementation then [x]_
 
-- [ ] 14. Build-time Open Graph image + remove the dangling og-default ref
+- [x] 14. Build-time Open Graph image + remove the dangling og-default ref
   - File: src/app/opengraph-image.tsx (new), src/config/site.ts
   - Add `src/app/opengraph-image.tsx` rendered at build via `next/og` `ImageResponse`, composing the identity (serif name, `mf/` mark, rust `/`, neutral field); derive a default `twitter-image` from the same route
   - **Load font glyph data explicitly**: `ImageResponse` does not read `next/font`. Do **not** try to read the hashed `.next`/node_modules woff2 (those filenames are content-hashed and unstable across builds). Instead **commit a Fraunces + Geist Mono font binary (`.ttf`/`.otf`) at a fixed path under `public/fonts/` (create the dir) or `src/`** and read that committed file at build time, passing it via `ImageResponse`'s `fonts: [...]` option. **Source:** there is no `geist` npm package installed (Geist loads via `next/font/google`), so download the static OFL-1.1 binaries directly — Fraunces and Geist Mono are both OFL-1.1 (redistribution-OK to commit) from Google Fonts / their upstream repos; commit the one or two weights the OG layout needs (the display weight for the name, mono for the `/`)
@@ -156,7 +156,7 @@ prose-migration (Task 18) lands as one change so the site is never mid-migration
 
 ## Phase 5: Apply the identity across the eight sections (R1, R9) — blocked by Phases 3–4
 
-- [ ] 15. Header: swap the text link for the Wordmark
+- [x] 15. Header: swap the text link for the Wordmark
   - File: src/components/layout/header.tsx, plus any header test
   - Replace the `siteConfig.name` text link (`header.tsx:12-14`) with `<Wordmark />`; optionally swap the header's `z-40` to the generated `z-sticky` utility (from Task 3's `--z-index-sticky`) for clarity — `z-40` already works, so this is cosmetic
   - Update any Vitest/Playwright assertion that selects the header brand text
@@ -165,7 +165,7 @@ prose-migration (Task 18) lands as one change so the site is never mid-migration
   - _Requirements: R9 AC1, R9 AC4, R8 AC1_
   - _Prompt: Implement the task for spec visual-design, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Front-end developer | Task: Replace the header text link with Wordmark and update affected tests per design Code Reuse | Restrictions: Keep header layout/stickiness; update (don't delete) any test asserting the old brand text; the z-sticky swap is optional/cosmetic (z-40 already works) | Success: header renders the mf/ wordmark linking home, header/nav tests pass. Set [-] before starting; log-implementation then [x]_
 
-- [ ] 16. Landing hero re-style (priority surface) — establishes the shared conventions
+- [x] 16. Landing hero re-style (priority surface) — establishes the shared conventions
   - File: src/app/(site)/page.tsx, src/components/shared/hero-card.tsx, plus e2e/landing test
   - Replace the hero `AvatarPlaceholder` (`page.tsx:17`) with the `Wordmark` mark; render the name in the serif display step (`text-4xl` mobile with `text-balance`, → `text-5xl`/`text-6xl` at sm/md); add a `SectionKicker` and the hairline brand rule; brand links
   - **Define the two shared conventions the later section tasks reuse** (name them here so they are not reinvented per section):
@@ -177,7 +177,7 @@ prose-migration (Task 18) lands as one change so the site is never mid-migration
   - _Requirements: R1 AC3, R3 AC2, R7 AC1, R8 AC3, R9 AC2_
   - _Prompt: Implement the task for spec visual-design, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Front-end developer with an eye for layout | Task: Re-style the landing hero per design §3/§6 — Wordmark mark, serif display name (text-balance, mobile text-4xl → md text-6xl), SectionKicker, hairline brand rule, brand links — and establish the two shared conventions: re-point hero-card.tsx:17 group-hover:bg-accent/40 → group-hover:bg-accent, and apply the named gutter px-4 sm:px-6 lg:px-8 + hero pt-20 md:pt-28 | Restrictions: AvatarPlaceholder is retained only as the profile headshot fallback elsewhere — remove it from the hero; named Tailwind steps only (no arbitrary values); keep hero-card link/count structure (landing.test asserts it) | Success: hero shows wordmark + serif name + rust / kicker + hairline rule, card hover uses group-hover:bg-accent, the named gutter/hero spacing is applied, landing E2E green. Set [-] before starting; log-implementation then [x]_
 
-- [ ] 17. Professional profile re-style (priority surface)
+- [x] 17. Professional profile re-style (priority surface)
   - File: src/app/(site)/profile/page.tsx
   - Add a serif display headline + `SectionKicker`; make the contact/"Get in touch" action the page's single `brand` CTA button; brand links; keep the page container wider (`max-w-5xl`) while the body column is constrained to `max-w-measure` so gutters widen and the measure holds (R4.3); apply the named spacing rhythm (gutter `px-4 sm:px-6 lg:px-8`, section `py-16 md:py-24` — replacing today's `px-4 py-12 sm:py-16` at `profile/page.tsx:24`); the print stylesheet (Task 12) covers PDF
   - Purpose: Profile carries the signature + the one primary CTA + the named spacing rhythm (R3.2, R8.3, R2.3, R7.1)
@@ -185,7 +185,7 @@ prose-migration (Task 18) lands as one change so the site is never mid-migration
   - _Requirements: R1 AC3, R3 AC2, R7 AC1, R8 AC3, R2 AC3_
   - _Prompt: Implement the task for spec visual-design, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Front-end developer | Task: Re-style /profile per design §3/§6 — serif headline, / kicker, brand contact CTA (the single brand-filled button), brand links, widen gutters while the body holds max-w-measure, and apply the named spacing rhythm (px-4 sm:px-6 lg:px-8 gutter, py-16 md:py-24 section) | Restrictions: Exactly one brand-filled button on the page; do not widen the prose measure (widen gutters); named Tailwind steps only; the prose-body wrapper itself lands in Task 18 | Success: profile shows the serif headline + kicker + one brand CTA, measure held with wider gutters, named spacing rhythm applied, tests green. Set [-] before starting; log-implementation then [x]_
 
-- [ ] 18. Atomic prose-migration across the six long-form bodies
+- [x] 18. Atomic prose-migration across the six long-form bodies
   - File: src/app/(site)/profile/page.tsx, src/app/(site)/about/page.tsx, src/app/(site)/now/page.tsx, src/app/(site)/colophon/page.tsx, src/app/(site)/blog/[slug]/page.tsx, src/app/(site)/projects/[slug]/page.tsx, plus affected tests
   - Wrap the four currently-unstyled MDX bodies (profile `<article>`, about/now/colophon `<div class="text-base leading-relaxed text-foreground">`) in `prose dark:prose-invert max-w-measure`
   - Blog `[slug]`: replace `max-w-[75ch]` (the only one in `(site)`, at `blog/[slug]/page.tsx:143`) with `max-w-measure` and **drop `prose-lg`** (the themed scale owns sizing); ensure `dark:prose-invert` present
@@ -198,7 +198,7 @@ prose-migration (Task 18) lands as one change so the site is never mid-migration
   - _Requirements: R1 AC2, R4 AC3, R9 AC1, R9 AC4_
   - _Prompt: Implement the task for spec visual-design, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Careful refactoring developer | Task: Perform the atomic prose-migration per design §2/§6 — standardize all six bodies to `prose dark:prose-invert max-w-measure` (the bare utility wins over the plugin's components-layer .prose 65ch via v4 layer order → 75ch): wrap the four MDX bodies, swap blog's max-w-[75ch] → the canonical set and drop prose-lg, put max-w-measure on projects/[slug]'s INNER .prose element (page.tsx:87) and remove the outer max-w-prose (page.tsx:86), then measure the rendered 75ch paragraph width and set projects-detail-layout.test.ts PROSE_MAX_WIDTH (line 49) to that real value | Restrictions: One atomic change (no partial mid-migration); do NOT add max-w-none (verified in tailwindcss@4.2.2 it emits after max-w-measure → max-width:none, removing the cap); no surviving max-w-prose or max-w-[75ch]; do not change MDX content; do not guess the test px — measure it (75ch on sans ≈600px, a ≤ ceiling); if a build check shows the plugin's 65ch still winning, use an unlayered .prose max-width override per design §2, never max-w-none | Success: all six routes render themed prose at the 75ch measure in both themes (verified by measuring, not assumed), no max-w-[75ch]/max-w-prose/max-w-none on prose remains, projects-detail-layout.test.ts passes against the measured width, Vitest/Playwright green. Set [-] before starting; log-implementation then [x]_
 
-- [ ] 19. Apply identity to the remaining sections
+- [x] 19. Apply identity to the remaining sections
   - File: src/app/(site)/projects/page.tsx, src/app/(site)/contributions/page.tsx, src/app/(site)/blog/page.tsx, src/app/(site)/resources/page.tsx, src/app/(site)/sitemap/page.tsx, src/app/(site)/slashes/page.tsx, src/app/(site)/about/page.tsx, src/app/(site)/now/page.tsx, src/app/(site)/colophon/page.tsx
   - Apply brand links, a `SectionKicker` over each section heading, serif `h1`/`h2` where appropriate, the named spacing rhythm (gutter `px-4 sm:px-6 lg:px-8`, section `py-16 md:py-24`), the `group-hover:bg-accent` card-hover convention (Task 16) where cards appear, and status roles where used; keep each section's existing layout/gallery (codify, not re-style) per the design §6 table
   - **Include About/Now/Colophon** here for the `/ kicker` + brand links the design §6 row mandates (their prose-body wrap is Task 18's job; this task adds the kicker/links). These three files are also touched by Task 18 — apply Task 19 **after** Task 18 on them so the prose wrap is in place first (additive, no clobber)
@@ -209,7 +209,7 @@ prose-migration (Task 18) lands as one change so the site is never mid-migration
 
 ## Phase 6: Gates + verification (R5, R9.4, R10, R1.3/R3.6) — blocked by Phases 1–5
 
-- [ ] 20. Token-presence (active-role ↔ token) unit test
+- [x] 20. Token-presence (active-role ↔ token) unit test
   - File: src/styles/tokens.test.ts (new, or colocated)
   - Assert every role the design system calls "active" — incl. `brand`/`brand-foreground`/`brand-visited`, `success`/`warning`/`info` (+ foregrounds), `destructive` — exists in `tokens.css` and is mapped in the `@theme` block (a lightweight stand-in until the deferred CI active-role↔token check lands)
   - Purpose: No doc↔token divergence (R6.3)
@@ -217,7 +217,7 @@ prose-migration (Task 18) lands as one change so the site is never mid-migration
   - _Requirements: R6 AC3, R10 AC1_
   - _Prompt: Implement the task for spec visual-design, first run spec-workflow-guide to get the workflow guide then implement the task: Role: QA/test engineer | Task: Write a Vitest test asserting each active role exists in tokens.css (matched :root/.dark) and is mapped in @theme per design Testing Strategy | Restrictions: Read the CSS as text and assert presence/mapping; keep it lightweight; do not duplicate the deferred CI check's full scope | Success: the test passes and fails loudly if a role is added to the doc but missing from tokens/@theme. Set [-] before starting; log-implementation then [x]_
 
-- [ ] 21. Accessibility / contrast verification (axe, both themes)
+- [x] 21. Accessibility / contrast verification (axe, both themes)
   - File: e2e/tests (axe coverage), as needed
   - Run axe on landing, profile, a blog post, and a status-feedback state in **both** themes — zero color-contrast violations; verify the §1 legal-pairing matrix holds at the deepest legal nest (status text on `/10` over card); confirm the brand focus ring meets non-text contrast
   - Purpose: AA contrast in both themes, verifying the design §1 matrix (R5.1, R5.2)
@@ -225,7 +225,7 @@ prose-migration (Task 18) lands as one change so the site is never mid-migration
   - _Requirements: R5 AC1, R5 AC2, R10 AC1_
   - _Prompt: Implement the task for spec visual-design, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Accessibility QA engineer | Task: Add/extend axe checks on landing, profile, blog post, and a status state in both themes; verify the §1 matrix and the brand focus-ring non-text contrast | Restrictions: Both themes required; assert zero color-contrast violations; test the composited /10 tint on a card, not just the solid role | Success: axe reports zero contrast violations across the named pages in both themes, focus ring ≥3:1 confirmed. Set [-] before starting; log-implementation then [x]_
 
-- [ ] 22. Full suite green + no-flash + R1.2 arbitrary-value gate
+- [x] 22. Full suite green + no-flash + R1.2 arbitrary-value gate
   - File: (verification across the repo)
   - Run the full Vitest + Playwright suites and fix any assertions broken by the markup changes (header wordmark, prose wrappers, projects measure); assert the theme-toggle no-flash behavior is wired (provider prop)
   - Run the R1.2 grep gate **pinned to the exact narrow pattern** the design enumerates — arbitrary **color/font-size/padding-margin** one-offs only: `text-\[`, `bg-\[#`, and `[pm][xytrbl]?-\[` — across `src/app/(site)` and the shared components it renders. **Do NOT** flag layout sizing (`min-h-[…]`, `max-h-[…]`, `min-w-[…]`, `max-w-[…]`, `h-[…]`, `w-[…]`) which are legitimate and out of scope: the repo legitimately uses `min-h-[300vh]` (the `blog/component-preview` route), `min-h-[28rem]` and `min-h-[1.25rem]` (`contact-form.tsx`), and Radix sizing tokens in `ui/`. `(site)` has no color/font/padding one-offs of this pinned shape today, so the pinned grep returns zero. (The `max-w-[75ch]` that Task 18 removes is a *layout-measure* value outside this pinned pattern — its removal serves the design's measure-coherence intent, not this color/font/padding grep; do not expect the grep to have ever matched it.)
@@ -234,7 +234,7 @@ prose-migration (Task 18) lands as one change so the site is never mid-migration
   - _Requirements: R1 AC2, R9 AC4, R10 AC3_
   - _Prompt: Implement the task for spec visual-design, first run spec-workflow-guide to get the workflow guide then implement the task: Role: Release-gate engineer | Task: Run the full Vitest + Playwright suites, fix any markup-driven assertion breakage, confirm no-flash wiring, and run the R1.2 arbitrary-value grep PINNED to color/font/padding-margin one-offs only (`text-\[`, `bg-\[#`, `[pm][xytrbl]?-\[`) | Restrictions: Do not weaken tests to make them pass — fix the assertion or the code; the grep must NOT flag layout sizing (min-h/max-h/min-w/max-w/h-/w- arbitrary values) or Radix tokens in ui/ — those are legitimate and out of the spec's removal scope | Success: pnpm test and pnpm test:e2e both green, the pinned color/font/padding grep returns zero hits in (site). Set [-] before starting; log-implementation then [x]_ Set [-] before starting; log-implementation then [x]_
 
-- [ ] 23. Visual review vs design-baseline + distinctiveness + Lighthouse
+- [x] 23. Visual review vs design-baseline + distinctiveness + Lighthouse
   - File: (review; capture any "after" screenshots alongside design-baseline/)
   - Side-by-side review every `(site)` route against `design-baseline/*.png` in both themes at the named Tailwind breakpoints; apply the R3.6 distinctiveness test (a reviewer who cannot tell the result from a stock shadcn-neutral site = FAIL — the result must show serif name + `mf/` mark + rust `/` kicker + hairline surfaces); confirm 90+ Lighthouse Performance and theme parity hold
   - Purpose: The R1.3/R3.6 subjective-quality arbiter + the perf/parity gates (R1.3, R3.6, R10.1)

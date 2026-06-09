@@ -20,7 +20,6 @@ type SiteConfig = {
   description: string;
   url: string;
   language: string;
-  ogImage: string;
   navItems: NavItem[];
   heroCards: HeroCardConfig[];
   slashPages: SlashPage[];
@@ -39,7 +38,6 @@ export const siteConfig: SiteConfig = {
   // from this) and is the trusted origin for the contact endpoint.
   url: "https://www.matthewfield.ca",
   language: "en-CA",
-  ogImage: "/images/og-default.png",
   navItems: [
     { label: "Professional Profile", href: "/profile" },
     { label: "Projects", href: "/projects" },

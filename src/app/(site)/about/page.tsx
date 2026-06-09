@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { pages } from "#site/content";
 
 import { MDXContent } from "@/components/shared/mdx-content";
+import { SectionKicker } from "@/components/shared/section-kicker";
 
 // Velite's pages schema requires content/pages/about.mdx (task 7). If that
 // entry is ever removed or renamed, fail loudly at module load rather than
@@ -28,9 +29,10 @@ export function generateMetadata(): Metadata {
 
 export default function AboutPage() {
   return (
-    <article className="mx-auto w-full max-w-3xl px-4 py-16 sm:py-24">
-      <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{aboutPage.title}</h1>
-      <div className="mt-6 text-base leading-relaxed text-foreground">
+    <article className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+      <SectionKicker label="about" />
+      <h1 className="mt-3 font-display text-3xl tracking-tight sm:text-4xl">{aboutPage.title}</h1>
+      <div className="prose dark:prose-invert max-w-measure mt-6">
         <MDXContent code={aboutPage.body} />
       </div>
     </article>

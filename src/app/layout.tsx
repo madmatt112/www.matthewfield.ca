@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Fraunces } from "next/font/google";
 import "@/styles/globals.css";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { siteConfig } from "@/config/site";
@@ -14,6 +14,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const fraunces = Fraunces({
+  variable: "--font-display",
+  subsets: ["latin"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
@@ -21,9 +27,9 @@ export const metadata: Metadata = {
     template: `%s | matthewfield.ca`,
   },
   description: siteConfig.description,
-  openGraph: {
-    images: [siteConfig.ogImage],
-  },
+  // OG/Twitter images are served by the metadata-file convention
+  // (src/app/opengraph-image.tsx + twitter-image.tsx), so no manual
+  // openGraph.images override is needed here.
 };
 
 export default function RootLayout({
@@ -35,7 +41,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable}`}
+      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable}`}
     >
       <body>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>

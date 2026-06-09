@@ -10,6 +10,7 @@ export function ThemeProvider({ children, ...props }: ComponentProps<typeof Next
     <NextThemesProvider
       storageKey={THEME_STORAGE_KEY}
       value={{ light: "light", dark: "dark" }}
+      disableTransitionOnChange
       {...props}
     >
       {children}

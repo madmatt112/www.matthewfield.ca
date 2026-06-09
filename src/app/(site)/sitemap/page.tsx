@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { SectionKicker } from "@/components/shared/section-kicker";
 import { siteConfig } from "@/config/site";
 import { getVisiblePublishedPosts } from "@/lib/blog";
 import { getPublishedProjects } from "@/lib/projects";
@@ -20,14 +21,15 @@ export default function SitemapPage() {
   const projects = getPublishedProjects();
 
   return (
-    <article className="mx-auto w-full max-w-3xl px-4 py-16 sm:py-24">
-      <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Sitemap</h1>
+    <article className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+      <SectionKicker label="sitemap" />
+      <h1 className="mt-3 font-display text-3xl tracking-tight sm:text-4xl">Sitemap</h1>
 
       <section className="mt-10">
         <h2 className="text-xl font-semibold tracking-tight">Home</h2>
         <ul className="mt-3 space-y-1">
           <li>
-            <Link href="/" className="text-base text-foreground underline-offset-4 hover:underline">
+            <Link href="/" className="text-base text-brand underline-offset-4 hover:underline">
               Home
             </Link>
           </li>
@@ -41,7 +43,7 @@ export default function SitemapPage() {
             <li key={item.href}>
               <Link
                 href={item.href}
-                className="text-base text-foreground underline-offset-4 hover:underline"
+                className="text-base text-brand underline-offset-4 hover:underline"
               >
                 {item.label}
               </Link>
@@ -57,7 +59,7 @@ export default function SitemapPage() {
             <li key={page.href}>
               <Link
                 href={page.href}
-                className="text-base text-foreground underline-offset-4 hover:underline"
+                className="text-base text-brand underline-offset-4 hover:underline"
               >
                 {page.title}
               </Link>
@@ -74,7 +76,7 @@ export default function SitemapPage() {
               <li key={post.slug}>
                 <Link
                   href={`/blog/${post.slug}`}
-                  className="text-base text-foreground underline-offset-4 hover:underline"
+                  className="text-base text-brand underline-offset-4 hover:underline"
                 >
                   {post.title}
                 </Link>
@@ -92,7 +94,7 @@ export default function SitemapPage() {
               <li key={project.slug}>
                 <Link
                   href={`/projects/${project.slug}`}
-                  className="text-base text-foreground underline-offset-4 hover:underline"
+                  className="text-base text-brand underline-offset-4 hover:underline"
                 >
                   {project.title}
                 </Link>

@@ -1,0 +1,88 @@
+/* Slice: print — Print/PDF profile stylesheet (Task 12, R8.5).
+ *
+ * Goal: printing the /profile page (a CV) yields a clean, light, readable
+ * document regardless of the on-screen theme.
+ *
+ * MECHANISM — why the token custom properties are re-declared, not just
+ * overridden with utilities: the design tokens are class-scoped. When a user
+ * prints from dark mode the `.dark` class is still on <html>, and
+ * globals.css's `body { background-color: var(--background) }` keeps the page
+ * near-black. Utility classes cannot beat `.dark`'s custom-property values, so
+ * print.css re-declares the values themselves under `:root, .dark` inside
+ * `@media print`. That forces every `var(--background)` / `var(--foreground)` /
+ * `bg-card` / `text-muted-foreground` surface AND the brand `/ kicker` / links
+ * to resolve to readable ink on paper.
+ *
+ * The token re-declaration is GLOBAL to @media print; the chrome-hiding and
+ * measure rules are scoped to the profile route via `body:has(.profile-print-root)`
+ * (the .profile-print-root wrapper lives on the /profile page container). */
+
+@media print {
+  /* Force LIGHT by re-declaring the token custom properties. Listing `.dark`
+     alongside `:root` overrides the dark-theme values when printing from a
+     dark-mode session. */
+  :root,
+  .dark {
+    --background: white;
+    --foreground: black;
+    --card: white;
+    --popover: white;
+    --muted: white;
+    --border: #ccc;
+    --muted-foreground: #444;
+
+    /* Brand ink: the light-amber dark-mode --brand value is ~1.8:1 on white,
+       washing out the rust "/ kicker" labels and links. Force a dark, on-white
+       legible rust ink. */
+    --brand: oklch(0.45 0.13 42);
+    --brand-visited: oklch(0.45 0.06 42);
+    --brand-foreground: white;
+  }
+
+  /* Page geometry: sensible margins for a printed CV. */
+  @page {
+    margin: 2cm;
+  }
+
+  /* --- Profile route only (scoped via the page wrapper) --- */
+
+  /* Hide site chrome and interactive-only elements: header (which contains the
+     theme toggle), footer, search, and the contact FORM. Email + social links
+     are plain elements (not <form>), so they survive as text. */
+  body:has(.profile-print-root) header,
+  body:has(.profile-print-root) footer,
+  body:has(.profile-print-root) [data-pagefind-ui],
+  body:has(.profile-print-root) .profile-print-root form {
+    display: none !important;
+  }
+
+  /* Black-on-white prose at the 75ch measure with generous gutters dropped. */
+  body:has(.profile-print-root) .profile-print-root {
+    max-width: 75ch;
+    margin: 0 auto;
+    padding: 0;
+    color: black;
+    background: white;
+  }
+
+  /* Avoid awkward page breaks inside headings and list items; keep a heading
+     with the text that follows it. */
+  .profile-print-root :is(h1, h2, h3, h4, h5, h6) {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .profile-print-root :is(h1, h2, h3, h4, h5, h6, li) {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Expand EXTERNAL link hrefs after the link text so the URL survives on
+     paper. Scoped to absolute http(s) links only — internal/relative links and
+     in-page anchors are not expanded (they'd be useless or absurd on print). */
+  .profile-print-root a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+    word-break: break-all;
+  }
+}

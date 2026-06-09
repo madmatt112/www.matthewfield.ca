@@ -140,7 +140,7 @@ export default async function BlogPostPage({ params }: { params: Promise<RoutePa
           <SeriesNavigator posts={seriesMembers} currentSlug={post.slug} seriesName={post.series} />
         ) : null}
         <TableOfContents entries={tocEntries} />
-        <div className="prose prose-lg dark:prose-invert max-w-[75ch] mt-8">
+        <div className="prose dark:prose-invert max-w-measure mt-8">
           <MDXContent code={post.body} />
         </div>
         <ShareBar title={post.title} description={post.description} url={postUrl} />

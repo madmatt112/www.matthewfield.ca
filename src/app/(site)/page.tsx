@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 
-import { AvatarPlaceholder } from "@/components/shared/avatar-placeholder";
+import { Wordmark } from "@/components/layout/wordmark";
 import { HeroCard } from "@/components/shared/hero-card";
+import { SectionKicker } from "@/components/shared/section-kicker";
 import { siteConfig } from "@/config/site";
 
 export function generateMetadata(): Metadata {
@@ -12,15 +13,17 @@ export function generateMetadata(): Metadata {
 
 export default function HomePage() {
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:py-16">
-      <section className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:gap-10">
-        <AvatarPlaceholder size={160} label={`Portrait of ${siteConfig.name} (placeholder)`} />
-        <div className="flex flex-col gap-3">
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{siteConfig.name}</h1>
-          <p className="max-w-2xl text-base text-muted-foreground sm:text-lg">
-            {siteConfig.description}
-          </p>
-        </div>
+    <div className="mx-auto w-full max-w-6xl px-4 pt-20 sm:px-6 md:pt-28 lg:px-8">
+      <section className="flex flex-col items-start gap-6">
+        <Wordmark className="text-2xl" asLink={false} />
+        <SectionKicker label="home" />
+        <h1 className="text-balance font-display text-4xl tracking-tight sm:text-5xl md:text-6xl">
+          {siteConfig.name}
+        </h1>
+        <hr className="h-px w-16 border-0 bg-brand" />
+        <p className="max-w-2xl text-base text-muted-foreground sm:text-lg">
+          {siteConfig.description}
+        </p>
       </section>
 
       <section aria-labelledby="sections-heading" className="mt-12 sm:mt-16">

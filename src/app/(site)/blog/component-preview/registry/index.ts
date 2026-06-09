@@ -8,6 +8,7 @@ import relatedPosts from "./related-posts";
 import seriesBadge from "./series-badge";
 import seriesNavigator from "./series-navigator";
 import shareBar from "./share-bar";
+import statusCallout from "./status-callout";
 import tableOfContents from "./table-of-contents";
 
 export type RegistryEntry =
@@ -21,6 +22,7 @@ export const registry: Record<string, RegistryEntry> = {
   "share-bar": shareBar,
   "reading-progress": readingProgress,
   "table-of-contents": tableOfContents,
+  "status-callout": statusCallout,
   "copy-button": copyButton,
   footnotes: footnotes,
   "pagefind-ui": pagefindUi,
