@@ -1,10 +1,10 @@
-/* shadcn/ui theme tokens, neutral base color. Regenerate by running
-     `npx shadcn@latest init --base radix --preset nova --yes --force`
-   against a scratch `create-next-app` and copying the emitted :root / .dark
-   blocks here verbatim. The paired @theme inline block in
-   src/styles/globals.css must be regenerated from the same scratch output
-   so tokens and utility mappings stay on one upstream snapshot. Do not
-   hand-edit. */
+/* Design tokens for the site theme (OKLCH; :root = light, .dark = dark).
+   Owned by the design system — see .spec-workflow/steering/design-system.md,
+   the source of truth for token roles and values. shadcn/ui's neutral base was
+   the starting point, not an upstream tracked for parity; these values are
+   hand-authored and may diverge from any shadcn preset (e.g. the contrast-tuned
+   --muted-foreground / --destructive below). Keep the @theme inline mapping in
+   src/styles/globals.css aligned with this token set when roles change. */
 
 :root {
   --background: oklch(1 0 0);

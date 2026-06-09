@@ -16,7 +16,7 @@ Static-first personal website with dynamic capability for interactive playground
 
 ### Styling
 - **Tailwind CSS v4**: Utility-first CSS framework. Handles all styling including responsive design and dark/light mode.
-- **shadcn/ui**: Copy-paste component library built on Radix UI primitives + Tailwind. Components are owned source code, not an installed dependency — fully modifiable to match whatever design language is chosen.
+- **shadcn/ui**: Copy-paste component library built on Radix UI primitives + Tailwind. Components are owned source code, not an installed dependency — fully modifiable to match whatever design language is chosen. That design language — token roles and values, type/spacing scales, component conventions, and the accessibility/performance gates the UI must meet — is defined in `.spec-workflow/steering/design-system.md`. `src/styles/tokens.css` is that system's implementation: the design system owns the token values; shadcn is a starting point, not an upstream tracked for parity.
 
 ### Content Pipeline
 - **MDX**: Markdown with optional embedded React components. Content files use `.mdx` extension. Files that don't use React components behave identically to plain markdown. This is low-cost optionality — MDX compilation is slightly slower than plain markdown, editor previews don't render JSX syntax, and JSX errors produce React compilation errors rather than helpful markdown diagnostics. These are small costs for the ability to embed interactive elements in content if needed.

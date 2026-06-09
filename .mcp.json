@@ -5,6 +5,12 @@
       "command": "npx",
       "args": ["-y", "@madmatt112org/spec-workflow-mcp@latest", "/home/mcf/repo/matthew-field.ca"],
       "env": {}
+    },
+    "shadcn": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "shadcn@latest", "mcp"],
+      "env": {}
     }
   }
 }

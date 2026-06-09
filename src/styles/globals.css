@@ -39,13 +39,11 @@ body {
   color: var(--foreground);
 }
 
-/* Maps Tailwind color / radius utilities onto the shadcn/ui tokens declared
-   in tokens.css. Regenerate by running
-     `npx shadcn@latest init --base radix --preset nova --yes --force`
-   against a scratch `create-next-app` (neutral base color is already the
-   shadcn default and copies verbatim into tokens.css) — then lift the
-   emitted @theme inline block back into this file. Do not hand-edit, so
-   the mapping stays byte-aligned with upstream shadcn. */
+/* Maps Tailwind color / radius utilities onto the design tokens declared in
+   tokens.css. The token set is owned by the design system
+   (.spec-workflow/steering/design-system.md); keep this mapping aligned with
+   tokens.css when roles are added or changed. shadcn/ui was the starting point,
+   not an upstream tracked for parity. */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

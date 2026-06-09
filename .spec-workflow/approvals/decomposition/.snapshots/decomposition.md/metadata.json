@@ -1,6 +1,6 @@
 {
   "filePath": ".spec-workflow/spec-decomposition/decomposition.md",
-  "currentVersion": 5,
+  "currentVersion": 6,
   "snapshots": [
     {
       "version": 1,
@@ -41,6 +41,14 @@
       "trigger": "approved",
       "approvalId": "approval_1774899211569_ygzdlw550",
       "approvalTitle": "Spec decomposition v4: post-adversarial r3 revisions"
+    },
+    {
+      "version": 6,
+      "filename": "snapshot-006.json",
+      "timestamp": "2026-06-08T19:26:54.118Z",
+      "trigger": "approved",
+      "approvalId": "approval_1780941256864_xam8tvx8l",
+      "approvalTitle": "Decomposition update — add spec #9 visual-design"
     }
   ]
 }

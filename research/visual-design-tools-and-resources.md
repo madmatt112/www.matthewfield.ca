@@ -87,3 +87,33 @@ Research conducted 2026-03-23 to help bootstrap the visual design process for th
 - **[Dribbble](https://dribbble.com/)** — More showcase-oriented; better for inspiration than feedback.
 - **[Designer Hangout](https://www.designerhangout.co/)** (Slack) — UX-focused community with active critique channels.
 - **[Dev.to](https://dev.to/)** — "Show Dev" posts for developer-perspective design feedback.
+
+---
+
+## Agent-Native / MCP, Skills & Plugin Design Tooling
+
+Added 2026-06-05. The tools above are standalone/web tools; this section covers tooling that plugs directly into Claude Code / coding agents to brainstorm, design, iterate, and refine the site's visual design. Tailored to this stack: **Next.js 16 + Tailwind v4 + shadcn (OKLCH tokens in `src/styles/tokens.css`)**, with **Playwright MCP** already connected (user-level config).
+
+### Top picks for this stack (installed / recommended)
+
+- **[Anthropic "Frontend Design" plugin/skill](https://claude.com/plugins/frontend-design)** — official Anthropic Claude Code plugin ([repo](https://github.com/anthropics/claude-code/tree/main/plugins/frontend-design)). Pushes Claude away from generic "AI-slop" aesthetics toward distinctive type/color/layout via a four-question framework (purpose / tone / constraints / differentiation). **Installed at project scope on 2026-06-05** (`claude plugin install frontend-design@claude-plugins-official --scope project`; takes effect next session). Best for *brainstorm + design*.
+- **[tweakcn](https://tweakcn.com/)** ([GitHub](https://github.com/jnsahaj/tweakcn)) — visual theme editor built specifically for shadcn/ui on Tailwind v4, works in **OKLCH** (matches `tokens.css`), has a built-in contrast checker (matches the axe-core AA gate), generates a theme from an image or prompt, and exports v4 CSS variables that paste straight into `src/styles/tokens.css`. This is the color/theme iteration loop.
+- **[shadcn registry MCP](https://ui.shadcn.com/docs/registry/mcp)** — lets Claude search/preview/install real shadcn blocks & components with exact props (no hallucinated APIs). **Added to project `.mcp.json` on 2026-06-05** as server `shadcn` (`npx -y shadcn@latest mcp`; restart Claude Code to load).
+- **Playwright MCP (already connected)** — the visual feedback loop: boot `pnpm dev` (port **3013**), screenshot a page, change a token/component, re-screenshot until it looks right. Drives *iterate + refine*. Baseline screenshots captured 2026-06-05 in `design-baseline/` (landing/profile/blog/projects/contributions/resources, light + a dark landing). Alternative if ever needed: [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp).
+
+### Other agent-native options (not installed)
+
+- **[21st.dev Magic MCP](https://github.com/21st-dev/magic-mcp)** — "v0 inside your editor"; generates UI component variations from a prompt, in place. Good for brainstorming components.
+- **[Superdesign](https://www.superdesign.dev/ide-extension)** ([GitHub](https://github.com/superdesigndev/superdesign)) — MIT-licensed design agent extension (VS Code / Cursor / Claude Code-compatible); generates up to 10 UI variants into a local `.superdesign/` folder, no API key. Good for the blank-page problem.
+- **[Onlook](https://github.com/onlook-dev/onlook)** — open-source "Figma for React": infinite canvas over the actual Next.js + Tailwind codebase, drag/style elements, writes back to source. Closest to direct-manipulation design; still beta (runs the app in a CodeSandbox container).
+- **[Figma "Code to Canvas" MCP](https://www.figma.com/blog/introducing-claude-code-to-figma/)** (official) — bidirectional Claude Code ↔ Figma. Overkill for a solo non-designer unless a Figma canvas is wanted; needs Figma desktop + Dev Mode.
+- **[v0 by Vercel](https://v0.dev/)** — web-based prompt → shadcn/Tailwind code (also listed above under AI-Assisted Design Tools).
+
+### Recommended minimal workflow
+
+1. **Brainstorm direction** → `frontend-design` skill + Superdesign/v0 for layout variants.
+2. **Lock palette/theme** → tweakcn (image or prompt → OKLCH) → paste into `tokens.css`.
+3. **Build/adjust components** → shadcn registry MCP + `frontend-design`, editing `src/components/ui/`.
+4. **Iterate & refine** → Playwright MCP screenshot loop on `localhost:3013`, both themes, watching the axe contrast gate.
+
+Discovery directories for more: [claudemarketplaces.com](https://claudemarketplaces.com/), [Claude Code plugin docs](https://code.claude.com/docs/en/discover-plugins).

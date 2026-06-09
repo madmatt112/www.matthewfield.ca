@@ -97,6 +97,8 @@ A toggle for dark and light themes. Applies to the Professional Profile, Project
 6. **Responsive**: The site works well on desktop, tablet, and phone. Mobile is not an afterthought — recruiters and peers will view this on phones. Navigation, the landing page hero cards, the professional profile, and blog layout all adapt gracefully to smaller screens.
 7. **Accessible**: Target WCAG 2.1 AA conformance. Proper semantic HTML, keyboard navigation, sufficient color contrast in both themes, alt text for images, and screen reader support.
 
+The visual system that realizes these principles — design tokens and roles, type/spacing scales, component conventions, theming, and the accessibility/performance gates — is defined in the design-system steering document (`.spec-workflow/steering/design-system.md`). The concrete visual identity (palette, type voice, motion) is intentionally deferred there to a later design spec.
+
 ## Future Vision
 
 ### Potential Enhancements

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Personal website rebuild for Matthew Field — replacing WordPress.com with a markdown-driven, Next.js static site. Eight specs ordered to deliver professional value early and defer complex features.
+Personal website rebuild for Matthew Field — replacing WordPress.com with a markdown-driven, Next.js static site. Originally eight specs ordered to deliver professional value early and defer complex features. A ninth spec — **visual-design** (#9) — was added after the eight shipped, to resolve the visual identity deliberately deferred by the `design-system.md` steering document and apply it across the built site.
 
 ## Specs
 
@@ -156,6 +156,24 @@ Personal website rebuild for Matthew Field — replacing WordPress.com with a ma
 
 ---
 
+### 9. visual-design
+
+**Scope**: Resolve and apply the site's visual identity, governed by the `design-system.md` steering doc. Decide the design system's **Deferred Decisions** — direction (refine the current neutral/minimal look vs. a distinct identity), the OKLCH palette/chroma and exact role values for both themes, the type scale (and any voice beyond Geist), spacing rhythm/gutters, elevation language, and motion presence/tokens — then apply them across the eight already-built `(site)` sections (landing, professional profile, projects, contributions, blog, resources, slash pages), migrating `src/styles/tokens.css` and the per-section styles accordingly. Includes the CI/code hardening the design-system gates depend on: status-role tokens (`success`/`warning`/`info`), an active-role↔token CI check, LCP/CLS/INP + byte-weight Lighthouse assertions with full-route coverage, and `disableTransitionOnChange` for no-flash theming.
+
+**Delivers**: A deliberate, coherent visual identity across the whole site — replacing the placeholder-neutral starting look — with the design-system gates actually enforced in CI.
+
+**End-to-end verification**: Every `(site)` route reviewed in both themes at the named Tailwind breakpoints; AA contrast (axe) and the Lighthouse gates pass; visual diff against the `design-baseline/` screenshots captured before the work.
+
+**Dependencies**: site-foundation, and the approved `design-system.md` steering doc. Cross-cutting over the content specs (2, 3, 5, 6, 7, 8): this is a **retrofit** of a visual identity onto already-implemented sections, so it runs after them.
+
+**Design considerations**:
+- This is the single spec that resolves `design-system.md`'s Deferred Decisions. The steering doc constrains it (architecture, gates, budgets) but does not decide the identity — that happens (and is adversarially pressure-tested) in this spec's requirements phase.
+- **One spec vs. a series**: kept as one vertical spec (decide the identity, then migrate the eight sections) because this is a retrofit for a solo developer and the sections share one token set. If application proves large, split per-section migration into follow-on specs after the identity is locked.
+- The eight built sections currently encode pre-design choices; per section, this spec decides whether to codify the existing look or re-style it to the new identity.
+- Playground (`(playground)`) is out of scope — it is style-isolated and owns its own presentation per the design system.
+
+---
+
 ## Dependency Graph
 
 ```mermaid
@@ -168,9 +186,10 @@ graph TD
     S1 --> S8[8. playground]
     S3 --> S4[4. blog-enhanced]
     S2 -.->|soft: /slashes needs /contact| S7
+    S1 --> S9[9. visual-design]
 ```
 
-Specs 2, 3, 5, 6, 7, and 8 can all proceed after spec 1. Spec 4 requires spec 3. Spec 7 has a soft dependency on spec 2 (for /slashes completeness). The recommended linear order prioritizes business value (professional funnel first, then content, then polish).
+Specs 2, 3, 5, 6, 7, and 8 can all proceed after spec 1. Spec 4 requires spec 3. Spec 7 has a soft dependency on spec 2 (for /slashes completeness). The recommended linear order prioritizes business value (professional funnel first, then content, then polish). Spec 9 (visual-design) is a cross-cutting retrofit: it requires spec 1 and the approved `design-system.md` steering doc, and runs after the content specs (2–8) are implemented, since it re-styles their built UI.
 
 ## Cross-Spec Conventions
 
@@ -193,6 +212,8 @@ Specs 2, 3, 5, 6, 7, and 8 can all proceed after spec 1. Spec 4 requires spec 3.
 **Theme verification**: All new components and pages must be visually verified in both light and dark themes. E2E tests for each spec should toggle the theme and confirm no contrast or rendering issues on new pages.
 
 **Performance baseline**: After each spec's first deployment, run Lighthouse against new pages. Score below 90 performance is a blocking issue. This ensures the 90+ Lighthouse target from the tech steering doc is maintained incrementally rather than checked only at the end.
+
+**Visual design conformance**: All `(site)` pages and shared components conform to the `design-system.md` steering document — token roles, type/spacing scales, component conventions, and the accessibility/performance gates. Concrete identity values live in `src/styles/tokens.css` and are decided by the visual-design spec (#9); other specs consume the tokens and must not introduce one-off colors or arbitrary spacing/type values.
 
 ## What Is NOT a Spec
 

@@ -74,7 +74,8 @@ matthewfield.ca/
 │   │   └── site.ts                 # Site metadata, nav items, social links
 │   ├── types/                      # Shared TypeScript type definitions
 │   └── styles/
-│       └── globals.css             # Global CSS (Tailwind v4 import, theme variables)
+│       ├── globals.css             # Global CSS (Tailwind v4 import, @theme inline token mapping)
+│       └── tokens.css              # Design tokens (OKLCH) — owned by design-system.md (steering)
 ├── public/                         # Static assets served at /
 │   ├── images/                     # Site images (logo, profile photos, OG images)
 │   ├── fonts/                      # Self-hosted fonts (if any)
