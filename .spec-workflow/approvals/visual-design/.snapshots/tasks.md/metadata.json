@@ -1,0 +1,22 @@
+{
+  "filePath": ".spec-workflow/specs/visual-design/tasks.md",
+  "currentVersion": 2,
+  "snapshots": [
+    {
+      "version": 1,
+      "filename": "snapshot-001.json",
+      "timestamp": "2026-06-08T21:09:15.636Z",
+      "trigger": "initial",
+      "approvalId": "approval_1780952955581_yjvnc7o7j",
+      "approvalTitle": "visual-design — Tasks (v1)"
+    },
+    {
+      "version": 2,
+      "filename": "snapshot-002.json",
+      "timestamp": "2026-06-09T01:31:18.032Z",
+      "trigger": "approved",
+      "approvalId": "approval_1780954854151_z0a4pe91t",
+      "approvalTitle": "visual-design — Tasks (v4)"
+    }
+  ]
+}

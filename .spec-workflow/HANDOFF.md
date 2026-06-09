@@ -4,28 +4,39 @@ Single source of in-flight phase state (per spec-loop-v3). INDEX-style roadmap l
 `.spec-workflow/spec-decomposition/decomposition.md`.
 
 - **Active spec:** `visual-design` (spec #9 in the decomposition)
-- **Live phase:** Design
-- **Current version:** v3 — **CONVERGED** (r3: `VERDICT: converged`, 0 must / 0 should / 2 minor,
-  DESIGN_READY: yes). The two r3 MINORs were folded into v3 in place (no version bump, no re-review).
-- **Last verdict trajectory:** r1 iterate (4 must / 5 should / 6 minor, →v2); r2 iterate (0 must /
-  3 should / 2 minor, →v3); **r3 converged**. Must-fix trajectory 4→0→0; the reviewer recomputed all
-  OKLCH contrast independently across all three rounds.
-- **State:** Design phase converged for adversarial purposes; **awaiting human approval** (the phase
-  boundary). Does NOT auto-flow into Tasks — approve the Design (v3) in the dashboard to advance.
-- **Pending approval for v3:** `approval_1780951859154_491ma0l8f` (visual-design — Design (v3); reads
-  the live `design.md`). Coexisting pending v1/v2 approvals may be cleaned up.
-- **Upstream approved:** `visual-design` **Requirements v4** (`approval_1780949644650_ajymkcwbs`,
-  approved) — that approval drove this run's advance from Requirements → Design.
-- **Adversarial lens:** `frontend-design` skill (distinctiveness / anti-generic), per the user's
-  request — passed the R3.6 bar across all three rounds.
-- **What a re-run will do next:** orientation reads Design as the live phase, already converged; it
-  does ONE status check on the Design approval. If `approved` ⇒ start the **Tasks** phase at v1. If
-  `pending`/absent ⇒ report "Design converged at v3, awaiting your approval" and exit (no advance).
-- **Design decisions of note (so the human can veto at the boundary):** identity = minimal + one
-  **rust** brand accent + an editorial-technical type system (Geist Sans body / Geist Mono code+kicker
-  / **Fraunces** serif display) with the **`/`-path-mark** signature (`mf/` wordmark, mono `/ kicker`,
-  hairline rule). Adds `@tailwindcss/typography` (today's `.prose` is inert), a print/PDF profile
-  stylesheet, status roles (success/warning/info), brand artifacts (wordmark, favicon set, build-time
-  OG — replacing the currently-dangling `og-default.png` ref), and `disableTransitionOnChange`.
-  **Deferred (surfaced for veto):** per-page OG images, data-viz/chart palette, i18n/RTL, and the CI
-  gate upgrades (owned by tech.md/CI).
+- **Live phase:** Tasks
+- **Current version:** v4 — **CONVERGED** (r4: `VERDICT: converged`, 0 must / 0 should / 1 minor,
+  DESIGN_READY: yes, ESCALATE: none). The lone r4 MINOR is a **design-doc** staleness, not a tasks
+  defect (see below) — no tasks version bump, no re-review.
+- **Last verdict trajectory:** r1 iterate (1 must / 4 should / 1 minor, →v2); r2 iterate (1 must /
+  3 should / 2 minor, →v3); r3 iterate (1 must / 1 should / 0 minor, →v4); **r4 converged**. Must-fix
+  trajectory 1→1→1→0. Every finding across all four rounds was **accepted** (none rejected) — the
+  prose-measure mechanic took three formulations (v2 wrapper → v3 `max-w-none max-w-measure` → v4 bare
+  `prose max-w-measure`) and closed by progressive correction, **not a standoff**.
+- **State:** Tasks phase converged for adversarial purposes; **awaiting human approval** (the phase
+  boundary). Tasks is the **last** of the spec's three docs.
+- **Pending approval for v4:** `approval_1780954854151_z0a4pe91t` (visual-design — Tasks (v4); reads
+  the live `tasks.md`). Coexisting pending v1/v2/v3 approvals may be cleaned up.
+- **Upstream approved:** `visual-design` **Design v3** (`approval_1780951859154_491ma0l8f`, approved) —
+  that approval drove this run's advance from Design → Tasks.
+- **What a re-run will do next:** all three `visual-design` docs (Requirements v4, Design v3, Tasks v4)
+  will then be approved-or-converged. Per spec-loop-v3 this is a **HARD STOP**: do NOT start the next
+  roadmap spec and do NOT start implementation from this loop. Approve Tasks (v4) in the dashboard,
+  then **implement `visual-design` in full via the task-implementation prompt**
+  (`/home/mcf/repo/prompts/spec-workflow/task-implementation-loop-v2.md`) before any later spec. The
+  next spec becomes active only once implementation marks `visual-design` `[x] Complete`.
+- **Tasks doc shape:** 23 atomic tasks across 6 phases — token foundation (brand/status/measure/
+  z-index) → typography (Fraunces + @tailwindcss/typography themed to tokens) → signature + components
+  (Wordmark, SectionKicker, Button brand variant, StatusCallout) → motion/print/artifacts (reduced-
+  motion + no-flash, reading-progress→brand, print.css, favicon, build-time OG) → per-section
+  application (header, hero, profile, atomic prose-migration, remaining sections incl. about/now/
+  colophon) → gates/verification (token-presence test, axe both themes, full-suite + pinned grep,
+  visual review vs design-baseline + distinctiveness + Lighthouse). Grounded against the real codebase
+  and the installed Tailwind v4 toolchain across four adversarial rounds.
+- **Deferred (surfaced for veto at the boundary):** per-page OG images (ships one templated default),
+  data-viz/chart palette, i18n/RTL, and the CI gate upgrades (owned by tech.md/CI). Consistent with
+  the design's deferred set; nothing silently cut.
+- **Open follow-up for the human (non-blocking, NOT a task defect):** `design.md` §4 / Data Models
+  (`:423-424`, `:570`) still names the z-index tokens with the stale, non-generating `--z-base/-*`
+  Tailwind-v4 namespace; **Task 3 correctly uses `--z-index-*`**. Optionally clean up the design doc
+  later — it does not affect implementation.
