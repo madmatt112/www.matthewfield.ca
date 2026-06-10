@@ -71,3 +71,7 @@ public/pagefind/
 # CI topology runtime state (written by scripts/verify-ci-topology.mjs)
 scripts/__ci-topology-state.txt
 .codeindex/
+.env*.local
+
+# rtk command audit log (local-only, appended on every proxied command)
+audit.log
