@@ -17,6 +17,7 @@
     "lhci": "node scripts/run-lhci.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "prepare": "git config core.hooksPath .githooks || true",
     "postinstall": "velite build"
   },
   "dependencies": {

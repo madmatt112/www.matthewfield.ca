@@ -114,11 +114,11 @@ function validateFeed(file) {
     }
   }
 
+  // An empty feed is valid RSS: a site with no published posts yet emits a
+  // well-formed <channel> with zero <item> elements. Validate item structure
+  // only when items are present.
   const items = asArray(channel.item);
-  if (items.length < 1) {
-    fail(`${rel}: <channel> has 0 <item> elements — expected ≥1`);
-    return;
-  }
+  if (items.length === 0) return;
 
   const first = items[0];
   for (const child of ITEM_REQUIRED) {

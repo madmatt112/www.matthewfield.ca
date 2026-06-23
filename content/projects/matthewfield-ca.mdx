@@ -1,0 +1,63 @@
+---
+title: "matthewfield.ca"
+description: "The site you're reading, rebuilt from scratch and run like a small production system: typed MDX content, CI gates, and delivery on Vercel."
+summary: "A from-scratch rebuild of my personal site, run like a small production system."
+date: "2026-06-23"
+cover: "./matthewfield-ca-cover.png"
+coverAlt: "The matthewfield.ca homepage split diagonally to show both color themes at once: dark in the upper-left, light in the lower-right, with a serif Matthew Field headline above a six-card grid of the site's main sections."
+tags:
+  - nextjs
+  - typescript
+  - tailwindcss
+  - mdx
+  - vercel
+  - design-systems
+  - accessibility
+status: "active"
+draft: false
+links:
+  - kind: demo
+    label: "Live site"
+    url: "https://www.matthewfield.ca"
+  - kind: repo
+    label: "Source on GitHub"
+    url: "https://github.com/madmatt112/www.matthewfield.ca"
+  - kind: writeup
+    label: "Colophon: how it's built"
+    url: "https://www.matthewfield.ca/colophon"
+---
+
+This is the site you're reading. I rebuilt it from scratch to be somewhere I
+actually control, where my work, writing, and notes live next to the code that
+renders them, with no CMS in the middle.
+
+## Why a rebuild
+
+The old version was a static résumé I never touched. I wanted something closer
+to how I work: content in version control, every change reviewed and shipped the
+same way I'd ship anything else, and enough structure to leave room to write.
+Running my own site like a small production system was the point, not a side
+effect.
+
+## How it's built
+
+Next.js with the App Router and TypeScript, styled with Tailwind CSS v4 and
+shadcn/ui. Content is MDX. Velite validates it at build time against a typed schema, so a
+malformed frontmatter field fails the build instead of shipping broken. It deploys on Vercel, and GitHub Actions runs type checks, linting,
+content validation, accessibility scans, and Lighthouse budgets before anything
+merges. The [colophon](/colophon) has the full stack.
+
+## What I cared about
+
+Boring, fast pages, with no client JavaScript on content routes that doesn't earn
+its place. Light and dark treated as a matched pair rather than an afterthought.
+Accessibility checked in CI with axe and Playwright instead of assumed. And a
+design system kept as its own steering document, so visual decisions stay
+deliberate and reviewable instead of scattered through components.
+
+## What's next
+
+It's an active project. The near-term work is writing: the blog and the project
+entries this one kicks off, plus filling in the design system and the
+interactive playground. If you're reading a later version of this page, it has
+already changed.
