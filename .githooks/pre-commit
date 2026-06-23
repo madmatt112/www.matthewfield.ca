@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+set -e
+
+# Auto-format staged files with Prettier before each commit so a formatting
+# slip never reaches CI. Only files staged for this commit are touched, and
+# Prettier still honours .prettierignore (e.g. the chokepoint canaries).
+#
+# Enabled via core.hooksPath=.githooks, wired up by the package.json "prepare"
+# script on `pnpm install` and shared through version control.
+
+git diff --cached --name-only --diff-filter=ACMR \
+  | grep -E '\.(ts|tsx|js|jsx|mjs|cjs|json|css|md|mdx|ya?ml)$' \
+  | while IFS= read -r file; do
+      ./node_modules/.bin/prettier --write --ignore-unknown "$file"
+      git add "$file"
+    done
