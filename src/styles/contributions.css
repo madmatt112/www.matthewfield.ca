@@ -6,49 +6,89 @@
  */
 
 /* ------------------------------------------------------------------ *
- * Contributions: card grid (Req 2.10)
- *   <640px  → 1 column
- *   641–1023px → 2 columns
- *   ≥1024px → ≥2 columns (3 columns)
+ * Contributions: card layout
+ *   A flex-wrap row (not a fixed N-column grid) so the layout reads well
+ *   at any entry count: one or two entries take a comfortable reading
+ *   width instead of being squeezed into a 1/3 grid track, while three or
+ *   more wrap into the same ~3-up rhythm. Cards in a row stretch to equal
+ *   height so their link rails bottom-align.
  * Applied to the <ul role="list"> that wraps the <li><ContributionCard>.
  * ------------------------------------------------------------------ */
 .contributions-grid {
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
   gap: 1.5rem;
   list-style: none;
   padding: 0;
-  margin: 0;
-}
-@media (min-width: 641px) {
-  .contributions-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-@media (min-width: 1024px) {
-  .contributions-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+  /* No `margin: 0` reset here: Tailwind preflight already zeroes the <ul>
+   * margin, and an explicit reset would override the page's mt-* spacing
+   * utility (unlayered CSS beats Tailwind's layered utilities). */
 }
 
-/* Each grid cell holds a card; let the card fill its cell height. */
+/* Each cell holds one card. flex-basis sets the natural column width; a
+ * lone card grows up to max-width (not full-bleed), three+ shrink to a
+ * 3-up row. Cards fill their cell height for bottom-aligned link rails. */
 .contributions-grid > li {
   display: flex;
+  flex: 1 1 20rem;
+  min-width: 0;
+  max-width: 30rem;
 }
 
 /* ------------------------------------------------------------------ *
  * Contribution card (<article>) — no whole-card link (Req 2.5)
+ *   Vertical rhythm is intentionally uneven to group related fields:
+ *   repo+title sit tight together (the head), then a wider gap before the
+ *   description, the meta row, and the bottom-pinned link rail.
  * ------------------------------------------------------------------ */
 .contribution-card {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
   width: 100%;
-  padding: 1.25rem;
+  padding: 1.5rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background-color: var(--card);
   color: var(--card-foreground);
+}
+
+/* Head: repo eyebrow stacked tight above the title. */
+.contribution-card__head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.contribution-card__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--card-foreground);
+}
+
+.contribution-card__desc {
+  margin: 0.875rem 0 0;
+  color: var(--muted-foreground);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+/* Meta row: date and the optional language badge, read as secondary info. */
+.contribution-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.625rem;
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.contribution-card__meta time {
+  font-variant-numeric: tabular-nums;
 }
 
 /* ------------------------------------------------------------------ *
@@ -63,7 +103,7 @@
   background-color: var(--muted);
   color: var(--muted-foreground);
   font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
@@ -87,12 +127,16 @@
 
 /* ------------------------------------------------------------------ *
  * Contribution link rail (role="group" wrapper)
+ *   Pinned to the card bottom with a hairline separator so it reads as a
+ *   footer of actions rather than another inline field.
  * ------------------------------------------------------------------ */
 .contrib-link-rail {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-top: auto;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
 }
 .contrib-link-rail a {
   color: var(--primary);
