@@ -14,6 +14,7 @@ import { execSync } from "node:child_process";
 const ALLOWED_CALLERS = new Set([
   "src/lib/blog.ts", // self-reference + getVisiblePublishedPosts
   "src/lib/blog.test.ts", // unit tests
+  "src/lib/velite-safe-body-html.test.ts", // loads a hidden draft fixture by slug; getVisiblePublishedPosts would filter it out
   "src/app/(site)/blog/[slug]/page.tsx", // direct-URL lookup via getPostBySlug + neighbors
   // Add new entries explicitly via PR review.
   // NOTE: src/lib/blog-taxonomy.ts is INTENTIONALLY NOT here — taxonomy
