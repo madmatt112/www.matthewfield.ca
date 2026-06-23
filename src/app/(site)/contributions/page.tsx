@@ -27,12 +27,12 @@ export default function ContributionsPage() {
         Contributions
       </h1>
       {contributions.length === 0 ? (
-        <section aria-labelledby="empty-state-heading" className="mt-8">
+        <section aria-labelledby="empty-state-heading" className="mt-12">
           <h2 id="empty-state-heading">No contributions yet</h2>
           <p>{CONTRIBUTIONS_DESCRIPTION}</p>
         </section>
       ) : (
-        <ul role="list" aria-labelledby="page-heading" className="contributions-grid mt-8">
+        <ul role="list" aria-labelledby="page-heading" className="contributions-grid mt-12">
           {contributions.map((contribution, i) => (
             <li key={`${contribution.repo}-${contribution.title}`}>
               <ContributionCard contribution={contribution} index={i} />
