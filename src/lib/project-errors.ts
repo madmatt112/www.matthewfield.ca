@@ -32,7 +32,6 @@ export function checkVercelDraftGuard(): { kind: "production" | "preview" } | nu
  */
 export function isVercelProduction(): boolean {
   return (
-    process.env[VERCEL_FLAG_VAR_NAME] === "1" &&
-    process.env[VERCEL_ENV_VAR_NAME] === "production"
+    process.env[VERCEL_FLAG_VAR_NAME] === "1" && process.env[VERCEL_ENV_VAR_NAME] === "production"
   );
 }

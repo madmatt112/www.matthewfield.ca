@@ -32,7 +32,10 @@ const PAGES = [
   { path: "/blog/fixture-code", label: "blog post" },
   // StatusCallout (all tones) nested in a `card` — the status-feedback state,
   // server-rendered (no hydration needed) via the component-preview harness.
-  { path: "/blog/component-preview/status-callout", label: "status-feedback (StatusCallout on card)" },
+  {
+    path: "/blog/component-preview/status-callout",
+    label: "status-feedback (StatusCallout on card)",
+  },
 ] as const;
 
 async function setupTheme(page: import("@playwright/test").Page, theme: "light" | "dark") {
