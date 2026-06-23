@@ -24,3 +24,15 @@ export function checkVercelDraftGuard(): { kind: "production" | "preview" } | nu
   if (isLooksLikeProd) return { kind: "production" };
   return null;
 }
+
+/**
+ * True only on a real Vercel production deployment (VERCEL=1 + VERCEL_ENV=production).
+ * Used to screen test fixtures (slug prefix `fixture-`) out of the live site while
+ * keeping them available in dev, CI, and e2e builds.
+ */
+export function isVercelProduction(): boolean {
+  return (
+    process.env[VERCEL_FLAG_VAR_NAME] === "1" &&
+    process.env[VERCEL_ENV_VAR_NAME] === "production"
+  );
+}
