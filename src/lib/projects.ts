@@ -4,7 +4,6 @@ import {
   PROJECTS_DRAFT_LEAK_GUARD_MSG_PREVIEW,
   PROJECTS_DRAFT_LEAK_GUARD_MSG_PRODUCTION,
   checkVercelDraftGuard,
-  isVercelProduction,
 } from "@/lib/project-errors";
 
 export type Project = (typeof projects)[number];
@@ -65,7 +64,8 @@ export function getPublishedProjects(): Project[] {
   // and must keep working in dev, CI, and e2e builds — but they must never
   // appear on the live site. Screen them out on real Vercel production deploys
   // only (VERCEL=1 + VERCEL_ENV=production); every other flavor keeps them.
-  const visible = isVercelProduction()
+  const onProduction = snapshot.vercel === "1" && snapshot.vercelEnv === "production";
+  const visible = onProduction
     ? draftFiltered.filter((p) => !p.slug.startsWith("fixture-"))
     : draftFiltered;
   const result = [...visible].sort(byDateDescSlugAsc);

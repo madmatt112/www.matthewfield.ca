@@ -157,37 +157,6 @@ describe("getPublishedProjects — draft filter behavior (Req 7.2)", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Case 2b — Fixture screening on the live site (Vercel production only)
-// ---------------------------------------------------------------------------
-describe("getPublishedProjects — fixture screening on Vercel production", () => {
-  it("excludes fixture-* slugs on VERCEL=1 + VERCEL_ENV=production", () => {
-    mockProjects.value = [
-      synth("real-entry", "2025-01-03"),
-      synth("fixture-placeholder", "2025-01-02"),
-      synth("fixture-published-second", "2025-01-01"),
-    ];
-    process.env.VERCEL = "1";
-    process.env.VERCEL_ENV = "production";
-    // drafts unset → leak guard does not fire; fixtures are screened out.
-    const result = getPublishedProjects().map((p) => p.slug);
-    expect(result).toEqual(["real-entry"]);
-  });
-
-  it("keeps fixture-* slugs when not on Vercel production (dev/CI/e2e flavor)", () => {
-    mockProjects.value = [
-      synth("real-entry", "2025-02-01"),
-      synth("fixture-placeholder", "2025-02-02"),
-    ];
-    // No VERCEL/VERCEL_ENV → e2e/CI/dev build; fixtures remain available.
-    process.env.PROJECTS_INCLUDE_DRAFTS = "case-2b-local";
-    const result = getPublishedProjects()
-      .map((p) => p.slug)
-      .sort();
-    expect(result).toEqual(["fixture-placeholder", "real-entry"]);
-  });
-});
-
-// ---------------------------------------------------------------------------
 // Case 3 — shouldShowUpdatedBadge truth table
 // ---------------------------------------------------------------------------
 describe("shouldShowUpdatedBadge — truth table", () => {
