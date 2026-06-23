@@ -14,9 +14,7 @@ const entry: RegistryEntry = {
         <StatusCallout tone="success">
           Your message has been sent. Thanks for reaching out.
         </StatusCallout>
-        <StatusCallout tone="warning">
-          This action cannot be undone once confirmed.
-        </StatusCallout>
+        <StatusCallout tone="warning">This action cannot be undone once confirmed.</StatusCallout>
         <StatusCallout tone="info">
           This profile reflects the most recent available information.
         </StatusCallout>

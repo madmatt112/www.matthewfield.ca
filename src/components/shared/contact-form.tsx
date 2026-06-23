@@ -246,9 +246,7 @@ export function ContactForm(props: { source?: "profile" | "contact" }): React.JS
           </h2>
           <p className="mt-2 text-sm">{SERVER_ERROR_COPY[state.status].body}</p>
           {state.status === 503 && state.retryAfterSeconds !== undefined ? (
-            <p className="mt-1 text-sm">
-              Try again in about {state.retryAfterSeconds} seconds.
-            </p>
+            <p className="mt-1 text-sm">Try again in about {state.retryAfterSeconds} seconds.</p>
           ) : null}
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <Button type="button" onClick={handleRetry} className="min-h-11 min-w-11">

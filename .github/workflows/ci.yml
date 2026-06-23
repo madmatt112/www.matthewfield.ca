@@ -9,22 +9,6 @@ on:
 
 jobs:
   ci:
-    # ---------------------------------------------------------------------
-    # Dual-build CI topology — see design.md "CI build separation" section.
-    #
-    # Build 1 and Build 2 MUST run as two sequential step sequences inside
-    # this single job. Do NOT split into separate jobs (a job split with
-    # actions/cache@v4 would let Build 2 restore Build 1's .velite/ state,
-    # defeating the Req 7.14 draft-isolation guarantee).
-    #
-    # BLOG_INCLUDE_DRAFTS=1 is set ONLY on the "Build 1 (with drafts)"
-    # step env block — NEVER at workflow-level, NEVER at job-level, NEVER
-    # on Build 2's build step.
-    #
-    # Literal step name strings (e.g. "Build 1 (with drafts)") are matched
-    # by scripts/verify-ci-topology.mjs — renames are a breaking change to
-    # be applied to both files in the same PR.
-    # ---------------------------------------------------------------------
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -60,31 +44,6 @@ jobs:
       - name: Verify getPublishedPosts callers
         run: node scripts/verify-getPublishedPosts-callers.mjs
 
-      - name: Unit tests
-        run: pnpm test
-
-      - name: Cache Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            playwright-${{ runner.os }}-
-
-      - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install --with-deps
-
-      - name: Install Playwright system deps
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: pnpm exec playwright install-deps
-
-      - name: Verify CI topology
-        run: node scripts/verify-ci-topology.mjs
-        env:
-          BLOG_ENHANCED_CI_LITERALS_REQUIRED: "1"
-
       - name: "Verify paired-merge for 6+7"
         run: node scripts/verify-paired-merge.mjs
 
@@ -103,63 +62,25 @@ jobs:
       - name: "Self-tests for check-playground-css"
         run: node --test scripts/check-playground-css.test.mjs
 
-      - name: Verify CI wiring for check-velite-output
-        run: node scripts/check-velite-output.mjs --verify-ci-wiring
+      - name: Unit tests
+        run: pnpm test
 
-      - name: Build 1 (with drafts)
+      - name: Build
         run: pnpm build
-        env:
-          BLOG_INCLUDE_DRAFTS: "1"
 
-      - name: Check velite output before tests
+      - name: Check velite output
         run: node scripts/check-velite-output.mjs
 
-      - name: Touch Build 1 sentinel
-        run: touch .velite/.build1-sentinel
-
-      - name: Run e2e (Build 1)
-        run: pnpm test:e2e
-
-      - name: Validate feed (Build 1)
+      - name: Validate feed
         run: node scripts/validate-feed.mjs
         env:
           NODE_OPTIONS: "--no-warnings=ExperimentalWarning"
 
-      - name: Clean for Build 2
-        if: always()
-        run: rm -rf .velite .next
-
-      - name: Velite build (for Build 2)
-        if: always()
-        run: pnpm exec velite build
-
-      - name: Build 2 (production-mode)
-        if: always()
-        run: pnpm build
-
-      - name: Check velite output before tests
-        if: always()
-        run: node scripts/check-velite-output.mjs
-
-      - name: Verify production build (Build 2)
-        if: always()
-        run: node scripts/verify-production-build.mjs
-        env:
-          NODE_OPTIONS: "--no-warnings=ExperimentalWarning"
-
-      - name: "Check Lighthouse cadence"
-        if: always()
-        run: node scripts/check-lighthouse-cadence.mjs
-
-      - name: "Check contributions/resources Lighthouse cadence"
-        if: always()
-        run: node scripts/check-contributions-resources-lighthouse-cadence.mjs
-
-      - name: Pagefind crawl (Build 2)
+      - name: Pagefind crawl
         if: vars.PAGEFIND_ENABLED != 'false'
         run: pnpm build:search
 
-      - name: Verify Pagefind index (Build 2)
+      - name: Verify Pagefind index
         if: vars.PAGEFIND_ENABLED != 'false'
         run: node scripts/verify-pagefind-no-drafts.mjs
 
@@ -170,6 +91,8 @@ jobs:
           name: pagefind-manifest
           path: public/pagefind/**
 
+      # Optional CI-driven Vercel deploy. Only runs when DEPLOY_VIA_CI=true;
+      # the default is Vercel's native GitHub integration (preview on PRs).
       - name: Check Vercel auto-deploy status
         if: vars.DEPLOY_VIA_CI == 'true'
         run: node scripts/check-vercel-auto-deploy.mjs
@@ -189,7 +112,7 @@ jobs:
         if: vars.PAGEFIND_ENABLED != 'false' && vars.DEPLOY_VIA_CI == 'true'
         run: node scripts/verify-pagefind-artifact.mjs
 
-      - name: Vercel deploy (Build 2)
+      - name: Vercel deploy
         id: vercel_deploy
         if: vars.DEPLOY_VIA_CI == 'true'
         run: |

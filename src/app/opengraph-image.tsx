@@ -20,80 +20,74 @@ const BACKGROUND = "#fafafa";
 const BORDER = "#e5e5e5";
 
 export default async function OpenGraphImage() {
-  const fraunces = readFileSync(
-    join(process.cwd(), "public/fonts/Fraunces-SemiBold.ttf"),
-  );
-  const geistMono = readFileSync(
-    join(process.cwd(), "public/fonts/GeistMono-Regular.ttf"),
-  );
+  const fraunces = readFileSync(join(process.cwd(), "public/fonts/Fraunces-SemiBold.ttf"));
+  const geistMono = readFileSync(join(process.cwd(), "public/fonts/GeistMono-Regular.ttf"));
 
   return new ImageResponse(
-    (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        background: BACKGROUND,
+        padding: "80px",
+      }}
+    >
       <div
         style={{
-          width: "100%",
-          height: "100%",
           display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          background: BACKGROUND,
-          padding: "80px",
+          alignItems: "baseline",
+          fontFamily: "Geist Mono",
+          fontSize: 56,
+          color: FOREGROUND,
         }}
       >
+        mf<span style={{ color: RUST }}>/</span>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column" }}>
         <div
           style={{
             display: "flex",
-            alignItems: "baseline",
-            fontFamily: "Geist Mono",
-            fontSize: 56,
+            fontFamily: "Fraunces",
+            fontSize: 132,
+            fontWeight: 600,
             color: FOREGROUND,
+            letterSpacing: "-0.02em",
           }}
         >
-          mf<span style={{ color: RUST }}>/</span>
+          {siteConfig.name}
         </div>
-
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <div
-            style={{
-              display: "flex",
-              fontFamily: "Fraunces",
-              fontSize: 132,
-              fontWeight: 600,
-              color: FOREGROUND,
-              letterSpacing: "-0.02em",
-            }}
-          >
-            {siteConfig.name}
-          </div>
-          <div
-            style={{
-              display: "flex",
-              marginTop: 24,
-              fontFamily: "Geist Mono",
-              fontSize: 36,
-              color: MUTED,
-            }}
-          >
-            {siteConfig.description}
-          </div>
-        </div>
-
         <div
           style={{
             display: "flex",
-            alignItems: "center",
-            borderTop: `2px solid ${BORDER}`,
-            paddingTop: 32,
+            marginTop: 24,
             fontFamily: "Geist Mono",
-            fontSize: 30,
+            fontSize: 36,
             color: MUTED,
           }}
         >
-          <span style={{ color: RUST }}>/</span>
-          <span style={{ marginLeft: 12 }}>www.matthewfield.ca</span>
+          {siteConfig.description}
         </div>
       </div>
-    ),
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          borderTop: `2px solid ${BORDER}`,
+          paddingTop: 32,
+          fontFamily: "Geist Mono",
+          fontSize: 30,
+          color: MUTED,
+        }}
+      >
+        <span style={{ color: RUST }}>/</span>
+        <span style={{ marginLeft: 12 }}>www.matthewfield.ca</span>
+      </div>
+    </div>,
     {
       ...size,
       fonts: [

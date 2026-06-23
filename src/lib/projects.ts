@@ -59,8 +59,16 @@ export function getPublishedProjects(): Project[] {
     throw new Error(PROJECTS_DRAFT_LEAK_GUARD_MSG_PREVIEW);
   }
   const includeDrafts = snapshot.drafts === "1";
-  const filtered = includeDrafts ? projects : projects.filter((p) => !p.draft);
-  const result = [...filtered].sort(byDateDescSlugAsc);
+  const draftFiltered = includeDrafts ? projects : projects.filter((p) => !p.draft);
+  // Test fixtures (slug prefix `fixture-`) drive the projects e2e/unit suites
+  // and must keep working in dev, CI, and e2e builds — but they must never
+  // appear on the live site. Screen them out on real Vercel production deploys
+  // only (VERCEL=1 + VERCEL_ENV=production); every other flavor keeps them.
+  const onProduction = snapshot.vercel === "1" && snapshot.vercelEnv === "production";
+  const visible = onProduction
+    ? draftFiltered.filter((p) => !p.slug.startsWith("fixture-"))
+    : draftFiltered;
+  const result = [...visible].sort(byDateDescSlugAsc);
   __cached = { snapshot, result };
   return result;
 }

@@ -75,10 +75,7 @@ describe("active-role ↔ token presence", () => {
     });
 
     it(`maps --color-${role} in the @theme block of globals.css`, () => {
-      expect(
-        hasThemeMapping(themeBlock, role),
-        `missing --color-${role} in @theme`,
-      ).toBe(true);
+      expect(hasThemeMapping(themeBlock, role), `missing --color-${role} in @theme`).toBe(true);
     });
   }
 
