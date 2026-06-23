@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 
-import { Wordmark } from "@/components/layout/wordmark";
 import { HeroCard } from "@/components/shared/hero-card";
 import { SectionKicker } from "@/components/shared/section-kicker";
 import { siteConfig } from "@/config/site";
@@ -15,7 +14,6 @@ export default function HomePage() {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 pt-20 sm:px-6 md:pt-28 lg:px-8">
       <section className="flex flex-col items-start gap-6">
-        <Wordmark className="text-2xl" asLink={false} />
         <SectionKicker label="home" />
         <h1 className="text-balance font-display text-4xl tracking-tight sm:text-5xl md:text-6xl">
           {siteConfig.name}
