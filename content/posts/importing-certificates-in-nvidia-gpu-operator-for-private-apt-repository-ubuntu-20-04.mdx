@@ -1,0 +1,38 @@
+---
+title: "Importing Certificates in NVIDIA GPU Operator for Private Apt Repository (Ubuntu 20.04)"
+description: "Two gotchas for getting the NVIDIA GPU Operator's driver container to trust a private apt repository: rename the cert to .crt, and split a chain into one cert per --from-file."
+date: "2024-07-16"
+tags: ["nvidia", "gpu-operator", "kubernetes", "apt", "certificates", "ssl", "ubuntu"]
+categories: ["infrastructure"]
+draft: false
+---
+
+> TL;DR: You’re deploying NVIDIA’s GPU Operator. You have a private apt repository and you need the `nvcr.io/nvidia/driver` container to use the repository for its operations. You’re using the `.driver.repoConfig` helm value to target a private apt repository. You’re also using `.driver. certConfig` to enable this. You’re having trouble getting it to trust the repo – it seems like your certConfig isn’t working. **Here are two potential gotchas**: Before creating the certConfig configMap, **rename the cert file(s) to `<name>.crt` even if they are not `.crt` formatted**. Second, if you need to reference more than one certificate (e.g. a chain), **place each cert in its own file and use multiple `--from-file=<name>.crt` flags** in your `kubectl create configmap cert-config` command.
+
+## Outputs and Errors
+
+Outputs you might see:
+
+```text
+# This indicates your certificates are not being picked up by the automatic import. Fix by renaming to .crt
+Updating certificates in /etc/ssl/certs...
+nvidia-driver-daemonset-v844g nvidia-driver-ctr 0 added, 0 removed; done.
+
+# This indicates more than one cert is present in a single cert file. Fix by splitting into one cert per file.
+rehash: warning: skipping mycert.crt,it does not contain exactly one certificate or CRL
+
+# This indicates the
+W: GPG error: https://yourserver.internal/apt/ubuntu focal InRelease: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY C1997C40EDE22758
+```
+
+## Ramblings
+
+I wrestled with this for hours before I finally got the `nvidia/driver` container to import the certs properly. My certificate files are .PEM formatted, but the init script kept reporting “0 updated” until I tried renaming (not converting) the file to \*.crt before running `kubectl create configmap ...`, at which point the container tried to actually import the cert into the OS’s store – and barked about multiple certs in the file.
+
+I split the certs into two separate files, and re-created the configmap with two `--from-file` flags, and the container finally accepted the repo’s certs.
+
+However, even with the `[trusted=yes]` declaration in `sources.list`, and the private certificate(s) in the trusted root store, apt-get still needs to validate the repository via GPG key. This must usually be a transparent operation because I’ve never had it hiccup before now – our Artifactory server apparently doesn’t have a GPG public key available, and I’m still stymied because of it. Unfortunately, all I can do is ask and wait for a different team to generate and publish a GPG key.
+
+## References
+
+- [NVIDIA — Installing the GPU Operator (air-gapped)](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/install-gpu-operator-air-gapped.html)
