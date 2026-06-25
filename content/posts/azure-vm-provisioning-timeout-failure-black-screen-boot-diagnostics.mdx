@@ -1,0 +1,31 @@
+---
+title: "Azure VM Provisioning Timeout/Failure (Black Screen Boot Diagnostics)"
+description: "An Azure image builds an un-bootable VM when the Hyper-V generation is mismatched. Specify -HyperVGeneration V2 on New-AzImageConfig when your disks need it."
+date: "2020-04-04"
+tags: ["azure", "azure-image", "packer", "hyper-v", "boot-diagnostics"]
+categories: ["infrastructure"]
+draft: false
+---
+
+![Stylized Azure virtual-machine icon flanked by two smiling cloud characters, captioned 'Why won't it boot??'](./_assets/azure-vm-provisioning-timeout-failure-black-screen-boot-diagnostics/why-wont-it-boot.jpg)
+
+> **TL;DR** — An Azure Image creates an un-bootable VM if the Hyper-V version is mismatched between the disks and the Azure Image Configuration. The default value of the “New-AzImageConfig -HyperVGeneration” flag, if unspecified, is ‘V1’. **Make sure to specify the flag as ‘V2’ if necessary!** Read the full post for context and details.
+
+I ran into a problem with a custom Azure Image recently, where a VM deployed from the Image was unable to first-time boot and threw a provisioning timeout.
+
+Here’s the context: We use Hashicorp’s Packer on-premises to build and generalize a gold VM image, whose disks are converted to fixed VHD format and uploaded to Azure blob storage. From there, “New-AzImage” is run to create an Image from those disks. This entire process was working just fine, and the resultant Image resource seemed sane and healthy.
+
+However, when I created a VM from the Image, the deployment timed out with a failed provisioning state. Looking at Boot Diagnostics I saw a black screen in the screenshot view, and no serial connection was available. It seemed that the VM never actually booted into the Windows OS boot manager, and was stuck at a low-level BIOS-related boot step.
+
+All of the search results I could find for similar issues diagnosed the problem as a mismatch between the disks’ generalized/specialized status (sysprep-wise) and the Image’s status (set as a flag in “New-AzImage”). I double checked my scripts, and was confident this was **not** the case for me.
+
+I hit upon a clue when I tried to boot the VHDs on a local Hyper-V host with a Generation 1 VM config, and the BIOS gave a “boot volume not found” error.
+
+It turns out that the Image configuration that’s passed to the “New-AzImage” command has an optional flag named “HyperVGeneration” that tells the Azure platform which Hyper-V generation of VM the image must create. **The default value of the “HyperVGeneration” flag, if unspecified, is “V1”.** However, Packer was configured to capture the build state of a Generation 2 VM.
+
+```powershell
+$imageConfig = New-AzImageConfig -Location $location -HyperVGeneration V2
+New-AzImage -Image $imageConfig -ImageName $imageName -ResourceGroupName $resourcegroupName
+```
+
+Therefore, when the Image deployed a VM, the Azure Hyper-V stack was unable to boot the Image because of this Hyper-V version mismatch. A quick addition of the flag as shown in the line 1 of code block above, and the VM booted up with no trouble.
