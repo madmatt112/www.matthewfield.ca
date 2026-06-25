@@ -97,7 +97,7 @@ export default async function BlogPostPage({ params }: { params: Promise<RoutePa
   const postUrl = `${siteConfig.url}/blog/${post.slug}`;
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-12 sm:py-16">
+    <div className="mx-auto w-full max-w-5xl px-4 py-12 sm:py-16">
       <ReadingProgress />
       <article
         {...(post.excludeFromSearch ? {} : { "data-pagefind-body": "" })}
