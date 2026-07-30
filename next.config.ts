@@ -143,6 +143,56 @@ const nextConfig: NextConfig = {
 
     return routes;
   },
+
+  /*
+   * 301 redirects from the legacy WordPress.com site (matthew-field.ca).
+   * Dated post permalinks map to their new /blog/<slug> routes; posts that
+   * were not migrated and the old standalone pages map to the nearest
+   * equivalent. Next.js normalizes trailing slashes before matching, so the
+   * sources are written without one.
+   */
+  redirects: async () => [
+    // Migrated posts — old dated permalink → new /blog/<slug>.
+    {
+      source:
+        "/2024/07/16/importing-certificates-in-nvidia-gpu-operator-for-private-apt-repository-ubuntu-20-04",
+      destination:
+        "/blog/importing-certificates-in-nvidia-gpu-operator-for-private-apt-repository-ubuntu-20-04",
+      permanent: true,
+    },
+    {
+      source: "/2024/08/09/installing-obsidian-on-wsl-with-a-windows-gui-easy-setup",
+      destination: "/blog/installing-obsidian-on-wsl-with-a-windows-gui-easy-setup",
+      permanent: true,
+    },
+    {
+      source: "/2020/04/04/azure-vm-provisioning-timeout-failure-black-screen-boot-diagnostics",
+      destination: "/blog/azure-vm-provisioning-timeout-failure-black-screen-boot-diagnostics",
+      permanent: true,
+    },
+    {
+      source: "/2020/02/25/the-financial-crisis-of-2008",
+      destination: "/blog/the-financial-crisis-of-2008",
+      permanent: true,
+    },
+    {
+      source: "/2020/02/25/making-ethical-decisions-in-a-post-modern-technological-landscape",
+      destination: "/blog/making-ethical-decisions-in-a-post-modern-technological-landscape",
+      permanent: true,
+    },
+    // Posts not migrated → blog index.
+    { source: "/2022/09/07/making-a-i-art", destination: "/blog", permanent: true },
+    { source: "/2020/10/24/cave-drips", destination: "/blog", permanent: true },
+    {
+      source: "/2020/03/27/quicktip-visios-fit-to-drawing-function",
+      destination: "/blog",
+      permanent: true,
+    },
+    // Legacy standalone pages → nearest equivalent on the new site.
+    { source: "/technical-portfolio", destination: "/projects", permanent: true },
+    { source: "/handy-tools", destination: "/resources", permanent: true },
+    { source: "/blog-feed", destination: "/blog", permanent: true },
+  ],
 };
 
 export default nextConfig;

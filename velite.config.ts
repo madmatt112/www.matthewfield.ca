@@ -38,6 +38,16 @@ const sharedRehypePlugins = [
   rehypeSlug,
   rehypeCopyButton,
   [rehypePrettyCode, prettyCodeOptions] as [typeof rehypePrettyCode, typeof prettyCodeOptions],
+];
+
+// The RSS feed (`s.markdown()` → `bodyHtml`) is consumed off-site, so its URLs
+// must be absolute. On-page bodies (`s.mdx()`) stay root-relative so content
+// images and internal links resolve against whatever origin serves them —
+// production AND Vercel preview deployments. Absolutizing on-page URLs to the
+// canonical host pins them to production, which 404s (and trips the
+// `img-src 'self'` CSP) on every preview deployment.
+const feedRehypePlugins = [
+  ...sharedRehypePlugins,
   rehypeAbsolutizeUrls({ baseUrl: siteConfig.url }),
 ];
 
@@ -435,7 +445,7 @@ export default defineConfig({
   },
   markdown: {
     remarkPlugins: sharedRemarkPlugins,
-    rehypePlugins: sharedRehypePlugins,
+    rehypePlugins: feedRehypePlugins,
   },
   // Post-collection cross-post invariants. Fires after all per-post transforms
   // complete, before .velite/ is written to disk. CHOSEN_PATH: HOOK

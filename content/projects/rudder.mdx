@@ -1,0 +1,59 @@
+---
+title: "Rudder"
+description: "An internal platform tool: a single pane of glass for operating a fleet of 40+ Kubernetes clusters across AWS, GCP, OCI, and on-prem MaaS."
+summary: "Fleet-wide Kubernetes visibility and workflow automation for 40+ clusters."
+date: "2023-06-01"
+cover: "./rudder-cover.png"
+coverAlt: "Title card for Rudder: the project name in white over a deep indigo gradient."
+tags:
+  - kubernetes
+  - platform-engineering
+  - golang
+  - temporal
+  - nextjs
+  - aws
+  - gcp
+status: "archived"
+draft: false
+---
+
+_Rudder is closed source, so this is a write-up rather than a code link._
+
+## Overview
+
+Rudder was the Infrastructure Engineering team's single pane of glass for
+operating a fleet of 40+ Kubernetes clusters across AWS, GCP, OCI, and on-prem
+Canonical MaaS. It replaced an aging, under-supported Ansible AWX system with a
+Temporal-powered workflows-as-code engine, and gave both Infrastructure and
+Platform teams a searchable, filterable view of the entire fleet.
+
+## Visibility
+
+Teams could explore fleet-wide cluster state: component versions, namespaces,
+worker pools with instance sizing and node counts (including ASG min/max),
+FluxCD deployments, GPU availability, and more. Rudder validated authentication
+and group membership against existing systems to render only what each team
+should see, and to gate API access accordingly.
+
+## Workflow automation
+
+Infrastructure engineers ran management operations — cluster upgrades, cert
+rotations, and the like — against a single cluster or a custom target group, and
+watched progress and logs across every target in real time. Temporal workflows
+were defined in Go and Python, keeping operational runbooks version-controlled,
+testable, and part of the same CI/CD toolchain as the rest of the platform.
+
+## Data integration
+
+A Go REST API talked to the AWS, GCP, OCI, and MaaS control planes for CRUD
+operations, and to a suite of internal APIs to relate otherwise-disparate data:
+users and groups, clusters, FluxCD state, compute and storage, and workflow
+runs. An AWS RDS PostgreSQL backend provided persistence without
+over-engineering.
+
+## Stack
+
+- Next.js frontend
+- Go REST API
+- Temporal.io for workflow orchestration and execution
+- PostgreSQL on AWS RDS
