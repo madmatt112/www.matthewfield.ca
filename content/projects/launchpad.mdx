@@ -1,0 +1,62 @@
+---
+title: "LaunchPad"
+description: "A self-service portal on Azure Kubernetes Service for provisioning, monitoring, and managing line-of-business app environments and IT services."
+summary: "A self-service portal on AKS for provisioning and managing app environments."
+date: "2021-03-01"
+cover: "./launchpad-cover.png"
+coverAlt: "Title card for LaunchPad: the project name in white over a violet gradient."
+tags:
+  - azure
+  - kubernetes
+  - vuejs
+  - flask
+  - prometheus
+  - grafana
+  - elastic-stack
+status: "archived"
+draft: false
+---
+
+_LaunchPad is closed source, so this is a write-up rather than a code link._
+
+## Overview
+
+LaunchPad was a highly extendable GUI portal that let developer and
+infrastructure teams provision, monitor, and manage line-of-business application
+environments and other managed IT services. Built and hosted on Azure, it was a
+deliberate effort to grow web-development skills alongside my
+infrastructure-automation and cloud toolboxes — and to deliver value across the
+whole organization.
+
+## What it does
+
+LaunchPad defined external services (disaster recovery, training, development
+environments, and so on), their properties, and their actions as API calls to
+arbitrary endpoints — Azure Functions, Automation Runbooks, Ansible Tower, the
+Azure DevOps API. These disparate services were exposed through a single
+documented API that the frontend, or other teams' applications, could consume. A
+Vue front-end presented self-service features to users authenticated by Azure AD
+group, and sent requests to deploy, modify, delete, or check the status of a
+service instance.
+
+## Monitoring
+
+Prometheus and Grafana scraped and displayed time-series metrics from both
+LaunchPad's own instrumentation and the Kubernetes API, for full-stack
+monitoring across teams. Elasticsearch and Kibana centralized application logs
+and APM for tracing and troubleshooting.
+
+## Stack
+
+- Vue + Bootstrap frontend
+- Flask API backend
+- Redis-backed job processing (pub/sub task queue with workers)
+- PostgreSQL with SQLAlchemy
+- Azure Active Directory SSO
+- Python and Go microservices
+
+## Delivery
+
+- Azure DevOps build-and-deploy pipelines triggered by git commits
+- Built for and deployed to Kubernetes (AKS), with Rancher to ease teams into Kubernetes
+- ARM templates to describe and rebuild the AKS, storage, and PostgreSQL resources
