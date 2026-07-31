@@ -79,6 +79,8 @@ const profile = defineCollection({
       headline: s.string().max(200),
       location: s.string().max(200),
       availability: s.string().max(200),
+      availabilityLinkLabel: s.string().max(100),
+      availabilityLinkHref: s.string().url(),
       headshot: s.image().optional(),
       body: s.mdx(),
     })

@@ -114,9 +114,9 @@ test.describe("blog surfaces under no-JS (TOC, footnotes, share, progress, searc
     const shareBar = page.locator("section[aria-label='Share this post']");
     await expect(shareBar).toBeVisible();
 
-    const xLink = shareBar.locator("a[aria-label='Share on X (Twitter)']");
-    const liLink = shareBar.locator("a[aria-label='Share on LinkedIn']");
-    const mailLink = shareBar.locator("a[aria-label='Share via email']");
+    const xLink = shareBar.locator("a[aria-label^='Share on X (Twitter)']");
+    const liLink = shareBar.locator("a[aria-label^='Share on LinkedIn']");
+    const mailLink = shareBar.locator("a[aria-label^='Share via email']");
 
     await expect(xLink).toHaveAttribute("href", /^https:\/\/twitter\.com\/intent\/tweet\?/);
     await expect(liLink).toHaveAttribute(

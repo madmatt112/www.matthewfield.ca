@@ -8,6 +8,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { NewTabHint } from "@/components/shared/new-tab-hint";
 import type { ProjectLink } from "@/lib/projects";
 
 export type LinkRailProps = {
@@ -33,6 +34,7 @@ export function LinkRail({ links }: LinkRailProps) {
             <li key={link.url}>
               <a
                 href={link.url}
+                target="_blank"
                 rel="noopener"
                 className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
@@ -42,6 +44,7 @@ export function LinkRail({ links }: LinkRailProps) {
                   <ExternalLinkIcon aria-hidden="true" className="size-4" />
                 )}
                 <span>{link.label}</span>
+                <NewTabHint />
               </a>
             </li>
           );

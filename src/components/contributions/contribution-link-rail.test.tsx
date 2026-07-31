@@ -27,14 +27,18 @@ describe("ContributionLinkRail", () => {
       "https://example.com/commit",
       "https://example.com/discussion",
     ]);
-    expect(anchors.map((a) => a.textContent)).toEqual(["Pull request", "My commit", "Discussion"]);
+    expect(anchors.map((a) => a.textContent)).toEqual([
+      "Pull request (opens in a new tab)",
+      "My commit (opens in a new tab)",
+      "Discussion (opens in a new tab)",
+    ]);
   });
 
-  it("uses same-tab links: rel=noopener and no target", () => {
+  it("opens links in a new tab: target=_blank and rel=noopener", () => {
     const { getByRole } = render(<ContributionLinkRail links={links} labelledBy={labelledBy} />);
     for (const anchor of getByRole("group").querySelectorAll("a")) {
       expect(anchor.getAttribute("rel")).toBe("noopener");
-      expect(anchor.getAttribute("target")).toBeNull();
+      expect(anchor.getAttribute("target")).toBe("_blank");
     }
   });
 });

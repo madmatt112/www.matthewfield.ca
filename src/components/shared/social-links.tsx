@@ -27,7 +27,7 @@ export function SocialLinks() {
             href={siteConfig.links.linkedin}
             target="_blank"
             rel="noopener external"
-            aria-label="Matthew on LinkedIn"
+            aria-label="Matthew on LinkedIn (opens in a new tab)"
             className="inline-flex min-h-11 min-w-11 items-center gap-2 rounded-md px-3 py-1 text-sm font-medium hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
           >
             <LinkedInIcon />
@@ -39,7 +39,7 @@ export function SocialLinks() {
             href={siteConfig.links.github}
             target="_blank"
             rel="noopener external"
-            aria-label="Matthew on GitHub"
+            aria-label="Matthew on GitHub (opens in a new tab)"
             className="inline-flex min-h-11 min-w-11 items-center gap-2 rounded-md px-3 py-1 text-sm font-medium hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
           >
             <GitHubIcon />
