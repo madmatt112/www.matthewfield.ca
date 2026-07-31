@@ -1,0 +1,17 @@
+# Currently reading, mirrored from StoryGraph by hand.
+#
+# StoryGraph is behind a Cloudflare bot challenge and an auth wall, so this
+# cannot be fetched at build or request time. This file is the whole data
+# source: replace its contents when your current reads change, drop the cover
+# into content/reading/, and the /now Reading section follows.
+#
+# Order here is the order rendered.
+- title: "Do I Stay Christian?: A Guide for the Doubters, the Disappointed, and the Disillusioned"
+  author: Brian D. McLaren
+  started: "2026-07-31"
+  cover: ./reading/do-i-stay-christian.jpg
+
+- title: Scott Pilgrim Color Collection Vol. 3
+  author: Bryan Lee O'Malley
+  started: "2026-07-31"
+  cover: ./reading/scott-pilgrim-color-collection-vol-3.jpg

@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 
 import { pages } from "#site/content";
 
+import { ReadingList } from "@/components/now/reading-list";
 import { MDXContent } from "@/components/shared/mdx-content";
 import { SectionKicker } from "@/components/shared/section-kicker";
 import { formatContentDate } from "@/lib/format-date";
+import { getCurrentlyReading } from "@/lib/reading";
 
 // Velite's pages schema requires content/pages/now.mdx (task 8). If that
 // entry is ever removed or renamed, fail loudly at module load rather than
@@ -34,6 +36,7 @@ export function generateMetadata(): Metadata {
 
 export default function NowPage() {
   const { datetime, display } = formatContentDate(nowPage.updated);
+  const currentlyReading = getCurrentlyReading();
   return (
     <article className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
       <SectionKicker label="now" />
@@ -44,6 +47,14 @@ export default function NowPage() {
       <div className="prose dark:prose-invert max-w-measure mt-6">
         <MDXContent code={nowPage.body} />
       </div>
+      {currentlyReading.length > 0 ? (
+        <section className="mt-12" aria-labelledby="reading-heading">
+          <h2 id="reading-heading" className="font-display text-2xl tracking-tight">
+            Reading
+          </h2>
+          <ReadingList entries={currentlyReading} />
+        </section>
+      ) : null}
     </article>
   );
 }
