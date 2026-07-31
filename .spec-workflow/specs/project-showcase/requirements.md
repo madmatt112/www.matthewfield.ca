@@ -177,7 +177,9 @@ After this spec ships, Matthew can add a project by dropping `content/projects/<
 
 4. **Display order is array order**. Rail appears ABOVE the MDX body on the detail page. Each entry's visible text SHALL be its `label`. When `kind` is recognized AND the design phase provides an icon, the icon MAY accompany the label; the visible text label remains present (no icon-only).
 
-5. **Link attributes**: same-tab (no `target="_blank"`); `rel="noopener"` for tabnabbing protection. **`noreferrer` intentionally omitted** (browser default Referrer-Policy gives origin-only Referer, preserving attribution). Same-tab default is policy — middle-click or Cmd/Ctrl-click for new tab. No per-link override.
+5. **Link attributes**: new-tab (`target="_blank"`); `rel="noopener"` for tabnabbing protection. **`noreferrer` intentionally omitted** (browser default Referrer-Policy gives origin-only Referer, preserving attribution). New-tab is a uniform site-wide policy for outbound links — no per-link override. Each new-tab link SHALL carry a visually-hidden "(opens in a new tab)" suffix inside the anchor, or the equivalent phrase appended to its `aria-label` where one overrides the text content (WCAG 3.2.5).
+
+   > **Revised 2026-07-31.** v1–v3 specified same-tab, on the rationale that same-tab is the browser default and users wanting a new tab can middle-click. Adversarial review challenged this in all three rounds as an unsupported personal preference; it is now reversed by owner decision. The `noreferrer` omission above is unchanged and still deliberate — `noopener` alone blocks tabnabbing, and preserving the `Referer` keeps outbound click attribution, which serves the builder-credibility objective.
 
 6. The rail SHALL appear ONLY on the detail page, never on cards.
 
@@ -349,7 +351,7 @@ After this spec ships, Matthew can add a project by dropping `content/projects/<
 
 #### Security
 - **CSP unchanged**: Cover images are first-party (`/static/...`); `img-src 'self' data:` suffices.
-- **External link safety**: All rail links carry `rel="noopener"`; `noreferrer` intentionally omitted (Req 5.5). URL validation rejects non-`http`/`https` schemes (Req 5.2).
+- **External link safety**: All rail links open in a new tab with `rel="noopener"`, which is what blocks tabnabbing on `target="_blank"`; `noreferrer` intentionally omitted (Req 5.5). URL validation rejects non-`http`/`https` schemes (Req 5.2).
 - **MDX content**: No per-spec security surface beyond what blog-core and professional-profile address. Author is trusted.
 - **No user input on these pages**.
 
