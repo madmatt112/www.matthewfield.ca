@@ -16,6 +16,7 @@ import { countWordsFromMdast } from "./src/lib/build/word-count";
 import { KNOWN_FIXTURE_SLUGS, derivePostSlug } from "./src/lib/build/derive-post-slug.mjs";
 import { checkProjectHeadings } from "./src/lib/build/check-project-headings";
 import { contributionEntrySchema } from "./src/lib/build/contributions-schema";
+import { readingEntrySchema, readingLoaderSchema } from "./src/lib/build/reading-schema";
 import { resourceEntrySchema } from "./src/lib/build/resources-schema";
 import { makeContentYamlLoader } from "./src/lib/build/content-yaml-loader";
 
@@ -426,6 +427,12 @@ const resources = defineCollection({
   schema: resourceEntrySchema,
 });
 
+const reading = defineCollection({
+  name: "ReadingEntry",
+  pattern: "reading.yaml",
+  schema: readingEntrySchema,
+});
+
 export default defineConfig({
   root: "content",
   output: {
@@ -434,11 +441,12 @@ export default defineConfig({
     base: "/static/",
     clean: true,
   },
-  collections: { pages, profile, posts, projects, contributions, resources },
+  collections: { pages, profile, posts, projects, contributions, resources, reading },
   loaders: [
     makeContentYamlLoader({
       "contributions.yaml": contributionEntrySchema,
       "resources.yaml": resourceEntrySchema,
+      "reading.yaml": readingLoaderSchema,
     }),
   ],
   mdx: {

@@ -140,6 +140,47 @@ bumping `updated`, CI passes and the displayed date is wrong. The convention
 relies on author discipline: bump `updated` on every meaningful revision.
 A minor typo fix does not warrant a bump; a content refresh does.
 
+## Reading list on /now
+
+The **Reading** section on `/now` is rendered from `content/reading.yaml`, not
+from `now.mdx`. It is a separate file so a future sync job can rewrite the whole
+thing without touching your prose.
+
+```yaml
+- title: "Do I Stay Christian?: A Guide for the Doubters"
+  author: Brian D. McLaren
+  started: "2026-07-31"
+  cover: ./reading/do-i-stay-christian.jpg
+```
+
+To update it: replace the entries, drop the cover image into `content/reading/`,
+and commit. Order in the file is the order rendered. An empty list (`[]`) hides
+the section entirely.
+
+Every field is required and hard-failed at build time by the same authoritative
+YAML loader that guards `contributions.yaml` and `resources.yaml` — a malformed
+date, a future `started`, or an unknown key fails the build with a named error.
+
+`cover` is a path relative to `content/`, processed by Velite into a hashed
+asset with width, height, and a blur placeholder. Do NOT point it at a remote
+URL: the CSP is `img-src 'self' data:`, so an off-site cover is blocked by the
+browser. StoryGraph's cover CDN serves images to plain `curl` without auth, so
+downloading one into `content/reading/` is a one-liner.
+
+### Why this is not fetched automatically
+
+StoryGraph cannot be read by a server. Every URL on the domain — including the
+logged-out homepage — returns HTTP 403 with `cf-mitigated: challenge`, so a
+build-time or request-time `fetch` gets a Cloudflare interstitial, not HTML. On
+top of that, `/currently-reading/<user>` redirects to `/users/sign_in`, so the
+list needs an authenticated session even past the challenge. There is no public
+API. A client-side fetch fails for the additional reasons that StoryGraph sends
+no CORS header for this origin and the visitor is not signed in as you.
+
+The only workable automation is a scheduled job driving a real browser that logs
+in and rewrites `content/reading.yaml`. The data shape above is deliberately
+job-writable so that can be added later without touching any component.
+
 ## Seed content expectation
 
 The three MDX page bodies must contain real, non-placeholder content. CI runs a
