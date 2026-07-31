@@ -45,7 +45,15 @@ export default function ProfilePage() {
             {profile.headline}
           </h1>
           <p className="text-sm text-muted-foreground">
-            {profile.location} · {profile.availability}
+            {profile.location} · {profile.availability}{" "}
+            <a
+              href={profile.availabilityLinkHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-brand underline-offset-4 hover:underline"
+            >
+              {profile.availabilityLinkLabel}
+            </a>
           </p>
           <Button asChild variant="brand" className="mt-2 w-fit">
             <a href="#get-in-touch">Get in touch</a>
