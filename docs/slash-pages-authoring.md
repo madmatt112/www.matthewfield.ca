@@ -58,11 +58,11 @@ updated: "2026-05-29"
 
 ## Which file renders which page
 
-| MDX file                     | Route       | Notes                                     |
-| ---------------------------- | ----------- | ----------------------------------------- |
-| `content/pages/about.mdx`    | `/about`    | Indexable. No `updated` required.         |
-| `content/pages/now.mdx`      | `/now`      | `updated` is required — see below.        |
-| `content/pages/colophon.mdx` | `/colophon` | Indexable. External links: same-tab only. |
+| MDX file                     | Route       | Notes                                        |
+| ---------------------------- | ----------- | -------------------------------------------- |
+| `content/pages/about.mdx`    | `/about`    | Indexable. No `updated` required.            |
+| `content/pages/now.mdx`      | `/now`      | `updated` is required — see below.           |
+| `content/pages/colophon.mdx` | `/colophon` | Indexable. External links open in a new tab. |
 
 `/sitemap` and `/slashes` have no backing MDX file. They are component-only
 pages that read `siteConfig.slashPages` and the content-library helpers
@@ -72,23 +72,37 @@ editing `src/app/(site)/{sitemap,slashes}/page.tsx` or `src/config/site.ts`.
 
 ### Colophon external links
 
-External links in the **colophon body** open in the same tab with
-`rel="noopener"` — no `target="_blank"`. This matches the `/contributions`
-and `/resources` same-tab precedent. Do not add `target="_blank"` to colophon
-body links; an E2E assertion checks that every external `http(s):` link on
-`/colophon` carries `rel="noopener"` (the footer chrome's GitHub/LinkedIn links
-already comply with `rel="noopener noreferrer"` and pass the same assertion).
-
-If you need to reference an external tool or project from the colophon, write:
+External links in the **colophon body** open in a new tab with
+`target="_blank" rel="noopener"`. This matches the `/contributions` and
+`/resources` new-tab behaviour. You do not write those attributes yourself —
+`MDXContent` applies them to every prose link whose host differs from the site
+host (see `src/lib/external-link.ts`), along with a visually-hidden
+"(opens in a new tab)" suffix for screen readers (WCAG 3.2.5). A plain Markdown
+link is all you need:
 
 ```mdx
 [Next.js](https://nextjs.org)
 ```
 
-Not:
+`rel` omits `noreferrer` on purpose: `noopener` is what blocks tabnabbing, and
+keeping the `Referer` header preserves click attribution on outbound links. An
+E2E assertion checks that every external `http(s):` link on `/colophon` carries
+`rel="noopener"` (the footer chrome's GitHub/LinkedIn links use
+`rel="noopener noreferrer"` and pass the same assertion).
+
+Relative links, in-page anchors, and `mailto:`/`tel:` links are left alone —
+they navigate in place.
+
+Write links as Markdown, not as raw `<a>` HTML. Literal HTML in MDX renders as
+an intrinsic DOM element and never reaches the `components` map, so a
+hand-written `<a href="…">` silently opts out of the new-tab behaviour:
 
 ```mdx
-[Next.js](https://nextjs.org){target="\_blank"}
+<!-- No: bypasses MDXContent, opens in the same tab -->
+
+<a href="https://nextjs.org" rel="noopener">
+  Next.js
+</a>
 ```
 
 ## Updating /now
@@ -150,5 +164,5 @@ A short paragraph is fine; there is no minimum length.
 For `/colophon` specifically, the seed should document the actual stack: the
 framework, styling library, component library, content pipeline, hosting
 provider, and CI tooling. Link each item to its homepage using a standard
-Markdown link (same-tab, `rel="noopener"` — see
+Markdown link (opens in a new tab, `rel="noopener"` — see
 [Which file renders which page](#which-file-renders-which-page)).

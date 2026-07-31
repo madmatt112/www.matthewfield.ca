@@ -2,6 +2,7 @@
 
 import * as React from "react";
 
+import { NewTabHint } from "@/components/shared/new-tab-hint";
 import { StatusCallout } from "@/components/shared/status-callout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -259,6 +260,7 @@ export function ContactForm(props: { source?: "profile" | "contact" }): React.JS
               className="inline-flex min-h-11 items-center px-1 text-sm underline underline-offset-4"
             >
               Or reach out on LinkedIn
+              <NewTabHint />
             </a>
           </div>
         </StatusCallout>
