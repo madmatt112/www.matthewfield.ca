@@ -1,3 +1,4 @@
+import { NewTabHint } from "@/components/shared/new-tab-hint";
 import type { Resource, ResourceCategory } from "@/lib/resources";
 
 export type ResourceCategorySectionProps = {
@@ -18,8 +19,9 @@ export function ResourceCategorySection({
       <ul>
         {resources.map((resource) => (
           <li key={resource.url}>
-            <a href={resource.url} rel="noopener">
+            <a href={resource.url} target="_blank" rel="noopener">
               {resource.title}
+              <NewTabHint />
             </a>
             <p className="resource-note">{resource.description}</p>
           </li>

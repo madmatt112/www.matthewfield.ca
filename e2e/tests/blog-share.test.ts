@@ -20,21 +20,21 @@ test.describe("blog share-bar — Build 1 axis (fixture-code)", () => {
     const shareSection = page.locator('section[aria-label="Share this post"]');
     await expect(shareSection).toBeVisible();
 
-    const x = shareSection.locator('a[aria-label="Share on X (Twitter)"]');
+    const x = shareSection.locator('a[aria-label^="Share on X (Twitter)"]');
     await expect(x).toHaveAttribute("target", "_blank");
     await expect(x).toHaveAttribute("rel", "noopener nofollow");
     const xHref = await x.getAttribute("href");
     expect(xHref).toMatch(/^https:\/\/twitter\.com\/intent\/tweet\?/);
     expect(xHref).toContain(encodeURIComponent(POST_URL));
 
-    const linkedin = shareSection.locator('a[aria-label="Share on LinkedIn"]');
+    const linkedin = shareSection.locator('a[aria-label^="Share on LinkedIn"]');
     await expect(linkedin).toHaveAttribute("target", "_blank");
     await expect(linkedin).toHaveAttribute("rel", "noopener nofollow");
     const linkedinHref = await linkedin.getAttribute("href");
     expect(linkedinHref).toMatch(/^https:\/\/www\.linkedin\.com\/sharing\/share-offsite\/\?/);
     expect(linkedinHref).toContain(encodeURIComponent(POST_URL));
 
-    const mail = shareSection.locator('a[aria-label="Share via email"]');
+    const mail = shareSection.locator('a[aria-label^="Share via email"]');
     await expect(mail).toHaveAttribute("target", "_blank");
     await expect(mail).toHaveAttribute("rel", "noopener nofollow");
     const mailHref = await mail.getAttribute("href");
@@ -79,9 +79,9 @@ test.describe("blog share-bar — Build 1 axis (fixture-code)", () => {
     await expect(shareSection).toBeVisible();
 
     const selectors = [
-      'a[aria-label="Share on X (Twitter)"]',
-      'a[aria-label="Share on LinkedIn"]',
-      'a[aria-label="Share via email"]',
+      'a[aria-label^="Share on X (Twitter)"]',
+      'a[aria-label^="Share on LinkedIn"]',
+      'a[aria-label^="Share via email"]',
       'button[aria-label="Copy link to this post"]',
     ];
 

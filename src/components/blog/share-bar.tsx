@@ -43,7 +43,7 @@ export function ShareBar({ title, description, url }: ShareBarProps) {
         href={xHref}
         target="_blank"
         rel="noopener nofollow"
-        aria-label="Share on X (Twitter)"
+        aria-label="Share on X (Twitter) (opens in a new tab)"
         className="share-bar-link"
       >
         <XIcon />
@@ -52,7 +52,7 @@ export function ShareBar({ title, description, url }: ShareBarProps) {
         href={linkedinHref}
         target="_blank"
         rel="noopener nofollow"
-        aria-label="Share on LinkedIn"
+        aria-label="Share on LinkedIn (opens in a new tab)"
         className="share-bar-link"
       >
         <LinkedInIcon />
@@ -61,7 +61,7 @@ export function ShareBar({ title, description, url }: ShareBarProps) {
         href={mailHref}
         target="_blank"
         rel="noopener nofollow"
-        aria-label="Share via email"
+        aria-label="Share via email (opens in a new tab)"
         className="share-bar-link"
       >
         <Mail aria-hidden="true" className="share-bar-icon" />

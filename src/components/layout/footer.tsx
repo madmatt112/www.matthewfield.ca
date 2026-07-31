@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { NewTabHint } from "@/components/shared/new-tab-hint";
 import { getBuildInfo } from "@/lib/build-info";
 
 export function Footer() {
@@ -14,7 +15,7 @@ export function Footer() {
               href={build.commitUrl}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={`Deployed commit ${build.shortSha}`}
+              aria-label={`Deployed commit ${build.shortSha} (opens in a new tab)`}
               className="font-mono text-xs hover:text-foreground"
             >
               {build.shortSha}
@@ -38,6 +39,7 @@ export function Footer() {
             className="hover:text-foreground"
           >
             GitHub
+            <NewTabHint />
           </a>
           <a
             href="https://www.linkedin.com/in/matthewfieldca/"
@@ -46,6 +48,7 @@ export function Footer() {
             className="hover:text-foreground"
           >
             LinkedIn
+            <NewTabHint />
           </a>
         </nav>
       </div>
