@@ -6,6 +6,7 @@ import { profile } from "#site/content";
 import { AvatarPlaceholder } from "@/components/shared/avatar-placeholder";
 import { ContactForm } from "@/components/shared/contact-form";
 import { MDXContent } from "@/components/shared/mdx-content";
+import { NewTabHint } from "@/components/shared/new-tab-hint";
 import { ObfuscatedEmail } from "@/components/shared/obfuscated-email";
 import { SectionKicker } from "@/components/shared/section-kicker";
 import { SocialLinks } from "@/components/shared/social-links";
@@ -49,10 +50,11 @@ export default function ProfilePage() {
             <a
               href={profile.availabilityLinkHref}
               target="_blank"
-              rel="noopener noreferrer"
+              rel="noopener"
               className="text-brand underline-offset-4 hover:underline"
             >
               {profile.availabilityLinkLabel}
+              <NewTabHint />
             </a>
           </p>
           <Button asChild variant="brand" className="mt-2 w-fit">

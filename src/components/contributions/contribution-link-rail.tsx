@@ -1,3 +1,4 @@
+import { NewTabHint } from "@/components/shared/new-tab-hint";
 import type { ContributionLink } from "@/lib/contributions";
 
 export type ContributionLinkRailProps = {
@@ -31,13 +32,15 @@ export function ContributionLinkRail({ links, labelledBy, repoUrl }: Contributio
   return (
     <div role="group" aria-labelledby={labelledBy} className="contrib-link-rail">
       {repoUrl ? (
-        <a href={repoUrl} rel="noopener">
+        <a href={repoUrl} target="_blank" rel="noopener">
           {repoLinkLabel(repoUrl)}
+          <NewTabHint />
         </a>
       ) : null}
       {links.map((link) => (
-        <a key={link.url} href={link.url} rel="noopener">
+        <a key={link.url} href={link.url} target="_blank" rel="noopener">
           {link.label ?? DEFAULT_LABELS[link.kind]}
+          <NewTabHint />
         </a>
       ))}
     </div>
