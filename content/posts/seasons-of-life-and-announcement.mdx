@@ -1,17 +1,17 @@
 ---
-title: "A New Season of Life and an Announcment"
+title: "A New Season of Life and an Announcement"
 description: "What I've been up to since I lost my job, and what I'm doing next."
-date: "2021-07-31"
+date: "2026-07-31"
 tags: ["employment", "trading", "oss"]
 categories: ["personal"]
-draft: true
+draft: false
 ---
 
-I'm in a strange season of my life: I've been unemployed since January 2026 and my industry is having major labour pains (so to speak). I spent three or four solid months of full-time effort into job hunting, had a handful of interview, had two of them continue, and have had no offers. I see many, _many_ people having similar difficulty finding employment these days. I don't know when it will improve, and while the "official" declaration of recession is by its nature a delayed signal requiring months of confirmed data ([NBER, Business Cycle Dating](https://www.nber.org/research/business-cycle-dating), [CasualFinance YouTube video](https://www.youtube.com/watch?v=yViMyIVOHkQ)), the vibecession is real and I belive it's part of a protracted market & economic correction that's playing out as a battle between two opposing forces: reality and greed. Whatever, that's enough opining for the /now page.
+I'm in a strange season of my life: I've been unemployed since January 2026 and my industry is having major labour pains (so to speak). I poured four solid months of full-time effort into job hunting, had a handful of interviews, had two of them continue, and have had no offers. I see many, _many_ people having similar difficulty finding employment these days. I don't know when it will improve, and while the "official" declaration of recession is by its nature a delayed signal requiring months of confirmed data ([NBER, Business Cycle Dating](https://www.nber.org/research/business-cycle-dating), [CasualFinance YouTube video](https://www.youtube.com/watch?v=yViMyIVOHkQ)), the vibecession is real and I believe it's part of a protracted market & economic correction that's playing out as a battle between two opposing forces: reality and greed. Whatever, that's enough opining for the /now page.
 
 ## Point is, I took a step back and started considering other options.
 
-Pre-sales? Turns out a lot of what I enjoy about my work has been partnering with other teams and colleagues to explore and discover their pain points and need, then iterating with them to deliver high-quality solutions. Turns out sales engineers do just that, building credibility with their clients to earn the position of trusted technical advisor and storyteller. Turns out it pays well and postings are competitive. I was able to land an interview and followed-up with a demonstration solution proposal, the content of which I think was stellar - and proceeded to face-plant the live presentation when an access token expired (unbeknownst to me) minutes before the meeting, forcing me to scramble on the spot to get things working again. It was... not fun.
+Pre-sales? Turns out a lot of what I enjoy about my work has been partnering with other teams and colleagues to explore and discover their pain points and needs, then iterating with them to deliver high-quality solutions. Turns out sales engineers do just that, building credibility with their clients to earn the position of trusted technical advisor and storyteller. Turns out it pays well and postings are competitive. I was able to land an interview and followed-up with a demonstration solution proposal, the content of which I think was stellar - and proceeded to face-plant the live presentation when an access token expired (unbeknownst to me) minutes before the meeting, forcing me to scramble on the spot to get things working again. It was... not fun.
 
 Career change? I've always loved medicine - something like an EMT could be a good fit. Or maybe clinical psychology. That choice of re-tooling requires going back to school full time and taking out student loans to pay the bills, so not something I want to impulse-decide. Plus there are family life logistics to consider: can my family (with its neurodiverse children and all of our mental health journeys) handle a shift-work schedule like EMT? Do we have the resources to get me through a year or more of full-time school? Those answers are quite likely "no".
 
@@ -31,19 +31,19 @@ I also incorporated [Mossfoot Digital, Inc.](https://www.mossfootdigital.com) as
 
 Finally, as I've been trading options I've used various iterations of a spreadsheet to track trade ideas and executions. There are paid trading journals out there, but they're minimum USD$40/month for basic features. About a year ago I turned the spreadsheet into a web application that just ran locally on my computer. I thought about how I could productize it as a SaaS offering with a paid subscription, but I couldn't see a way to differentiate the product from what was already out there.
 
-Then I realized the feature set doesn't have to differentiate - the usage model could! The other commercial trading journals are all closed-source and privately-hosted. If my app could offer the core trading journal functionality that the others, it could be released as Free and Open Source Software (FOSS) that anyone can run themselves if they've got the gumption and ability to type `docker compose up`. And for anyone who doesn't want to wrangle the whole system and its moving parts themselves, they can simply create an account on the public, hosted instance that I host. This model has been popular and successful for a few tech companies in recent years. A notable example is [Supabase](https://www.supabase.com). Plus, it creates a space for contribution and collaboration on the application development effort. If people like it and want to improve it, give it bells and whistles, or fix bugs, they can! I love Open-Source software and the people who stand behind the movement.
+Then I realized the feature set doesn't have to differentiate - the usage model could! The other commercial trading journals are all closed-source and privately-hosted. If my app could offer the core trading journal functionality that the others do, it could be released as Free and Open Source Software (FOSS) that anyone can run themselves if they've got the gumption and ability to type `docker compose up`. And for anyone who doesn't want to wrangle the whole system and its moving parts themselves, they can simply create an account on the public, hosted instance that I host. This model has been popular and successful for a few tech companies in recent years. A notable example is [Supabase](https://www.supabase.com). Plus, it creates a space for contribution and collaboration on the application development effort. If people like it and want to improve it, give it bells and whistles, or fix bugs, they can! I love Open-Source software and the people who stand behind the movement.
 
 So, I rebuilt the app from the ground up to meet these two requirements:
 
 - Open-Source Licence compatible (I chose Apache 2.0), and
-- Engineered for public-facing production (i.e. secure, scaleable, reliable, manageable, observable, etc.) with defaults for easy self-hosting.
+- Engineered for public-facing production (i.e. secure, scalable, reliable, manageable, observable, etc.) with defaults for easy self-hosting.
 
 ## A Lil' Announcement
 
-It's taken a long time, but I'm ready to share. It's called _Tradr_. The source-code has been released at [Github](https://github.com/madmatt112/tradr), and is currenlty pre-v1.0. Anyone can run their own instance of Tradr, see how it works, or tinker with it. It's release under the Apache 2.0 licence, which essentially means you can do with it what you want with a few caveats around attribution, ownership, and liability. [Here's a good TL;DR of Apache 2.0](https://www.tldrlegal.com/license/apache-license-2-0-apache-2-0).
+It's taken a long time, but I'm ready to share. It's called _Tradr_. The source-code has been released at [Github](https://github.com/madmatt112/tradr), and is currently pre-v1.0. Anyone can run their own instance of Tradr, see how it works, or tinker with it. It's released under the Apache 2.0 licence, which essentially means you can do with it what you want with a few caveats around attribution, ownership, and liability. [Here's a good TL;DR of Apache 2.0](https://www.tldrlegal.com/license/apache-license-2-0-apache-2-0).
 
 The hosted offering at [www.tradr.cloud](https://www.tradr.cloud) is coming soon (I want to put extra care into the hosted instance to make it stable, performant, and secure), and it'll run the most recent release of the Tradr stack. There will be a free-forever tier with basic core functionality, and a paid tier with an extended feature set and limits.
 
-I've been using tradr to journal, plan and size trades, view stats and performance, review past trade and improve my trading system for months now. I love it and I'm excited to share it with the world as FOSS.
+I've been using tradr to journal, plan and size trades, view stats and performance, review past trades and improve my trading system for months now. I love it and I'm excited to share it with the world as FOSS.
 
-p.s. welcome to my new website. I've moved over to this one from [my previous wordpress site](https://www.matthew-field.ca), and you can read about why [here]()
+p.s. welcome to my new website. I built this one and moved to it from [my previous wordpress site](https://www.matthew-field.ca), and you can read a tiny bit about why [here](/projects/matthewfield-ca).
