@@ -5,19 +5,8 @@ import { getAllTags, getAllCategories } from "@/lib/blog-taxonomy";
 import { getPublishedProjects } from "@/lib/projects";
 import { getAllContributions } from "@/lib/contributions";
 import { getAllResources } from "@/lib/resources";
-import { playgroundItems } from "#playground/manifest";
 
-const routes = [
-  "/",
-  "/profile",
-  "/projects",
-  "/blog",
-  "/playground",
-  "/about",
-  "/contact",
-  "/colophon",
-  "/now",
-];
+const routes = ["/", "/profile", "/projects", "/blog", "/about", "/contact", "/colophon", "/now"];
 
 // Latest date in `dates`, or `fallback` when empty. The empty-array guard is
 // load-bearing: the launch state of both collections is `[]`, and a bare
@@ -85,11 +74,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ),
   };
 
-  const playgroundEntries = playgroundItems.map((it) => ({
-    url: new URL("/playground/" + it.slug, siteConfig.url).toString(),
-    lastModified: now,
-  }));
-
+  // Playground is intentionally absent from the sitemap: the routes still
+  // render, they are just not advertised to crawlers (matching its removal
+  // from navItems and heroCards in src/config/site.ts).
   return [
     ...staticEntries,
     contributionsEntry,
@@ -98,6 +85,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...tagEntries,
     ...categoryEntries,
     ...projectEntries,
-    ...playgroundEntries,
   ];
 }

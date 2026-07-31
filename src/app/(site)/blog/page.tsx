@@ -7,7 +7,7 @@ import { getVisiblePublishedPosts } from "@/lib/blog";
 
 export const dynamic = "force-static";
 
-const BLOG_DESCRIPTION = "Notes on tooling, systems, and the craft.";
+const BLOG_DESCRIPTION = "Writing about tech, life, and sundry.";
 
 export function generateMetadata(): Metadata {
   const metadata: Metadata = {
