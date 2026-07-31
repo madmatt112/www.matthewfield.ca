@@ -8,11 +8,13 @@ import { siteConfig } from "../../src/config/site";
 // point to the same hrefs.
 
 test.describe("landing page hero cards", () => {
-  test("renders exactly 6 hero cards", async ({ page }) => {
+  test("renders one hero card per configured entry", async ({ page }) => {
     await page.goto("/");
     const sections = page.getByRole("region", { name: "Sections" });
 
-    await expect(sections.getByRole("link")).toHaveCount(6);
+    // Derived from the config rather than hardcoded, so adding or unlisting a
+    // card (e.g. Playground) does not require editing this assertion.
+    await expect(sections.getByRole("link")).toHaveCount(siteConfig.heroCards.length);
     for (const card of siteConfig.heroCards) {
       await expect(sections.getByRole("link", { name: card.title })).toBeVisible();
     }

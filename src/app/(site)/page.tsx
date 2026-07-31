@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { HeroCard } from "@/components/shared/hero-card";
 import { SectionKicker } from "@/components/shared/section-kicker";
 import { siteConfig } from "@/config/site";
+import { getVisiblePublishedPosts } from "@/lib/blog";
 
 export function generateMetadata(): Metadata {
   return {
@@ -11,6 +12,8 @@ export function generateMetadata(): Metadata {
 }
 
 export default function HomePage() {
+  // Posts are sorted newest-first; undefined before the first post is published.
+  const [newestPost] = getVisiblePublishedPosts();
   return (
     <div className="mx-auto w-full max-w-6xl px-4 pt-20 sm:px-6 md:pt-28 lg:px-8">
       <section className="flex flex-col items-start gap-6">
@@ -35,6 +38,11 @@ export default function HomePage() {
               title={card.title}
               description={card.description}
               href={card.href}
+              latest={
+                card.href === "/blog" && newestPost
+                  ? { title: newestPost.title, date: newestPost.date }
+                  : undefined
+              }
             />
           ))}
         </div>

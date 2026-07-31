@@ -8,7 +8,7 @@ import { getPublishedProjects } from "@/lib/projects";
 
 export const dynamic = "force-static";
 
-const PROJECTS_DESCRIPTION = "Selected work across infrastructure and platform engineering.";
+const PROJECTS_DESCRIPTION = "Selected works of my mind and hands.";
 
 export function generateMetadata(): Metadata {
   return {

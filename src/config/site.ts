@@ -44,7 +44,8 @@ export const siteConfig: SiteConfig = {
     { label: "Contributions", href: "/contributions" },
     { label: "Blog", href: "/blog" },
     { label: "Resources", href: "/resources" },
-    { label: "Playground", href: "/playground" },
+    // Playground is intentionally unlisted: the route still exists and renders
+    // at /playground, it is just not advertised in the nav or on the homepage.
   ],
   heroCards: [
     {
@@ -54,7 +55,7 @@ export const siteConfig: SiteConfig = {
     },
     {
       title: "Projects",
-      description: "Selected work across infrastructure and platform engineering.",
+      description: "Selected works of my mind and hands.",
       href: "/projects",
     },
     {
@@ -64,7 +65,7 @@ export const siteConfig: SiteConfig = {
     },
     {
       title: "Blog",
-      description: "Notes on tooling, systems, and the craft.",
+      description: "Writing about tech, life, and sundry.",
       href: "/blog",
     },
     {
@@ -72,11 +73,7 @@ export const siteConfig: SiteConfig = {
       description: "Curated references and things worth sharing.",
       href: "/resources",
     },
-    {
-      title: "Playground",
-      description: "Interactive experiments and demos.",
-      href: "/playground",
-    },
+    // Playground card intentionally omitted — see the note on navItems above.
   ],
   slashPages: [
     { href: "/about", title: "/about", description: "Who I am beyond the resume." },
