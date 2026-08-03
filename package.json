@@ -57,7 +57,7 @@
     "fast-xml-parser": "5.8.0",
     "gray-matter": "4.0.3",
     "hast-util-to-text": "4.0.2",
-    "jsdom": "^29.0.2",
+    "jsdom": "^30.0.1",
     "mdast-util-to-string": "^4.0.0",
     "node-html-parser": "7.1.0",
     "pagefind": "1.5.2",
