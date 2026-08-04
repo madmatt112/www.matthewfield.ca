@@ -157,6 +157,7 @@ describe("getResourcesGroupedByCategory", () => {
       synth("2025-01-01", "d", "https://d.example", "devops-tools"),
       synth("2025-01-01", "b", "https://b.example", "blogs-and-feeds"),
       synth("2025-01-01", "r", "https://r.example", "reading"),
+      synth("2025-01-01", "a", "https://a.example", "appdev-tools"),
     ];
     const order = getResourcesGroupedByCategory().map((g) => g.category);
     expect(order).toEqual([...CATEGORY_ORDER]);
@@ -175,6 +176,7 @@ describe("RESOURCE_CATEGORY_LABELS", () => {
 
   it("maps each category to its expected label", () => {
     expect(RESOURCE_CATEGORY_LABELS).toEqual({
+      "appdev-tools": "App Dev Tools",
       "devops-tools": "DevOps Tools",
       "blogs-and-feeds": "Blogs & Feeds",
       reading: "Reading",
@@ -193,6 +195,7 @@ describe("RESOURCE_CATEGORY_LABELS", () => {
 describe("CATEGORY_ORDER", () => {
   it("equals the schema enum order", () => {
     expect([...CATEGORY_ORDER]).toEqual([
+      "appdev-tools",
       "devops-tools",
       "blogs-and-feeds",
       "reading",
