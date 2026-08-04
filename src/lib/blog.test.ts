@@ -120,17 +120,47 @@ describe("__testing.neighbors — synthetic 5-post array (reverse-chrono)", () =
 });
 
 describe("getPostNeighbors integration (against built fixtures)", () => {
-  it("returns expected neighbors for fixture-code under drafts-on", () => {
+  // Prev/next is a list surface, so it must draw from getVisiblePublishedPosts.
+  // Reading from getPublishedPosts instead surfaced fixture posts as the
+  // "Previous" link on real posts in production.
+  it("never offers a hidden or fixture post as a neighbor of a visible post", () => {
+    const visible = new Set(getVisiblePublishedPosts().map((p) => p.slug));
+    expect(visible.size).toBeGreaterThan(1);
+    for (const slug of visible) {
+      const { previous, next } = getPostNeighbors(slug);
+      for (const neighbor of [previous, next]) {
+        if (!neighbor) continue;
+        expect(visible.has(neighbor.slug), `${slug} → ${neighbor.slug}`).toBe(true);
+      }
+    }
+  });
+
+  it("holds even with drafts on, since fixtures are hidden regardless of the draft flag", () => {
     process.env.BLOG_INCLUDE_DRAFTS = "1";
-    // Published order (reverse-chrono, ties broken by slug ascending):
-    //   …
-    //   fixture-reading-time (2026-01-03) ← tie with unicode-code, slug "r" < "u"
-    //   fixture-unicode-code (2026-01-03)
-    //   fixture-code         (2026-01-02)
-    //   fixture-draft-do-not-publish (2026-01-01)
-    const r = getPostNeighbors("fixture-code");
-    expect(r.next?.slug).toBe("fixture-unicode-code");
-    expect(r.previous?.slug).toBe("fixture-draft-do-not-publish");
+    const visible = new Set(getVisiblePublishedPosts().map((p) => p.slug));
+    for (const slug of visible) {
+      const { previous, next } = getPostNeighbors(slug);
+      for (const neighbor of [previous, next]) {
+        if (!neighbor) continue;
+        expect(visible.has(neighbor.slug), `${slug} → ${neighbor.slug}`).toBe(true);
+      }
+    }
+  });
+
+  it("gives a hidden post no neighbors of its own", () => {
+    const hidden = getPublishedPosts().find(isHiddenFromLists);
+    expect(hidden, "expected at least one hidden post in the built content").toBeDefined();
+    const r = getPostNeighbors(hidden!.slug);
+    expect(r.previous).toBeNull();
+    expect(r.next).toBeNull();
+  });
+
+  it("links visible posts to each other in reverse-chronological order", () => {
+    const visible = getVisiblePublishedPosts();
+    const [newest, second] = visible;
+    expect(getPostNeighbors(newest.slug).next).toBeNull();
+    expect(getPostNeighbors(newest.slug).previous?.slug).toBe(second.slug);
+    expect(getPostNeighbors(second.slug).next?.slug).toBe(newest.slug);
   });
 });
 
