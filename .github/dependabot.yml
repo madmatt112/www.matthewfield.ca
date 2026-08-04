@@ -1,18 +1,41 @@
 version: 2
+
+# Tuned for a solo-maintained site: one boring PR a month rather than a weekly
+# wave. Weekly + mostly-ungrouped produced 11 open PRs in a single run, which is
+# noise nobody triages — and on a public repo it is the first thing a visitor
+# sees.
+#
+# Minor and patch bumps are grouped into a single PR per ecosystem. Majors are
+# deliberately NOT in the group: a breaking change (feed 4 -> 6, jsdom 29 -> 30)
+# must never ride along inside a PR labelled routine. They surface on their own,
+# capped by open-pull-requests-limit, so each gets read on its own merits.
+#
+# NOTE: this file governs VERSION updates only. Dependabot security alerts and
+# security updates are a separate repository setting (Settings -> Code security)
+# and are unaffected by anything here.
 updates:
   - package-ecosystem: npm
     directory: "/"
     schedule:
-      interval: weekly
-    open-pull-requests-limit: 10
+      interval: monthly
+    open-pull-requests-limit: 2
     groups:
-      pagefind-and-vercel-cli:
+      npm-minor-and-patch:
         patterns:
-          - "vercel"
-          - "pagefind"
-          - "@pagefind/default-ui"
+          - "*"
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
-      interval: weekly
+      interval: monthly
+    open-pull-requests-limit: 2
+    groups:
+      actions-minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
