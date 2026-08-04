@@ -3,12 +3,6 @@
 This is my personal site: professional profile, project write-ups, and a blog.
 It's live at [www.matthewfield.ca](https://www.matthewfield.ca).
 
-I build infrastructure and developer platforms for a living, so when I rebuilt
-this site I treated it like a small production service rather than a weekend
-project. Mostly that means the build validates the content, scripts enforce the
-rules I care about instead of me remembering them, and when something is wrong
-it stops and tells me which file to look at.
-
 ## If you're poking around, start here
 
 These are the bits I'm actually pleased with:
@@ -80,16 +74,15 @@ Operator notes for deploys, the search kill-switch, and repo variables are in
 
 ## This is my site, not a template
 
-It's public because I think the engineering is worth showing, and because I link
-to it from the site itself. It isn't built to be cloned, though. The content, the
-copy, and a fair bit of the config are specific to me, and I'll change any of it
-whenever I feel like it with no notice and no migration path. If you see an idea
-or a file you want, take it. Just don't expect the whole thing to work as a
-starter.
+It's public because I default to open source without a compelling reason not to.
+It isn't built to be cloned, though. The content, the copy, and a fair bit of the
+config are specific to me, and I'll change any of it whenever I feel like it with
+no notice and no migration path. If you see an idea or a file you want, take it.
+Just don't expect the whole thing to work as a starter.
 
 ## Licence
 
-I've split it, on purpose:
+Split licence:
 
 - **The code** is [MIT](LICENSE). Use it however you like.
 - **The words and images** under `content/` are
