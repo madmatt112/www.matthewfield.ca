@@ -73,11 +73,18 @@ function neighbors(
   };
 }
 
+/**
+ * Prev/next links are a LIST context, so they draw from the visible set —
+ * `hiddenFromLists` posts and fixture slugs must never be offered as a
+ * neighbor. A hidden post reached by direct URL therefore has no neighbors of
+ * its own (it is absent from the list, so the lookup finds no index), which is
+ * the intended behaviour: the page stays reachable but advertises nothing.
+ */
 export function getPostNeighbors(slug: string): {
   previous: PostMeta | null;
   next: PostMeta | null;
 } {
-  return neighbors(getPublishedPosts(), slug);
+  return neighbors(getVisiblePublishedPosts(), slug);
 }
 
 export function formatReadingTime(minutes: number): string {
