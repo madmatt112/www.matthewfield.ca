@@ -53,6 +53,14 @@ public/pagefind/
 /blob-report/
 /playwright/.cache/
 .spec-workflow/.cache/
+
+# spec-workflow process artifacts: adversarial review rounds, approval
+# snapshots, and per-task implementation logs. These are regenerated locally by
+# the spec-workflow tooling and stay out of the repo — only the durable spec
+# documentation (steering, requirements, design, tasks) is tracked.
+.spec-workflow/approvals/
+.spec-workflow/**/reviews/
+.spec-workflow/**/Implementation Logs/
 /.playwright-mcp/
 
 # lighthouse-ci report cache (written by `pnpm exec lhci autorun`)
