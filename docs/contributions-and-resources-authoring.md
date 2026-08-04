@@ -155,6 +155,7 @@ date (or simply re-run the build after UTC midnight).
 
 | Slug              | Display label |
 | ----------------- | ------------- |
+| `appdev-tools`    | App Dev Tools |
 | `devops-tools`    | DevOps Tools  |
 | `blogs-and-feeds` | Blogs & Feeds |
 | `reading`         | Reading       |

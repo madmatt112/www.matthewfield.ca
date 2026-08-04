@@ -19,7 +19,7 @@ export const resourceEntrySchema = s
     title: trimmed(2, 80),
     url: httpUrl(),
     description: trimmed(20, 200),
-    category: s.enum(["devops-tools", "blogs-and-feeds", "reading", "fun-stuff"]),
+    category: s.enum(["appdev-tools", "devops-tools", "blogs-and-feeds", "reading", "fun-stuff"]),
     added: isoDate().refine((d) => Date.parse(d) <= BUILD_START_UTC),
   })
   .strict();

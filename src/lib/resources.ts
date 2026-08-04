@@ -17,6 +17,7 @@ export function byAddedDescTitleAscUrlAsc(a: Resource, b: Resource): number {
 // Human-readable labels for each category (Req 5.x). Frozen so the mapping is
 // a stable single source of truth for the page heading layer.
 export const RESOURCE_CATEGORY_LABELS: Record<ResourceCategory, string> = Object.freeze({
+  "appdev-tools": "App Dev Tools",
   "devops-tools": "DevOps Tools",
   "blogs-and-feeds": "Blogs & Feeds",
   reading: "Reading",
@@ -26,6 +27,7 @@ export const RESOURCE_CATEGORY_LABELS: Record<ResourceCategory, string> = Object
 // Render order for grouped categories — mirrors the schema enum order
 // (Req 5.6). getResourcesGroupedByCategory() walks this list.
 export const CATEGORY_ORDER: readonly ResourceCategory[] = Object.freeze([
+  "appdev-tools",
   "devops-tools",
   "blogs-and-feeds",
   "reading",

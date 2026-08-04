@@ -142,7 +142,13 @@ describe("(d) formatEnumMembers — invalid_enum_value AND invalid_type", () => 
     if (result.success) return;
     const issue = result.error.issues.find((i) => i.path.includes("category"));
     const members = formatEnumMembers(resourceEntrySchema, issue!.path);
-    expect(members).toEqual(["devops-tools", "blogs-and-feeds", "reading", "fun-stuff"]);
+    expect(members).toEqual([
+      "appdev-tools",
+      "devops-tools",
+      "blogs-and-feeds",
+      "reading",
+      "fun-stuff",
+    ]);
   });
 });
 
