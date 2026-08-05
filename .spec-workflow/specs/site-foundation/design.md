@@ -2,7 +2,7 @@
 
 ## Overview
 
-Site-foundation delivers the complete development infrastructure and site shell for matthewfield.ca. This is a greenfield implementation — there is no existing codebase to integrate with. The design covers: project scaffolding, CI/CD pipeline, Velite content pipeline, site layout with navigation, dark/light theme toggle, landing page with hero cards, placeholder pages, custom 404, global styles via shadcn/ui defaults, metadata/SEO conventions, CSS isolation spike for the playground route group, testing infrastructure, CSP headers, and font loading.
+Site-foundation delivers the complete development infrastructure and site shell for matthewfield.ca. This is a greenfield implementation — there is no existing codebase to integrate with. The design covers: project scaffolding, CI/CD pipeline, Velite content pipeline, site layout with navigation, dark/light theme toggle, landing page, placeholder pages, custom 404, global styles via shadcn/ui defaults, metadata/SEO conventions, CSS isolation spike for the playground route group, testing infrastructure, CSP headers, and font loading.
 
 All downstream specs depend on the toolchain, conventions, and infrastructure established here.
 
@@ -29,7 +29,7 @@ Implementation follows the directory structure exactly as documented:
 - `src/app/(playground)/layout.tsx` — playground layout (style reset)
 - `src/components/layout/` — header, footer, nav, theme toggle
 - `src/components/ui/` — shadcn/ui primitives
-- `src/config/site.ts` — site metadata, nav items, hero card definitions
+- `src/config/site.ts` — site metadata, nav items, landing-page copy and index
 - `src/styles/globals.css` — Tailwind v4 import, CSS theme variables
 - `content/pages/` — MDX content for slash pages
 - `e2e/` — Playwright tests and config
@@ -45,7 +45,7 @@ This is a greenfield project. No existing components to reuse. The following are
 - **shadcn/ui Button**: Installed and verified in both themes. First UI primitive available.
 - **Site layout components**: Header, Footer, Nav — consumed by all `(site)` route pages.
 - **ThemeProvider + ThemeToggle**: Theme infrastructure reused by every page.
-- **`src/config/site.ts`**: Central config consumed by nav, landing page hero cards, and metadata.
+- **`src/config/site.ts`**: Central config consumed by nav, the landing page, and metadata.
 - **Velite `pages` schema**: Pattern for downstream specs to follow when adding content types.
 - **`generateMetadata()` convention**: Pattern all page components follow.
 
@@ -99,7 +99,7 @@ GitHub Actions (on push):
 - **Single file responsibility**: Layout components, page components, content schemas, and configuration are separate files.
 - **Server components by default**: Only the theme toggle requires `"use client"`. All page components are server components.
 - **Content/presentation separation**: Content in `content/` as MDX; presentation in React components; Velite bridges them.
-- **Configuration-driven UI**: Nav items and hero cards defined in `src/config/site.ts`, not hardcoded in JSX.
+- **Configuration-driven UI**: Nav items and the landing-page index defined in `src/config/site.ts`, not hardcoded in JSX.
 
 ## Components and Interfaces
 
@@ -147,16 +147,17 @@ GitHub Actions (on push):
 
 ### Landing Page (`src/app/(site)/page.tsx`)
 
-- **Purpose**: Full-viewport page with personal intro and hero cards for each section.
-- **Dependencies**: `heroCards` from `@/config/site.ts`, `HeroCard` component
-- **Behavior**: Server component. Renders intro section with photo (Next.js `Image` component, sourced from `public/images/`, path hardcoded in component), then maps over `heroCards` config to render cards. Responsive grid: multi-column on desktop, single-column stack on mobile.
+> **Superseded.** This spec shipped the landing page as an intro plus a grid of section cards. That
+> grid was later replaced (PR #45) because it named the sections without showing anything behind
+> them. The current structure is below; `HeroCard` no longer exists.
 
-### HeroCard (`src/components/shared/hero-card.tsx`)
-
-- **Purpose**: Card linking to a site section. Displays section title and short description.
-- **Interfaces**: `{ title: string; description: string; href: string }`
-- **Dependencies**: shadcn/ui `Card` component, Next.js `Link`
-- **Behavior**: Clickable card navigating to section path. Hover state for visual feedback. The `Link` wraps the entire card content — a single focusable element per card. No `onClick` handler on the card container.
+- **Purpose**: Say who Matthew is, show recent activity, index the sections, and offer one way to get in touch.
+- **Dependencies**: `siteConfig.intro` and `siteConfig.homeIndex` from `@/config/site.ts`; `getHomeStream()` from `@/lib/home-stream.ts`; the four components in `src/components/home/`.
+- **Behavior**: Server component composing, in order:
+  - `HomeHero` — `/ kicker`, serif display name, hairline brand rule, the `siteConfig.intro` lead, and the availability line sourced from `profile` frontmatter.
+  - `RecentWork` — three items mixing writing, projects, and open-source contributions, newest first, derived from site content so the page needs no editing to stay current.
+  - `HomeIndex` — the sections as `/route` rows with real counts, driven by `siteConfig.homeIndex`.
+  - `ContactStrip` — the page's single brand-filled CTA plus social links.
 
 ### Placeholder Page (`src/components/shared/placeholder-page.tsx`)
 
@@ -173,11 +174,12 @@ GitHub Actions (on push):
 
 ### Site Config (`src/config/site.ts`)
 
-- **Purpose**: Single source of truth for site metadata, navigation items, hero card definitions, and social links.
+- **Purpose**: Single source of truth for site metadata, navigation items, landing-page copy and index, and social links.
 - **Exports**:
   - `siteConfig`: Site name, description, URL, default OG image path
   - `navItems`: Array of `{ label: string; href: string }` for navigation
-  - `heroCards`: Array of `{ title: string; description: string; href: string }` for landing page
+  - `intro`: the landing page's lead paragraph
+  - `homeIndex`: Array of `{ href: string; label: string; description: string }` for the landing page's path index
 
 ```typescript
 type NavItem = {
@@ -185,21 +187,27 @@ type NavItem = {
   href: string
 }
 
-type HeroCardConfig = {
-  title: string
-  description: string
+/** One row of the landing page's path index. `label` follows the `/`. */
+type HomeIndexEntry = {
   href: string
+  label: string
+  description: string
 }
 
 type SiteConfig = {
   name: string
   description: string
+  intro: string
   url: string
   ogImage: string
   navItems: NavItem[]
-  heroCards: HeroCardConfig[]
+  homeIndex: HomeIndexEntry[]
 }
 ```
+
+> **Note.** `heroCards` (`{ title, description, href }`) was renamed to `homeIndex` and `intro` was
+> added when the landing page was rebuilt (PR #45). The shape shown above is current; `SiteConfig`
+> has since also gained `language`, `slashPages`, and `links`.
 
 ### Playground Layout (`src/app/(playground)/layout.tsx`)
 
@@ -689,8 +697,8 @@ export default defineConfig({
 - Verify mobile nav menu opens/closes at small viewport
 
 **Playwright — landing page** (`e2e/tests/landing.test.ts`):
-- Verify hero cards render for all sections
-- Click a hero card, verify navigation to correct path
+- Verify the landing index renders a row for every configured section
+- Click an index row, verify navigation to correct path
 
 **Playwright — CSS isolation spike** (`e2e/tests/playground-isolation.test.ts`):
 - Navigate to the playground spike fixture page
@@ -752,7 +760,7 @@ Per the decomposition's recommendation, with R12 moved to phase 1 (the spike in 
    4. R4 (layouts + nav) — uses styles, fonts, theme
    5. R10 (metadata/SEO) — can parallel with R4
    6. R13 (CSP headers) — independent, done whenever
-4. **Landing page + hero cards + placeholders + 404** (R6, R7, R8): Landing page, placeholder pages (with `noindex`), 404 page.
+4. **Landing page + placeholders + 404** (R6, R7, R8): Landing page, placeholder pages (with `noindex`), 404 page.
 
 ### Playground Layout Under Spike Outcome (c)
 

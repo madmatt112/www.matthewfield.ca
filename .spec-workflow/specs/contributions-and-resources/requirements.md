@@ -301,15 +301,15 @@ The contract applies uniformly to `.strict()` rejection of unknown keys (the loc
         - **Unit test coverage**: `scripts/check-authoring-docs.test.mjs` (sibling, matching the existing `scripts/check-velite-output.test.mjs` pattern) covers: all-headings-present → exit 0; one-heading-missing → exit non-zero + GHA warning on stdout; doc-file-missing → exit non-zero + stderr error; doc-file-zero-bytes → exit non-zero + warnings for every canonical heading.
         - **Integration coverage**: the existing CI workflow's invocation of `pnpm check:authoring-docs` against the actual `docs/` directory IS the integration test. A separate fixture-based integration test in CI is NOT required — the unit tests above exercise the script's logic, and CI invocation exercises wiring.
 
-### Requirement 9: Cross-spec wiring (landing page hero cards + top nav)
+### Requirement 9: Cross-spec wiring (landing page index + top nav)
 
-**User Story:** As a visitor, I want to reach `/contributions` and `/resources` from the landing page hero cards and from the top nav.
+**User Story:** As a visitor, I want to reach `/contributions` and `/resources` from the landing page and from the top nav.
 
 #### Acceptance Criteria
 
-1. **Hero cards and top-nav entries already exist** — verified at the time of this spec by reading `siteConfig.navItems` and `siteConfig.heroCards` in `src/config/site.ts` (cited by symbol rather than line range; line ranges drift across unrelated edits). Both lists include entries for `/contributions` and `/resources` with placeholder descriptions. The routes were placeholders pending this spec.
+1. **Landing-page and top-nav entries already exist** — verified at the time of this spec by reading `siteConfig.navItems` and `siteConfig.heroCards` in `src/config/site.ts` (cited by symbol rather than line range; line ranges drift across unrelated edits). Both lists include entries for `/contributions` and `/resources` with placeholder descriptions. (`heroCards` was later renamed `homeIndex` when the landing page was rebuilt; the wiring is unchanged.) The routes were placeholders pending this spec.
 
-2. WHEN this spec ships THEN the hero card descriptions for `/contributions` and `/resources` in `src/config/site.ts` MAY be refined to reflect the now-live pages. No structural change is required. WHEN the routes return real pages (no longer 404 placeholders) THEN the existing nav and hero-card linkage works without code changes beyond the route file additions.
+2. WHEN this spec ships THEN the landing-page descriptions for `/contributions` and `/resources` in `src/config/site.ts` MAY be refined to reflect the now-live pages. No structural change is required. WHEN the routes return real pages (no longer 404 placeholders) THEN the existing nav and landing-page linkage works without code changes beyond the route file additions.
 
 3. No other landing-page or nav changes are required by this spec.
 
@@ -377,7 +377,7 @@ The contract applies uniformly to `.strict()` rejection of unknown keys (the loc
 - Cards and category sections are keyboard-navigable in source order. Multi-link cards use `role="group"` + `aria-labelledby` (Req 2.6) so screen readers preserve card context across the link rail.
 - Color contrast targets WCAG 2.1 AA in both themes.
 - Both pages render correctly in dark and light themes.
-- `/contributions` and `/resources` are reachable from the landing page hero cards AND from the top nav (Req 9.1).
+- `/contributions` and `/resources` are reachable from the landing page AND from the top nav (Req 9.1).
 - Empty states render a sectioned `<section aria-labelledby="empty-state-heading">` containing the page's `<h1>`, an `<h2>` for the empty-state message, and a `<p>` explanatory line. **Empty-state prose text is owned by the page component, not by requirements** (Reqs 2.9, 5.7).
 
 ### Maintainability

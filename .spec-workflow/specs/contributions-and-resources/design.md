@@ -77,7 +77,7 @@ These are documented deviations, not silent ones; the observable acceptance beha
 - **`eslint.config.mjs`**: extend `no-restricted-imports` (additive) + add the new canary to the `off` file list. **New** `src/lib/build/check-content-chokepoint.ts`, `src/__fixtures__/content-chokepoint-canary.ts`, `src/lib/build/check-content-chokepoint.test.ts`, and a **separate** gate `scripts/verify-content-canary-regex-pair.mjs` (the projects scanner/canary/gate are untouched). **`tsconfig.json`**: add the new canary to `exclude`. (See Architecture → "Chokepoint enforcement — two layers".)
 - **`.github/workflows/ci.yml`**: two new steps — `check:authoring-docs` (after `Lint` line 45, before `Build 1` line 94) and the contributions/resources Lighthouse cadence check (co-located with the existing cadence step, line 135, after Build 2).
 - **`package.json` scripts**: add `check:authoring-docs`.
-- **`src/config/site.ts`**: `navItems`/`heroCards` already contain `/contributions` and `/resources` (verified at `site.ts:36,38,55,65`). Hero-card descriptions MAY be refined (Req 9.2); no structural change.
+- **`src/config/site.ts`**: `navItems`/`heroCards` already contain `/contributions` and `/resources` (verified at `site.ts:36,38,55,65`). Descriptions MAY be refined (Req 9.2); no structural change. (`heroCards` was later renamed `homeIndex`.)
 
 ## Architecture
 
