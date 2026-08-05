@@ -76,7 +76,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // Playground is intentionally absent from the sitemap: the routes still
   // render, they are just not advertised to crawlers (matching its removal
-  // from navItems and heroCards in src/config/site.ts).
+  // from navItems and homeIndex in src/config/site.ts).
   return [
     ...staticEntries,
     contributionsEntry,

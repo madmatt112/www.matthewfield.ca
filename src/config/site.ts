@@ -3,10 +3,11 @@ type NavItem = {
   href: string;
 };
 
-type HeroCardConfig = {
-  title: string;
-  description: string;
+/** One row of the landing page's path index. `label` follows the `/`. */
+type HomeIndexEntry = {
   href: string;
+  label: string;
+  description: string;
 };
 
 export type SlashPage = {
@@ -18,10 +19,12 @@ export type SlashPage = {
 type SiteConfig = {
   name: string;
   description: string;
+  /** Landing-page lead paragraph — the first thing a visitor actually reads. */
+  intro: string;
   url: string;
   language: string;
   navItems: NavItem[];
-  heroCards: HeroCardConfig[];
+  homeIndex: HomeIndexEntry[];
   slashPages: SlashPage[];
   links: {
     linkedin: string;
@@ -33,6 +36,8 @@ type SiteConfig = {
 export const siteConfig: SiteConfig = {
   name: "Matthew Field",
   description: "Infrastructure/Platform/DevOps engineer",
+  intro:
+    "I'm a platform and infrastructure engineer with a decade of experience building reliable distributed systems and developer tooling. Mostly Kubernetes and the platforms developers build on top of it. I write good docs, and I care about open source.",
   // Canonical host = the actual serving host: the apex 301/307-redirects to
   // www, so www is canonical for SEO (canonical/OG/sitemap/feed all derive
   // from this) and is the trusted origin for the contact endpoint.
@@ -47,33 +52,33 @@ export const siteConfig: SiteConfig = {
     // Playground is intentionally unlisted: the route still exists and renders
     // at /playground, it is just not advertised in the nav or on the homepage.
   ],
-  heroCards: [
+  homeIndex: [
     {
-      title: "Professional Profile",
-      description: "Background, experience, and areas of focus.",
       href: "/profile",
+      label: "profile",
+      description: "Background, experience, areas of focus.",
     },
     {
-      title: "Projects",
-      description: "Selected works of my mind and hands.",
       href: "/projects",
+      label: "projects",
+      description: "Things I built, and why.",
     },
     {
-      title: "Contributions",
-      description: "Open-source contributions and community involvement.",
       href: "/contributions",
+      label: "contributions",
+      description: "Open-source work worth pointing at.",
     },
     {
-      title: "Blog",
-      description: "Writing about tech, life, and sundry.",
       href: "/blog",
+      label: "blog",
+      description: "Writing about tech, life, and sundry.",
     },
     {
-      title: "Resources",
-      description: "Curated references and things worth sharing.",
       href: "/resources",
+      label: "resources",
+      description: "References and links worth sharing.",
     },
-    // Playground card intentionally omitted — see the note on navItems above.
+    // Playground intentionally omitted — see the note on navItems above.
   ],
   slashPages: [
     { href: "/about", title: "/about", description: "Who I am beyond the resume." },
