@@ -70,8 +70,11 @@ or content-pipeline change.
 - **shadcn `Button`** (`src/components/ui/button.tsx`, CVA variants): gains one `brand` variant for
   the single primary CTA per page; existing `default`/`secondary`/`ghost`/`link` variants are
   unchanged (the neutral `primary` role stays neutral).
-- **`HeroCard`** (`src/components/shared/hero-card.tsx`): keeps its structure; its hover treatment is
-  re-pointed from `bg-accent/40` to the tokenized hover convention (no logic change).
+- **`HeroCard`** *(superseded)*: at the time this spec shipped the landing page was a grid of
+  navigational cards, and `HeroCard` had its hover treatment re-pointed from `bg-accent/40` to the
+  tokenized hover convention. The landing page was later rebuilt around a lead paragraph, a derived
+  "Recent work" stream, and a path index (see §6), and `HeroCard` was deleted with the card grid.
+  The tokenized hover convention it established still governs card-like surfaces elsewhere.
 - **`ThemeProvider`** (`src/components/layout/theme-provider.tsx`): gains the `disableTransitionOnChange`
   prop (R10.3 / R7.3 no-flash) — a one-line change, no new component.
 - **Reading-progress bar** (`src/styles/blog/reading-progress.css:11-17`): its one-off blue fill
@@ -158,8 +161,12 @@ uses — and **only** these:
 - the focus `ring` (R2.1/R2.3) — `--ring` becomes `var(--brand)` in both themes;
 - **one** primary CTA per page (the `brand` Button variant). "The primary CTA" is the single most
   important action on that page, designated in its section: on the **profile** it is the contact
-  CTA (the email/"Get in touch" action), on the **landing** there is none (the hero is navigational
-  cards). A page has at most one brand-filled button; everything else uses neutral/`ghost`/`link`;
+  CTA (the email/"Get in touch" action), and on the **landing** it is the same contact action in
+  the closing contact strip. (This clause originally said the landing had none, because the landing
+  was then a grid of navigational cards with no action to designate. The rebuilt landing page ends
+  in a contact strip — the inbound funnel is the homepage's stated job per `product.md` — so it now
+  designates one.) A page has at most one brand-filled button; everything else uses
+  neutral/`ghost`/`link`;
 - active/selected affordances (active nav marker, active TOC item);
 - the `/` glyph in the wordmark and section kickers (the signature mark);
 - thin non-interactive brand indicators that are not surfaces: the reading-progress line and a
@@ -398,15 +405,20 @@ this rationale (R3.6).
 - **Content container:** centered, `max-w-5xl`/`max-w-6xl` for chrome and grids; prose column
   `max-w-measure` (75ch).
 - **Section vertical rhythm:** `py-16 md:py-24` between major sections; hero `pt-20 md:pt-28`.
-- **Intra-section stack:** `space-y-6` default, `space-y-4` tight, `gap-6` grids (the hero card grid
-  already uses `gap`-based layout). Spaciousness is the consistent **large section rhythm**, named,
-  not incidental.
+- **Intra-section stack:** `space-y-6` default, `space-y-4` tight, `gap-6` grids. Spaciousness is
+  the consistent **large section rhythm**, named, not incidental.
 
 **Surfaces (R7.2) — flat + hairline.** The system is **flat/bordered, no elevation set**, except
 Radix overlays (popover/dialog/tooltip) which keep a single small shadow for layering. Separation
 language: `border-border` hairlines + `card`/`muted` tint; corner rounding via the existing
-`--radius` dial (`sm/md/lg/xl` derived). Applied uniformly across sections. This matches the current
-near-flat header (`border-b`) and HeroCard (bordered) and reinforces the spec-sheet restraint.
+`--radius` dial (`sm/md/lg/xl` derived). Applied uniformly across sections. This matches the
+near-flat header (`border-b`) and the hairline-divided landing sections, and reinforces the
+spec-sheet restraint.
+
+**Known deviation:** the shadcn `Card` primitive (`src/components/ui/card.tsx`) still carries
+`shadow-sm`, which contradicts "no elevation set". Surfaces authored since (the landing sections)
+use `border-border` directly rather than `Card`. Reconciling `Card` — dropping its shadow or
+recording an exception — is outstanding.
 
 **Motion (R7.3) — minimal, purposeful, reduced-motion-honoring:**
 
@@ -487,7 +499,7 @@ Each `(site)` section's "codify existing look vs. re-style" decision (R9.2):
 
 | Section | Decision | What changes |
 |---|---|---|
-| Landing (`/`) | **Re-style (priority)** | Wordmark, serif display name, `/ kicker`, hairline rule, brand links; cards keep structure, tokenized hover |
+| Landing (`/`) | **Re-style (priority)**, later **rebuilt** | Serif display name, `/ kicker`, hairline rule, brand links. The card grid this spec re-styled has since been replaced (see below); the identity treatment carried over unchanged |
 | Professional profile (`/profile`) | **Re-style (priority)** | Serif headline, `/ kicker`, brand links/CTA, print stylesheet |
 | Projects (`/projects`, `[slug]`) | **Codify + apply** | Keep gallery/layout; `[slug]` body already `prose dark:prose-invert` → themed + `max-w-measure`; brand links; serif `h1`/`h2` |
 | Contributions (`/contributions`) | **Codify + apply** | Keep layout; brand links, `/ kicker`, status roles where used |
@@ -496,6 +508,25 @@ Each `(site)` section's "codify existing look vs. re-style" decision (R9.2):
 | About/Now/Colophon | **Markup change + apply** | Today render MDX in `text-base … text-foreground` divs → **wrap body in `prose dark:prose-invert max-w-measure`** so the themed scale + measure reach them in both themes; `/ kicker` |
 | Profile body | **Markup change + apply** | Today `<article class="text-base …">` → **wrap in `prose dark:prose-invert max-w-measure`** inside the wider page container (gutters widen, measure holds) |
 | Sitemap/Slashes (slash pages) | **Codify + apply** | Brand links; the `/` motif is natively at home here |
+
+**Landing page, current structure.** The card grid described above was a table of contents — it named
+the five sections and showed nothing behind them. It has been replaced by four components in
+`src/components/home/`, all inside the identity this spec fixed:
+
+1. `HomeHero` — `/ kicker`, serif display name, hairline brand rule, the lead paragraph
+   (`siteConfig.intro`), and the availability line.
+2. `RecentWork` — three items mixing writing, projects, and open-source contributions, newest first,
+   derived by `getHomeStream()` (`src/lib/home-stream.ts`) so the page stays current without edits.
+3. `HomeIndex` — the five sections as `/route` rows with real counts, carrying the `/` path-mark.
+4. `ContactStrip` — the landing's single brand CTA (see §1).
+
+`siteConfig.heroCards` became `siteConfig.homeIndex` (`{ href, label, description }`), and
+`siteConfig.intro` was added. `HeroCard` was deleted.
+
+**Link states, addendum to §1.** Brand links sitting *inline within a sentence* carry a permanent
+underline, not a hover-only one: against surrounding `muted-foreground` text the brand colour alone
+is a ~1.05:1 difference, which fails WCAG 1.4.1 (axe `link-in-text-block`). §1's link table describes
+the standalone case; this is the inline-in-prose-chrome case.
 
 `(playground)` is left unchanged (R9.3) — it is cascade/stacking-scoped and exempt. Existing Vitest
 and Playwright suites must remain green (R9.4); any selector/text assertions touching changed markup
@@ -619,7 +650,7 @@ primary(/-foreground), secondary, muted, accent, border, input. chart-*/sidebar-
 ### Scenario 6 — A test asserts changed markup (header text-link → wordmark, prose wrappers)
 - **Handling:** the header swap (text link → `Wordmark`) and the prose-body wraps change DOM the
   tests may select; any affected Vitest/Playwright assertion is updated in the same task. (Audited:
-  no current test asserts the literal "MF" string, and `landing.test.ts` asserts hero-card
+  no current test asserts the literal "MF" string, and `landing.test.ts` asserts landing-section
   count/links rather than the avatar/name markup, and the reading-progress parity e2e stays green
   because brand light ≠ dark — so the known regression surface is small, but the changed-markup tests
   are updated alongside the change.)
@@ -662,6 +693,18 @@ Out of this spec's scope, consistent with the requirements and steering — not 
 
 ## Revision History
 
+- **v4 (post-ship reconcile, 2026-08-05)** — updated to match the shipped site after the landing page
+  was rebuilt (PR #45). The identity this spec fixed is unchanged; what changed is the landing page's
+  *content structure* and one clause that depended on it. **(1)** §1's "one primary CTA per page"
+  no longer says the landing has none — the rebuilt landing ends in a contact strip, and that is its
+  designated CTA. **(2)** §6 gains the landing page's current structure (`HomeHero` / `RecentWork` /
+  `HomeIndex` / `ContactStrip`, `siteConfig.heroCards` → `homeIndex` + `intro`) and records that
+  `HeroCard` was deleted with the card grid; the Code Reuse entry for `HeroCard` is marked
+  superseded. **(3)** §6 gains a link-states addendum: inline-in-sentence brand links need a
+  permanent underline (colour alone is ~1.05:1 against `muted-foreground` — WCAG 1.4.1). **(4)** §4
+  records the outstanding `Card` `shadow-sm` deviation from "no elevation set" rather than leaving
+  the doc claiming a uniformity the code does not have. `tasks.md` is left as-authored: it is the
+  execution record of what was done at the time, not a description of the current system.
 - **v3 (converged)** — adversarial r3 returned `VERDICT: converged` (0 must / 0 should / 2 minor;
   DESIGN_READY: yes). r3 independently recomputed the contrast and verified all three r2 fixes landed
   (`success` light 4.80, print brand ink 7.88:1 on white, dark-prose links → `--brand`). The two r3

@@ -119,7 +119,7 @@ matthewfield.ca/
 
 ### Files
 
-- **React components**: `kebab-case.tsx` (e.g., `hero-card.tsx`, `blog-post-card.tsx`). One exported component per file. Small, unexported helper components that serve only their parent may live in the same file. The component itself uses PascalCase as a named export.
+- **React components**: `kebab-case.tsx` (e.g., `section-kicker.tsx`, `project-card.tsx`). One exported component per file. Small, unexported helper components that serve only their parent may live in the same file. The component itself uses PascalCase as a named export.
 - **Route files**: Next.js conventions — `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx`, `route.ts`.
 - **Utilities/helpers**: `kebab-case.ts` (e.g., `content.ts`, `format-date.ts`).
 - **Hooks**: `use-[name].ts` (e.g., `use-media-query.ts`).
@@ -131,7 +131,7 @@ matthewfield.ca/
 
 ### Code
 
-- **Components**: `PascalCase` named exports (e.g., `export function HeroCard()`)
+- **Components**: `PascalCase` named exports (e.g., `export function SectionKicker()`)
 - **Functions/methods**: `camelCase` (e.g., `getPostsByTag()`, `formatDate()`)
 - **Constants**: `UPPER_SNAKE_CASE` for primitive values and frozen enumerations (e.g., `MAX_POSTS_PER_PAGE`, `BREAKPOINTS`), `camelCase` for structured/config objects (e.g., `siteConfig`, `navItems`)
 - **Variables**: `camelCase`
@@ -141,7 +141,7 @@ matthewfield.ca/
 
 ### Directories
 
-- `kebab-case` for all directories (e.g., `hero-card/`, `blog-post/`)
+- `kebab-case` for all directories (e.g., `section-kicker/`, `blog-post/`)
 - Exception: Next.js App Router conventions — `[slug]`, `(group-name)`, `_private`
 
 ## Import Patterns
@@ -167,7 +167,7 @@ Defined in `tsconfig.json`:
 ### Module Rules
 
 - Use absolute imports (`@/components/ui/button`) for cross-directory references.
-- Use relative imports (`./hero-card`) only within the same directory or immediate children.
+- Use relative imports (`./section-kicker`) only within the same directory or immediate children.
 - Never use relative imports that go up more than one level (`../../` is a sign to use an absolute import).
 - No barrel files (`index.ts` re-exports). Import modules directly by file path.
 

@@ -43,7 +43,7 @@ This design records *how* the requirements compose into a buildable implementati
 - **`<MDXContent />` (`src/components/shared/mdx-content.tsx`)**: rendered in `/profile/page.tsx` to compile the Velite-emitted `body` code into a React component. Used as-is — no `components` argument, consistent with Req 1.13 (no custom MDX registry).
 - **Site theme provider (`src/components/layout/theme-provider.tsx`)**: existing `next-themes` integration; the contact form and obfuscated email inherit theme via Tailwind class hooks (`dark:` variants). No theming logic added here.
 - **shadcn/ui primitives** (existing or to be added via shadcn CLI): `Button`, `Input`, `Textarea`, `Label` from `src/components/ui/` are used by `<ContactForm />`. If any are not yet installed, they are pulled in with the shadcn CLI as part of task 1 (no novel UI primitives are written).
-- **`siteConfig` (`src/config/site.ts`)**: extended in place with a new `links` field; existing fields (name, description, url, ogImage, navItems, heroCards) are untouched.
+- **`siteConfig` (`src/config/site.ts`)**: extended in place with a new `links` field; existing fields (name, description, url, ogImage, navItems, and the landing-page index — then `heroCards`, now `homeIndex`) are untouched.
 - **Existing CSP block in `next.config.ts`**: the `cspDirectives` array has one new directive appended (`"form-action 'self'"`); the path-scoped routing rule is unchanged.
 
 ### Integration Points

@@ -17,7 +17,9 @@ matthewfield.ca is a personal website for Matthew Field, an infrastructure/platf
 ## Key Features
 
 ### 1. Landing Page
-A full-viewport overview page. Short personal intro with photo(s) at the top, followed by mini-preview/hero cards for each major section of the site (Professional Profile, Project & Contribution Showcase, Blog, Playground). All visible without scrolling. Each card links through to its full section.
+The page has one job: tell a visitor who Matthew is, show them he is active, and make it easy to get in touch. In order: a short personal intro and availability line; a "Recent work" stream mixing writing, projects, and open-source contributions, newest first and derived from site content so it stays current; an index of the site's sections as `/routes` with real counts; and a single contact CTA.
+
+It is deliberately *not* a table of contents. An earlier version was a grid of navigational cards that named each section without showing anything behind it, so a visitor learned nothing without clicking; that grid was replaced.
 
 ### 2. Professional Profile
 A single long-scroll page presenting Matthew's professional experience, skills, and background — functioning as a visual resume/CV. Content is authored in markdown. The page uses wide layout to maximize viewport width. Includes a contact section at the bottom with:
@@ -94,7 +96,7 @@ A toggle for dark and light themes. Applies to the Professional Profile, Project
 3. **Simple to maintain**: Matthew edits markdown files to update content. No CMS, no database for content sections, no complex deployment pipeline for content changes.
 4. **Progressive complexity**: The main site sections are static/pre-rendered. The playground allows for dynamic, per-item architectures without affecting the rest of the site.
 5. **Approachable and human**: The tone is professional but warm. The site should feel like a person's home on the internet, not a corporate template.
-6. **Responsive**: The site works well on desktop, tablet, and phone. Mobile is not an afterthought — recruiters and peers will view this on phones. Navigation, the landing page hero cards, the professional profile, and blog layout all adapt gracefully to smaller screens.
+6. **Responsive**: The site works well on desktop, tablet, and phone. Mobile is not an afterthought — recruiters and peers will view this on phones. Navigation, the landing page, the professional profile, and blog layout all adapt gracefully to smaller screens.
 7. **Accessible**: Target WCAG 2.1 AA conformance. Proper semantic HTML, keyboard navigation, sufficient color contrast in both themes, alt text for images, and screen reader support.
 
 The visual system that realizes these principles — design tokens and roles, type/spacing scales, component conventions, theming, and the accessibility/performance gates — is defined in the design-system steering document (`.spec-workflow/steering/design-system.md`). The concrete visual identity (palette, type voice, motion) is intentionally deferred there to a later design spec.
