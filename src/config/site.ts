@@ -54,6 +54,11 @@ export const siteConfig: SiteConfig = {
   ],
   homeIndex: [
     {
+      href: "/now",
+      label: "now",
+      description: "What I'm focused on at the moment.",
+    },
+    {
       href: "/profile",
       label: "profile",
       description: "Background, experience, areas of focus.",
