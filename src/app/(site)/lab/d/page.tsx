@@ -3,7 +3,8 @@ import Link from "next/link";
 
 import { formatContentDate } from "@/lib/format-date";
 
-import { KIND_LABEL, latestStream, sectionCounts } from "../_shared/data";
+import { KIND_LABEL, latestStream } from "../_shared/data";
+import { PathIndex } from "../_shared/path-index";
 import { ContactStrip, LabHero, LabPage, LabSection, MonoLabel } from "../_shared/parts";
 
 export const metadata: Metadata = {
@@ -20,42 +21,7 @@ export const metadata: Metadata = {
  * rather than terminal cosplay.
  */
 export default function MockupD() {
-  const counts = sectionCounts();
   const stream = latestStream(3);
-  const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
-
-  const entries = [
-    {
-      href: "/profile",
-      label: "profile",
-      description: "Background, experience, areas of focus.",
-      meta: "CV",
-    },
-    {
-      href: "/projects",
-      label: "projects",
-      description: "Things I built, and why.",
-      meta: plural(counts.projects, "entry", "entries"),
-    },
-    {
-      href: "/contributions",
-      label: "contributions",
-      description: "Open-source work worth pointing at.",
-      meta: plural(counts.contributions, "entry", "entries"),
-    },
-    {
-      href: "/blog",
-      label: "blog",
-      description: "Writing about tech, life, and sundry.",
-      meta: plural(counts.posts, "post", "posts"),
-    },
-    {
-      href: "/resources",
-      label: "resources",
-      description: "References and links worth sharing.",
-      meta: plural(counts.resources, "link", "links"),
-    },
-  ];
 
   return (
     <LabPage>
@@ -67,25 +33,7 @@ export default function MockupD() {
       </LabHero>
 
       <LabSection kicker="index" heading="Index" headingHidden>
-        <ul className="divide-y divide-border border-y border-border">
-          {entries.map((entry) => (
-            <li key={entry.href}>
-              <Link
-                href={entry.href}
-                className="group flex flex-col gap-1 py-4 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none sm:flex-row sm:items-baseline sm:gap-4"
-              >
-                <span className="font-mono text-base text-foreground group-hover:underline">
-                  <span className="text-brand">/</span>
-                  {entry.label}
-                </span>
-                <span className="text-sm text-muted-foreground">{entry.description}</span>
-                <span className="sm:ml-auto">
-                  <MonoLabel>{entry.meta}</MonoLabel>
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <PathIndex />
       </LabSection>
 
       <LabSection kicker="latest" heading="Recent work" headingHidden>
