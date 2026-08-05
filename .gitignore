@@ -83,3 +83,6 @@ scripts/__ci-topology-state.txt
 
 # rtk command audit log (local-only, appended on every proxied command)
 audit.log
+
+# Local scratch — never commit (personal documents, working files)
+/temp/
