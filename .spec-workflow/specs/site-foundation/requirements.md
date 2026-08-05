@@ -11,7 +11,7 @@ This spec directly supports every product principle and business objective by pr
 - **Markdown-first content**: Velite content pipeline with typed schemas enables all content specs to follow a consistent pattern.
 - **Simple to maintain**: CI/CD automation, TypeScript strict mode, and linting ensure content changes deploy reliably without manual intervention.
 - **Wide and spacious / Responsive**: The root layout, CSS theme variables, and Tailwind configuration establish the design system that all pages inherit.
-- **Approachable and human**: Landing page hero cards give visitors an immediate overview of who Matthew is and what the site offers.
+- **Approachable and human**: The landing page gives visitors an immediate overview of who Matthew is, what he has been working on, and how to reach him.
 - **Progressive complexity**: The CSS isolation spike validates whether playground items can coexist with the main site's styles, enabling the playground spec's architecture decision.
 - **Professional inbound funnel**: Without a deployed, navigable site shell, no downstream spec can deliver user-facing value.
 
@@ -100,16 +100,23 @@ This spec directly supports every product principle and business objective by pr
 
 ### R6: Landing Page
 
-**User Story:** As a visitor, I want a full-viewport landing page with a short personal intro and hero cards for each major section, so that I can quickly understand who Matthew is and navigate to what interests me.
+> **Revised after ship (PR #45).** As originally written this required a personal intro plus a grid
+> of hero cards, one per section. That shipped, and read as a table of contents: it named the
+> sections without showing anything behind them, so a visitor learned nothing without clicking. The
+> card grid was replaced. The criteria below describe the landing page as it now stands.
+
+**User Story:** As a visitor, I want a landing page that tells me who Matthew is, shows me he is active, and makes it easy to get in touch, so that I can size him up quickly and reach him without hunting.
 
 #### Acceptance Criteria
 
-1. WHEN the landing page loads THEN the system SHALL display a personal introduction section with photo(s) at the top.
-2. WHEN the landing page loads THEN the system SHALL display hero cards for each major section (same sections and paths as the R4 AC2 mapping table).
-3. WHEN a hero card is clicked THEN the system SHALL navigate to the corresponding section page.
-4. WHEN hero cards are configured THEN they SHALL be data-driven (defined in `src/config/site.ts`), so that sections can be added or removed by editing the site config file rather than modifying page component JSX.
-5. WHEN a linked section has not yet been built THEN the hero card SHALL link to a styled placeholder page that communicates the section is coming soon.
-6. WHEN the landing page renders on mobile THEN the hero cards SHALL reflow to a responsive layout that is fully usable on small screens.
+1. WHEN the landing page loads THEN the system SHALL display a lead paragraph stating what Matthew does, plus his location and availability.
+2. WHEN the landing page loads THEN the system SHALL display a "Recent work" list of the most recent items across writing, projects, and open-source contributions, newest first.
+3. WHEN the recent-work list is built THEN it SHALL be derived from existing site content, so the page stays current without being edited.
+4. WHEN the landing page loads THEN the system SHALL display an index of the major sections as `/route` rows (same sections and paths as the R4 AC2 mapping table), each showing a count of what it holds.
+5. WHEN an index row is clicked THEN the system SHALL navigate to the corresponding section page.
+6. WHEN the index is configured THEN it SHALL be data-driven (defined in `src/config/site.ts`), so that sections can be added or removed by editing the site config file rather than modifying page component JSX.
+7. WHEN the landing page loads THEN the system SHALL offer exactly one primary contact call-to-action.
+8. WHEN the landing page renders on mobile THEN every section SHALL reflow to a layout that is fully usable on small screens.
 
 ---
 
