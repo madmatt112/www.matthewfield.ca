@@ -29,6 +29,11 @@ const variants = [
     label: "D — Path index",
     description: "The site as a listing of routes, with real counts.",
   },
+  {
+    href: "/lab/e",
+    label: "E — A + D (recommended)",
+    description: "A's intro and work stream, with D's path index for wayfinding.",
+  },
 ];
 
 /** Temporary index for the homepage mockups. Deleted once a direction is chosen. */
