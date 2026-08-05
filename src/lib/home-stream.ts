@@ -12,11 +12,18 @@ export type HomeStreamItem = {
   date: string;
 };
 
-/** Mono label shown beside each stream row. */
+/**
+ * Mono label shown beside each stream row.
+ *
+ * These are the canonical section names, matching the nav and the landing index
+ * — a row labelled "blog" is telling you which page it lives on. Descriptive
+ * labels ("writing", "open source") read nicer but leave the reader guessing
+ * where the item actually is.
+ */
 export const HOME_STREAM_KIND_LABEL: Record<HomeStreamKind, string> = {
-  post: "writing",
-  project: "project",
-  oss: "open source",
+  post: "blog",
+  project: "projects",
+  oss: "contributions",
 };
 
 /*

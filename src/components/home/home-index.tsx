@@ -1,12 +1,26 @@
 import Link from "next/link";
 
+import { pages } from "#site/content";
+
 import { SectionKicker } from "@/components/shared/section-kicker";
 import { siteConfig } from "@/config/site";
+import { formatContentDate } from "@/lib/format-date";
 import { getAllResources } from "@/lib/resources";
 import { getHomeCounts } from "@/lib/home-stream";
 
 function plural(n: number, one: string, many: string) {
   return `${n} ${n === 1 ? one : many}`;
+}
+
+/*
+ * /now shows its last-updated date rather than a count — freshness is the whole
+ * point of a now page. The `/now` route itself hard-fails at module load if the
+ * entry or its `updated` frontmatter is missing, so this stays lenient and just
+ * omits the meta rather than duplicating that guard.
+ */
+function nowUpdated(): string | undefined {
+  const entry = pages.find((page) => page.slug === "now");
+  return entry?.updated ? formatContentDate(entry.updated).display : undefined;
 }
 
 /**
@@ -19,7 +33,9 @@ function plural(n: number, one: string, many: string) {
  */
 export function HomeIndex() {
   const counts = getHomeCounts();
+  const updated = nowUpdated();
   const meta: Record<string, string> = {
+    ...(updated ? { "/now": `updated ${updated}` } : {}),
     "/profile": "CV",
     "/projects": plural(counts.projects, "entry", "entries"),
     "/contributions": plural(counts.contributions, "entry", "entries"),

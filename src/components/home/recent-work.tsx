@@ -69,11 +69,6 @@ export function RecentWork() {
           />
         ))}
       </ul>
-      <p className="mt-6 text-sm">
-        <Link href="/blog" className="text-brand underline-offset-4 hover:underline">
-          All writing
-        </Link>
-      </p>
     </section>
   );
 }

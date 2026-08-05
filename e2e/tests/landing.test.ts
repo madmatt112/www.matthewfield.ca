@@ -20,10 +20,10 @@ test.describe("landing page", () => {
     const recent = page.getByRole("region", { name: "Recent work" });
 
     await expect(recent).toBeVisible();
-    // Three items, each a link to the post/project/contribution it names, plus
-    // the trailing "All writing" link.
+    // Three items, each a link to the post/project/contribution it names. The
+    // section deliberately has no "see all" link — the index below covers that.
     await expect(recent.getByRole("listitem")).toHaveCount(3);
-    await expect(recent.getByRole("link", { name: "All writing" })).toBeVisible();
+    await expect(recent.getByRole("link")).toHaveCount(3);
   });
 
   test("renders one index row per configured entry", async ({ page }) => {
