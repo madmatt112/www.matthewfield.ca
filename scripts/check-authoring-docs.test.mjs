@@ -18,6 +18,7 @@ import {
   checkHeadings,
   CANONICAL_HEADINGS,
   SLASH_PAGES_HEADINGS,
+  EXPERIENCE_HEADINGS,
   AUTHORING_DOCS,
 } from "./check-authoring-docs.mjs";
 
@@ -26,6 +27,8 @@ const SCRIPT = path.join(__dirname, "check-authoring-docs.mjs");
 
 const SUBJECT_REL = "docs/slash-pages-authoring.md";
 const subjectHeadings = SLASH_PAGES_HEADINGS;
+
+const EXPERIENCE_REL = "docs/experience-authoring.md";
 
 function makeTmp() {
   return mkdtempSync(path.join(tmpdir(), "check-authoring-docs-"));
@@ -66,6 +69,21 @@ test("checkHeadings — zero-byte text → every heading missing, non-zero", () 
   assert.deepEqual(result.missing, CANONICAL_HEADINGS);
 });
 
+test("checkHeadings — experience doc with one heading missing → non-zero, names it", () => {
+  const text = EXPERIENCE_HEADINGS.slice(0, -1).join("\n\n");
+  const result = checkHeadings(text, EXPERIENCE_HEADINGS);
+  assert.notEqual(result.exitCode, 0);
+  assert.deepEqual(result.missing, [EXPERIENCE_HEADINGS.at(-1)]);
+});
+
+// --- Registration ---
+
+test("AUTHORING_DOCS — experience doc is registered with its headings", () => {
+  const entry = AUTHORING_DOCS.find((d) => d.path === EXPERIENCE_REL);
+  assert.ok(entry, `expected ${EXPERIENCE_REL} in AUTHORING_DOCS`);
+  assert.equal(entry.headings, EXPERIENCE_HEADINGS);
+});
+
 // --- CLI ---
 
 test("CLI — all docs present, all headings present → exit 0, no ::warning::", () => {
@@ -92,6 +110,24 @@ test("CLI — one heading missing in subject doc (sibling full) → non-zero, ::
     assert.ok(
       r.stdout.includes(SUBJECT_REL),
       `expected stdout to contain "${SUBJECT_REL}", got: ${r.stdout}`,
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("CLI — one heading missing in experience doc (siblings full) → non-zero, ::warning:: names it", () => {
+  const dir = makeTmp();
+  try {
+    const dropped = EXPERIENCE_HEADINGS.at(-1);
+    writeDocs(dir, {
+      [EXPERIENCE_REL]: EXPERIENCE_HEADINGS.slice(0, -1).join("\n\n"),
+    });
+    const r = runScript(dir);
+    assert.notEqual(r.status, 0);
+    assert.ok(
+      r.stdout.includes(EXPERIENCE_REL) && r.stdout.includes(dropped),
+      `expected stdout to name "${EXPERIENCE_REL}" and "${dropped}", got: ${r.stdout}`,
     );
   } finally {
     rmSync(dir, { recursive: true, force: true });
