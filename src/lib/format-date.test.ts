@@ -1,6 +1,6 @@
 // Do not call vi.resetModules() in this file — parity assertions depend on shared module instances.
 import { describe, expect, it } from "vitest";
-import { formatContentDate } from "@/lib/format-date";
+import { formatContentDate, formatMonthYear } from "@/lib/format-date";
 import { formatPostDate } from "@/lib/blog";
 import { formatProjectDate } from "@/lib/projects";
 
@@ -20,6 +20,23 @@ describe("formatContentDate", () => {
     const result = formatContentDate(iso);
     expect(result.datetime).toBe(iso);
     expect(result.display).toMatch(/^[A-Z][a-z]+ \d{1,2}, \d{4}$/);
+  });
+});
+
+describe("formatMonthYear", () => {
+  it("returns datetime as the raw YYYY-MM input and display as the en-CA month-year string", () => {
+    const isoMonth = "2018-06";
+    const result = formatMonthYear(isoMonth);
+    expect(result.datetime).toBe(isoMonth);
+    expect(result.display).toBe("June 2018");
+  });
+
+  it("does not roll a January month back into the previous year", () => {
+    expect(formatMonthYear("2020-01").display).toBe("January 2020");
+  });
+
+  it("does not roll a December month forward into the next year", () => {
+    expect(formatMonthYear("2020-12").display).toBe("December 2020");
   });
 });
 
