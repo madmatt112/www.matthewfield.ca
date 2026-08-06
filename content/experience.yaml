@@ -111,6 +111,5 @@
   summary: "IT infrastructure support and project delivery for the provincial nursing regulator, covering the server, network, and end-user estate."
   highlights:
     - "Deployed a network-based imaging system that cut device onboarding from a full day to a couple of hours."
-    - "Piloted configuration management on a fleet that was still built by hand, and produced a repeatable server build defined in code."
     - "Wrote the organization's first IT service catalogue, giving staff one place to see what IT offered and how to ask for it."
     - "Rolled out Duo two-factor authentication for SSL VPN remote access."
