@@ -88,6 +88,7 @@ describe("skillEntrySchema", () => {
     const issues = skillIssuesFor(group({ items: ["x".repeat(SKILL_ITEM_MAX_LENGTH + 1)] }));
     expect(issues[0].code).toBe("too_big");
     expect(issues[0].path).toEqual(["items", 0]);
+    expect(issues[0].message).toContain(`at most ${SKILL_ITEM_MAX_LENGTH} character(s)`);
   });
 
   it("rejects an unknown key under .strict()", () => {
