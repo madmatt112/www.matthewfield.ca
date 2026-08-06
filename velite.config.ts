@@ -91,6 +91,12 @@ const profile = defineCollection({
       availability: s.string().max(200),
       availabilityLinkLabel: s.string().max(100),
       availabilityLinkHref: s.string().url(),
+      // Deliberately optional. A required field would abort the whole profile
+      // parse when it is absent, and velite reports that as
+      // `no data resolved for 'profile' collection` — naming neither the file
+      // nor the field. All validation lives in getProfileSummary()
+      // (src/lib/profile-summary.ts), which owns the only error message.
+      summary: s.string().optional(),
       headshot: s.image().optional(),
       body: s.mdx(),
     })
