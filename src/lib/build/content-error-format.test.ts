@@ -11,7 +11,10 @@ import {
   serializeValue,
   walkToField,
 } from "./content-error-format";
+import { educationEntrySchema } from "./education-schema";
+import { experienceEntrySchema } from "./experience-schema";
 import { resourceEntrySchema } from "./resources-schema";
+import { skillEntrySchema } from "./skills-schema";
 
 /**
  * Each clause (a)-(g) of the Shared Build-Time Error-Message Contract gets its
@@ -262,5 +265,114 @@ describe("(g) Hint: appender", () => {
     expect(hintLines[0]).toBe("Hint: map GitLab MRs to pr");
     // each hint is on its own line
     expect(block!.split("\n")[0].startsWith("Hint: ")).toBe(false);
+  });
+});
+
+describe("(h) identifier-field map — the locator field is chosen by FILENAME", () => {
+  it("locates an experience issue by organisation, not by the job title", () => {
+    const entry = {
+      organisation: "  Acme Corp  ",
+      title: "Platform Engineer",
+      start: "2020-01",
+      location: "Toronto, ON",
+      summary: "too short",
+      highlights: ["x".repeat(30)],
+    };
+    const result = experienceEntrySchema.safeParse(entry);
+    expect(result.success).toBe(false);
+    if (result.success) return;
+
+    const lines = formatZodIssues(result.error.issues as never, {
+      basename: "experience.yaml",
+      entry,
+      index: 2,
+      schema: experienceEntrySchema as never,
+    });
+    expect(lines[0]).toContain("experience.yaml: Acme Corp: summary = ");
+    expect(lines[0]).not.toContain("Platform Engineer");
+    expect(lines[0]).not.toContain("entry[2]");
+  });
+
+  it("locates an education issue by credential", () => {
+    const entry = {
+      credential: "BSc Computer Science",
+      institution: "Some University",
+      completed: "2019-13",
+    };
+    const result = educationEntrySchema.safeParse(entry);
+    expect(result.success).toBe(false);
+    if (result.success) return;
+
+    const lines = formatZodIssues(result.error.issues as never, {
+      basename: "education.yaml",
+      entry,
+      index: 1,
+      schema: educationEntrySchema as never,
+    });
+    expect(lines[0]).toContain("education.yaml: BSc Computer Science: completed = ");
+    expect(lines[0]).not.toContain("entry[1]");
+  });
+
+  it("locates a skills issue by category", () => {
+    const entry = { category: "Infrastructure", items: [] };
+    const result = skillEntrySchema.safeParse(entry);
+    expect(result.success).toBe(false);
+    if (result.success) return;
+
+    const lines = formatZodIssues(result.error.issues as never, {
+      basename: "skills.yaml",
+      entry,
+      index: 0,
+      schema: skillEntrySchema as never,
+    });
+    expect(lines[0]).toContain("skills.yaml: Infrastructure: items = ");
+  });
+
+  it("still locates a resources issue by title even though it HAS a category field", () => {
+    // The regression the map exists to prevent: presence-based detection would
+    // key resources on `category` (resources-schema.ts) and print the enum
+    // member instead of the resource's title.
+    const entry = {
+      title: "A Resource Title",
+      url: "https://example.com",
+      description: "too short",
+      category: "devops-tools",
+      added: "2020-01-01",
+    };
+    const result = resourceEntrySchema.safeParse(entry);
+    expect(result.success).toBe(false);
+    if (result.success) return;
+
+    const lines = formatZodIssues(result.error.issues as never, {
+      basename: "resources.yaml",
+      entry,
+      index: 4,
+      schema: resourceEntrySchema as never,
+    });
+    expect(lines[0]).toContain("resources.yaml: A Resource Title: description = ");
+    expect(lines[0]).not.toContain("devops-tools");
+  });
+
+  it("still locates a contributions issue by repo", () => {
+    const entry = {
+      repo: "owner/name",
+      repoUrl: "https://example.com",
+      title: "A valid title",
+      description: "too short",
+      date: "2026-05-28",
+      links: [{ kind: "pr", url: "https://example.com" }],
+    };
+    const result = contributionEntrySchema.safeParse(entry);
+    expect(result.success).toBe(false);
+    if (result.success) return;
+
+    const lines = formatZodIssues(result.error.issues as never, {
+      basename: "contributions.yaml",
+      entry,
+      index: 7,
+      schema: contributionEntrySchema as never,
+    });
+    expect(lines[0]).toContain("contributions.yaml: owner/name: description = ");
+    expect(lines[0]).not.toContain("A valid title");
   });
 });
