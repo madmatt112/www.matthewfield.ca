@@ -14,6 +14,12 @@ import { rehypeAbsolutizeUrls } from "./src/lib/build/rehype-absolutize-urls";
 import { rehypeCopyButton } from "./src/lib/build/rehype-copy-button";
 import { countWordsFromMdast } from "./src/lib/build/word-count";
 import { KNOWN_FIXTURE_SLUGS, derivePostSlug } from "./src/lib/build/derive-post-slug.mjs";
+import {
+  type ExperienceRoleLike,
+  type RawProjectLike,
+  checkExperienceProjectLinks,
+  checkSkillsGroupCap,
+} from "./src/lib/build/check-experience-project-links";
 import { checkProjectHeadings } from "./src/lib/build/check-project-headings";
 import { contributionEntrySchema } from "./src/lib/build/contributions-schema";
 import { educationEntrySchema } from "./src/lib/build/education-schema";
@@ -524,5 +530,17 @@ export default defineConfig({
         byOrder.set(order, slug);
       }
     }
+
+    // Profile/resume cross-collection invariants (design §Error Handling
+    // Scenario 1; R4.1, R4.2, R5.2). Both live in
+    // src/lib/build/check-experience-project-links.ts so they are unit-testable
+    // without booting velite — this hook only supplies the data. They THROW:
+    // `strict: true` is not set on this config, so a check that merely logged
+    // would exit 0 and ship the bad data.
+    checkExperienceProjectLinks({
+      experience: (data as { experience?: ExperienceRoleLike[] }).experience ?? [],
+      projects: (data as { projects?: RawProjectLike[] }).projects ?? [],
+    });
+    checkSkillsGroupCap((data as { skills?: unknown[] }).skills ?? []);
   },
 });
