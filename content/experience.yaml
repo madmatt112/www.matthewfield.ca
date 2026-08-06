@@ -99,7 +99,7 @@
       project: "monitoring-and-log-collection"
       body: "Standardized metric and log format across the POSSE application stack, then built the Prometheus, Grafana, and Elastic clusters behind it and drove adoption team by team."
   highlights:
-    - "Turned business requirements into functional and technical specifications, broke them into features and effort estimates, and delivered them inside Agile sprints."
+    - "Turned business requirements into shipped features, writing the spec, sizing the work, and building it."
     - "Worked both halves of a hybrid estate — AKS, Azure PaaS data, networking and automation services on one side; Hyper-V failover clusters, iSCSI SAN storage, and firewall HA pairs on the other."
     - "Wired Azure DevOps build and release pipelines through to Kubernetes, with sandbox, dev, test, and prod each driven by its own git branch."
 
@@ -111,6 +111,6 @@
   summary: "IT infrastructure support and project delivery for the provincial nursing regulator, covering the server, network, and end-user estate."
   highlights:
     - "Deployed a network-based imaging system that cut device onboarding from a full day to a couple of hours."
-    - "Ran a Chef Server pilot to test configuration management against a fleet that was still built by hand."
+    - "Piloted configuration management on a fleet that was still built by hand, and produced a repeatable server build defined in code."
     - "Wrote the organization's first IT service catalogue, giving staff one place to see what IT offered and how to ask for it."
     - "Rolled out Duo two-factor authentication for SSL VPN remote access."
