@@ -1,5 +1,14 @@
-# PLACEHOLDER SEED DATA — not a real credential.
-# Replaced with the curated content in task 10, which passes the R3 privacy gate.
-- credential: "Placeholder Credential"
-  institution: "Placeholder Institution"
-  completed: "2020-01"
+# Credentials for /profile. Read docs/experience-authoring.md before editing.
+
+- credential: "Bachelor of Applied Information Systems Technology"
+  institution: "NAIT"
+  institutionUrl: "https://www.nait.ca"
+  completed: "2018-01"
+  honours: "With Honours"
+  note: "Network Management Major"
+
+- credential: "Network Engineering Technology Diploma"
+  institution: "NAIT"
+  institutionUrl: "https://www.nait.ca"
+  completed: "2016-04"
+  honours: "With Honours"

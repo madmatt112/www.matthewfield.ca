@@ -1,11 +1,104 @@
-# PLACEHOLDER SEED DATA — not real employment history.
-# Replaced with the curated content in task 10, which passes the R3 privacy gate.
-# See docs/experience-authoring.md (task 9) for the authoring rules.
-- organisation: "Placeholder Organisation"
-  title: "Placeholder Role"
-  start: "2020-01"
-  end: "2020-02"
-  location: "Placeholder Location"
-  summary: "Placeholder summary retained only so the collection resolves against a file on disk."
+# Curated employment history for /profile. This is the published SUBSET, not the
+# master resume: read docs/experience-authoring.md and walk its R3 checklist
+# before editing. There is no contact field here, and none may be added.
+#
+# Dates are month-precision (YYYY-MM). Where the source records a role boundary
+# by year alone, the month is written as 01.
+
+- organisation: "Mossfoot Digital Inc."
+  organisationUrl: "https://www.mossfootdigital.com"
+  title: "Independent IT Consultant"
+  start: "2026-01"
+  location: "Edmonton, AB"
+  summary: "Independent infrastructure and IT consulting through my Alberta-incorporated practice, working with small and mid-sized organizations in Edmonton and remotely across Canada."
   highlights:
-    - "Placeholder highlight line, long enough to clear the minimum length bound."
+    - "Delivered a Google Workspace primary domain migration end to end — planning, user communications, change management, and cutover — on time, on budget, and documented."
+    - "Offer infrastructure assessments, migration delivery, and fractional IT advisory, so a small organization gets senior infrastructure help without carrying a full-time hire."
+
+- organisation: "CrowdStrike"
+  organisationUrl: "https://www.crowdstrike.com"
+  title: "Infrastructure Engineer III"
+  start: "2021-01"
+  end: "2026-01"
+  location: "Remote"
+  summary: "Member of the Infrastructure Engineering Kubernetes team inside the Product Platform organization. Our 40+ clusters ran the bulk of the Falcon Platform's microservices and its data science and ML workflows, in public cloud and in our own datacenters."
+  tech:
+    - "kubernetes"
+    - "golang"
+    - "python"
+    - "terraform"
+    - "temporal"
+    - "fluxcd"
+    - "cilium"
+    - "prometheus"
+    - "chef"
+    - "aws"
+    - "gcp"
+    - "oci"
+  deliveries:
+    - title: "Rudder"
+      role: "Architect & Lead Engineer"
+      project: "rudder"
+      body: "A single pane of glass for the Kubernetes fleet: one control surface for fleet visibility and cluster operations, replacing an aging Ansible AWX system with a Temporal-powered workflow engine."
+    - title: "Temporal.io Platform"
+      role: "Architect & Lead Engineer"
+      body: "CrowdStrike's first internal Temporal deployment, built from scratch with no prior art and no internal managed offering to work from. It became the durable execution backbone for Infrastructure Engineering's cluster operations, and the foundation Rudder's workflow engine was built on."
+      highlights:
+        - "Architected the cluster topology — running on Kubernetes, backed by Amazon RDS PostgreSQL, with a namespace strategy and multi-region HA across environments."
+        - "Defined the canonical Go and Python worker, workflow, and activity structure, so the teams that followed started from a convention rather than a blank page."
+        - "Put workflow code through the same build, test, and deploy pipelines as application services, which kept workflows-as-code on equal footing with the rest of the platform."
+        - "Wrote the runbook library from scratch — upgrades, namespace management, worker scaling, incident response — the operational base a managed offering would have supplied."
+  highlights:
+    - "Owned build, management, and lifecycle of 40+ Kubernetes clusters across AWS, GCP, OCI, and on-prem Canonical MaaS, spread across North America and Europe."
+    - "Led GPU-on-Kubernetes as the team's subject-matter expert. Reworked NVIDIA's GPU Operator for egress-restricted networks and internal repositories, turning multi-day upgrade debugging into a YAML change."
+    - "Built custom FluxCDTeam CRDs mapping team shapes — namespaces, RBAC, org-level definitions — onto our managed FluxCD service, live-synced from the internal Teams API so environments came from a definition, not by hand."
+    - "Kept the whole 40+ cluster fleet on a regular update cadence for Kubernetes, Ubuntu, kernel, containerd, and Cilium, so no cluster drifted onto an unsupported version."
+    - "Partnered with 12+ service teams to right-size and migrate dozens of microservices onto the platform."
+    - "Ran the Prometheus, Thanos, and Grafana stack across multi-cloud and on-prem clusters, carried the pager on the on-call rotation, and led several incident retrospectives and postmortems."
+    - "Built the Terraform modules and managed the state behind provisioning across cloud tenancies, with Chef handling configuration and drift."
+
+- organisation: "Computronix"
+  organisationUrl: "https://www.computronix.com"
+  title: "Technical Analyst II"
+  start: "2018-01"
+  end: "2021-01"
+  location: "Edmonton, AB"
+  summary: "Computronix sells POSSE, a SaaS platform for permitting, licensing, and enforcement workflows used by governments across North America. We ran three datacenters alongside Azure tenancies and were moving internal systems and hosted products onto Azure."
+  tech:
+    - "azure"
+    - "kubernetes"
+    - "python"
+    - "flask"
+    - "postgresql"
+    - "redis"
+    - "terraform"
+    - "packer"
+    - "prometheus"
+    - "grafana"
+    - "elastic-stack"
+    - "azure-devops"
+  deliveries:
+    - title: "LaunchPad"
+      role: "Lead Developer"
+      project: "launchpad"
+      body: "A self-service portal on AKS where developer and infrastructure teams provisioned, monitored, and managed application environments, training and disaster-recovery services, and other managed IT resources."
+    - title: "Monitoring & Log Collection"
+      role: "Initiator & Technical Lead"
+      project: "monitoring-and-log-collection"
+      body: "Standardized metric and log format across the POSSE application stack, then built the Prometheus, Grafana, and Elastic clusters behind it and drove adoption team by team."
+  highlights:
+    - "Turned business requirements into functional and technical specifications, broke them into features and effort estimates, and delivered them inside Agile sprints."
+    - "Worked both halves of a hybrid estate — AKS, Azure PaaS data, networking and automation services on one side; Hyper-V failover clusters, iSCSI SAN storage, and firewall HA pairs on the other."
+    - "Wired Azure DevOps build and release pipelines through to Kubernetes, with sandbox, dev, test, and prod each driven by its own git branch."
+
+- organisation: "College and Association of Registered Nurses of Alberta"
+  title: "Infrastructure Support"
+  start: "2017-01"
+  end: "2018-01"
+  location: "Edmonton, AB"
+  summary: "IT infrastructure support and project delivery for the provincial nursing regulator, covering the server, network, and end-user estate."
+  highlights:
+    - "Deployed a network-based imaging system that cut device onboarding from a full day to a couple of hours."
+    - "Ran a Chef Server pilot to test configuration management against a fleet that was still built by hand."
+    - "Wrote the organization's first IT service catalogue, giving staff one place to see what IT offered and how to ask for it."
+    - "Rolled out Duo two-factor authentication for SSL VPN remote access."

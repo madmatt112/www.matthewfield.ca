@@ -1,5 +1,62 @@
-# PLACEHOLDER SEED DATA — not a real skill set.
-# Replaced with the curated content in task 10, which passes the R3 privacy gate.
-- category: "Placeholder Category"
+# Curated skill groups for /profile. R5.2 asks for what would hold up in an
+# interview, not an inventory: at most 8 groups, at most 12 items each.
+# Read docs/experience-authoring.md before editing.
+
+- category: "Cloud & Hybrid Infrastructure"
   items:
-    - "placeholder-item"
+    - "AWS"
+    - "GCP"
+    - "OCI"
+    - "Azure"
+    - "Canonical MaaS"
+    - "Hyper-V"
+
+- category: "Containers, Networking & Identity"
+  items:
+    - "Kubernetes"
+    - "AKS"
+    - "Cilium"
+    - "containerd"
+    - "Azure AD SSO"
+
+- category: "Infrastructure as Code & Automation"
+  items:
+    - "Terraform"
+    - "FluxCD"
+    - "Helm"
+    - "Chef"
+    - "Ansible"
+    - "Packer"
+
+- category: "Workflow Orchestration & CI/CD"
+  items:
+    - "Temporal.io"
+    - "workflows-as-code"
+    - "Jenkins"
+    - "Azure DevOps"
+
+- category: "Languages & Scripting"
+  items:
+    - "Go"
+    - "Python"
+    - "Bash"
+    - "PowerShell"
+    - "TypeScript"
+    - "SQL"
+
+- category: "Observability & Reliability"
+  items:
+    - "Prometheus"
+    - "Thanos"
+    - "Grafana"
+    - "Elastic Stack"
+    - "on-call"
+    - "incident retrospectives"
+
+- category: "Architecture & Emerging Tech"
+  items:
+    - "reference architectures"
+    - "reusable patterns"
+    - "technical roadmaps"
+    - "LLM agentic workflows"
+    - "MCP runtime servers"
