@@ -20,22 +20,22 @@ the build.
 ## Source of truth
 
 The curated YAML under `content/` is canonical for professional history.
-Everything `/profile` publishes — the timeline, the skills groups, the
-education entries, the JSON-LD — is read from those files.
+The timeline, the skills groups, the education entries, and the JSON-LD on
+`/profile` are all read from those files.
 
-The master `.docx` resume is an **export target, not an input**. When an ATS
-copy is needed, it is produced from what the site already publishes, with
-whatever keyword density that channel wants added on top. Nothing in this
-repository reads the `.docx`, no parsing pipeline exists, and none is planned
-(R1.7). The two artifacts differ on purpose: the `.docx` optimises for keyword
-matching, the site optimises for signal per screen.
+The master `.docx` resume is an **export target, not an input**. It is
+maintained by hand, with whatever keyword density an ATS channel wants. It is
+not generated from this data and this data is not generated from it: nothing in
+this repository reads the `.docx`, no parsing pipeline exists, and none is
+planned (R1.7). The two artifacts differ on purpose. The `.docx` optimises for
+keyword matching, the site optimises for signal per screen.
 
-The direction is the privacy gate, which is why it is a rule and not a habit.
-Content reaches the site only by being typed into a YAML file and checked
-against [The R3 curation checklist](#the-r3-curation-checklist). If the `.docx`
-were an input, one unreviewed paste could push a phone number into a public
-repository. Do not copy blocks of the `.docx` into these files. Write the
-entry, then check it.
+That direction is the privacy gate. Content reaches the site only by being
+typed into a YAML file and checked against
+[The R3 curation checklist](#the-r3-curation-checklist). If the `.docx` were an
+input, one unreviewed paste could push a phone number into a public repository.
+Do not copy blocks of the `.docx` into these files. Write the entry, then check
+it.
 
 ## Experience YAML shape
 
@@ -70,9 +70,8 @@ field, and no free-form contact field anywhere in these schemas. That absence
 IS the R3.1 enforcement: combined with `.strict()`, the forbidden data cannot
 be expressed. Do not add such a field.
 
-The 240-character ceiling on a highlight is load-bearing, not cosmetic. It
-makes a keyword-inventory line mechanically impossible to author, which is half
-of R3.4 and R3.5.
+The 240-character ceiling on a highlight is deliberate. It makes a
+keyword-inventory line impossible to author, which is half of R3.4 and R3.5.
 
 ### Example entry
 
@@ -98,7 +97,7 @@ of R3.4 and R3.5.
 
 `start`, `end`, and education's `completed` are **month-precision**: the string
 `YYYY-MM`, matching `/^\d{4}-(0[1-9]|1[0-2])$/`. Quote them in YAML. Full ISO
-dates are deliberately not used — employment is not a day-precision fact, and
+dates are deliberately not used: employment is not a day-precision fact, and
 `YYYY-MM-DD` would force a fabricated day into the file. Display formatting
 happens at render time; never put a formatted string like `Jan 2021` in the
 data.
@@ -114,16 +113,16 @@ produces three distinct failures:
 
 **`end` is omitted for a current role. It is never `null`.** The schema uses
 `.optional()` and not `.nullable()`, so an explicit `end: null` is rejected as
-a type error. There is exactly one spelling for "current", which is what stops
-two roles from disagreeing about how they say the same thing. R1.2's
-"absent/null" phrasing is resolved here in favour of absent-only.
+a type error. There is exactly one spelling for "current", so two roles cannot
+disagree about how to say it. R1.2's "absent/null" phrasing is resolved here in
+favour of absent-only.
 
 When `end` is present it must be greater than or equal to `start`. A role that
 ends before it begins fails the build with a message naming both values.
 
 ## Deliveries and project links
 
-A delivery is one of the resume's "Highlighted Delivery" blocks — a named piece
+A delivery is one of the resume's "Highlighted Delivery" blocks: a named piece
 of work inside a role. Up to 4 per role.
 
 - `title` (string, 2–60 chars after trim) — required.
@@ -137,8 +136,8 @@ of work inside a role. Up to 4 per role.
 When `project` is set, the delivery links to `/projects/<slug>` and the body
 SHALL be a short summary rather than a restatement of the project write-up
 (R4.3). Say what it was and why it mattered; the project page carries the
-depth. When there is no project page, the delivery keeps its own bullets — that
-is what `highlights` is for.
+depth. When there is no project page, the delivery keeps its own bullets in
+`highlights`.
 
 The slug is validated three ways in `prepare()`, and all three throw:
 
@@ -148,8 +147,7 @@ The slug is validated three ways in `prepare()`, and all three throw:
 
 Cases 2 and 3 are separate on purpose. Drafts and fixtures are filtered out on
 production only, so a link to one renders fine in dev and preview and 404s only
-in production. Raw existence alone is a satisfied-shaped check, not a satisfied
-one.
+in production. Checking raw existence alone would miss both.
 
 ## Skills YAML shape
 
@@ -160,13 +158,11 @@ one.
 
 **At most 8 groups**, enforced in `prepare()` from `SKILLS_MAX_GROUPS` in
 `src/lib/build/skills-schema.ts`. A group with zero items is rejected by the
-`items` minimum, because an empty group is exactly the empty section R5.4
-forbids.
+`items` minimum, because an empty group is the empty section R5.4 forbids.
 
 Both bounds mechanize half of R5.2. The other half is judgement: publish what
-you would defend in an interview, not everything you have touched. If a ninth
-group seems necessary, merge two rather than raising the cap — the cap is a
-spec decision, not a default.
+you would defend in an interview. If a ninth group seems necessary, merge two
+rather than raising the cap.
 
 ```yaml
 - category: "Cloud & Hybrid Infrastructure"
@@ -198,23 +194,23 @@ credential.
 
 `summary` lives in `content/profile.mdx` frontmatter, beside `headline`,
 `location`, and `availability`. It is 100–600 characters after trim. It
-introduces the experience section on screen and it opens the printed CV, which
-is why it exists at all: print suppresses the personal narrative, so without a
-separate summary the PDF would open with no summary at all.
+introduces the experience section on screen and opens the printed CV. Print
+suppresses the personal narrative, so without it the PDF would open with no
+summary at all.
 
 Validation lives in `src/lib/profile-summary.ts`, not in the collection schema.
-The schema field is `s.string().optional()` on purpose — a required field
+The schema field is `s.string().optional()` on purpose: a required field
 aborts the whole profile parse on absence, and Velite then reports only `no
 data resolved for 'profile' collection`, naming neither the file nor the field.
 The guard owns the error message end to end.
 
-The summary must state Matthew's experience as **"a decade"** (R9.1). The same
-figure appears in `siteConfig.intro` and in the profile narrative, and a test
-asserts they agree. Change one and you change all of them.
+The summary must state Matthew's experience as **"a decade"** (R9.1). Three
+surfaces carry that figure: `siteConfig.intro`, the `profile.mdx` narrative,
+and this summary. All three use the same phrasing, so change one and you change
+all three.
 
-The summary is not a compressed copy of the narrative. It is the professional
-register: what Matthew does, at what scale, with what. Personal material stays
-in the narrative body.
+The summary is the professional register: what Matthew does, at what scale,
+with what. Personal material stays in the narrative body.
 
 ## The R3 curation checklist
 
@@ -223,17 +219,16 @@ list against every edit to the three YAML files and to the summary. Each item
 is a rule you can check, and each is checked again in the spec's verification
 task.
 
-Two of these are partly mechanical — the schemas have no contact field, and the
-length ceilings block inventory lines. The rest is judgement, which is why it
-is written down here rather than pretended into code.
+Two of these are partly mechanical: the schemas have no contact field, and the
+length ceilings block inventory lines. The rest is judgement.
 
 1. **R3.1 — no contact details.** No telephone number. No personal email
    address other than the site's own obfuscated one. No timezone line (the
    `location` frontmatter already says it). No LinkedIn, GitHub, or website
    header block (site chrome already carries those links). _Check:_ grep the
    files for digit runs and for `@`; the schemas give you nowhere to put these,
-   so the only way they arrive is smuggled inside a prose field — `summary`, a
-   highlight, or a delivery `body`.
+   so the only way they arrive is smuggled inside a prose field (`summary`, a
+   highlight, or a delivery `body`).
 2. **R3.2 — no job-search framing inside an entry.** "Seeking", "open to",
    "available for", "looking for my next" do not belong in a role. The
    availability line above the timeline already states it, and a role that
@@ -252,10 +247,10 @@ is written down here rather than pretended into code.
    Per-role technology belongs in `tech`, where it renders as tags. _Check:_ no
    highlight is a comma-separated list of product names.
 6. **R3.6 — compress, do not delete.** Where breadth is evidenced only by an
-   inventory — on-prem hardware alongside cloud services, for example — keep
-   one compressed line that preserves the signal. Deleting the inventory
-   outright loses a real claim about range. _Check:_ each breadth claim from
-   the master document survives as at least one line.
+   inventory (on-prem hardware alongside cloud services, for example), keep one
+   compressed line that preserves the signal. Deleting the inventory outright
+   loses a real claim about range. _Check:_ each breadth claim from the master
+   document survives as at least one line.
 7. **R3.7 — no diluting prior-role content.** Front-line helpdesk duties from
    2017–2018 are omitted. They pull a senior platform profile downward and the
    reader has already stopped by then. _Check:_ no role lists ticket handling,
@@ -263,21 +258,19 @@ is written down here rather than pretended into code.
 
 ## One interests list and one voice
 
-`/profile` is a person's page that contains a CV, not a CV with a name on top.
 The narrative body of `content/profile.mdx` is free to carry non-professional
-material — interests, family, side pursuits — and nothing here restricts that.
-What follows targets duplication, not personality.
+material such as interests, family, and side pursuits. Nothing here restricts
+that. The rules below target duplication only.
 
 **One canonical interests list (R9.2).** It lives in the profile narrative. The
 experience, skills, and education files SHALL NOT carry a second one. When the
 resume has interests the narrative lacks, **merge** them into the existing
-sentence rather than adding a list beside it. Two lists drift; one does not.
+sentence rather than adding a list beside it. Two lists drift out of step.
 `/about` may treat the same material at greater length.
 
 **One statement per subject (R9.3).** Where the narrative and the structured
-data both touch a subject — documentation practice is the standing example —
-state it once, in the narrative, in Matthew's voice. The structured data
-carries the record; the narrative carries the view.
+data both touch a subject (documentation practice is the standing example),
+state it once, in the narrative, in Matthew's voice.
 
 ## What the build checks and what it cannot
 
@@ -288,9 +281,7 @@ Mechanical, and will fail CI:
 - `end: null` (rejected as a type error);
 - an unresolvable, draft, or fixture `project` slug;
 - more than 8 skill groups, or a group with no items;
-- a missing or too-short `summary` in `content/profile.mdx`;
-- the "a decade" phrasing agreeing across `siteConfig.intro`, the narrative,
-  and the summary.
+- a missing or too-short `summary` in `content/profile.mdx`.
 
 Judgement, and will not fail anything:
 
@@ -300,13 +291,17 @@ Judgement, and will not fail anything:
 - whether the skills list is curated or exhaustive;
 - whether interests were merged or appended.
 
+R9.1's "a decade" phrasing belongs in the first list but has no check behind
+it. Verify by hand that `siteConfig.intro`, the narrative, and the summary
+agree.
+
 Errors from the first list name the file, the entry, and the field. Entries are
 located by `organisation` in `experience.yaml`, `category` in `skills.yaml`,
 and `credential` in `education.yaml`.
 
 One trap when verifying locally: `pnpm build` is `next build` alone and never
-runs Velite. The cross-collection checks — project slugs and the skills-group
-cap — run only in `prepare()`, which means `pnpm exec velite build` is the
-command that catches them. CI reaches the same code path through
+runs Velite. The cross-collection checks (project slugs and the skills-group
+cap) run only in `prepare()`, so `pnpm exec velite build` is the command that
+catches them. CI reaches the same code path through
 `pnpm install --frozen-lockfile`, which triggers the `postinstall` Velite
 build.
