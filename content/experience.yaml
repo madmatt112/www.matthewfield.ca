@@ -2,8 +2,20 @@
 # master resume: read docs/experience-authoring.md and walk its R3 checklist
 # before editing. There is no contact field here, and none may be added.
 #
-# Dates are month-precision (YYYY-MM). Where the source records a role boundary
-# by year alone, the month is written as 01.
+# Dates are month-precision (YYYY-MM). The master resume gives most role
+# boundaries as a year only, so six of them carry an assumed month of 01 and
+# need Matthew's confirmation:
+#   - CrowdStrike start (2021) and end (2026)
+#   - Computronix start (2018) and end (2021)
+#   - CARNA start (2017) and end (2018)
+# Mossfoot's start is the only boundary the master resume dates to a month
+# ("January 2026"). CrowdStrike's end month is corroborated by that same date
+# and by the "unemployed since January 2026" line in the blog post.
+#
+# Project pages linked from a delivery carry their own `date`, which is the
+# write-up's original publication date (docs/projects-authoring.md §2), not the
+# date the work shipped. A project date later than a role's end is therefore
+# not a contradiction.
 
 - organisation: "Mossfoot Digital Inc."
   organisationUrl: "https://www.mossfootdigital.com"
@@ -79,7 +91,7 @@
     - "azure-devops"
   deliveries:
     - title: "LaunchPad"
-      role: "Lead Developer"
+      role: "Developer"
       project: "launchpad"
       body: "A self-service portal on AKS where developer and infrastructure teams provisioned, monitored, and managed application environments, training and disaster-recovery services, and other managed IT resources."
     - title: "Monitoring & Log Collection"
