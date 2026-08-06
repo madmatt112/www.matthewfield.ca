@@ -1,0 +1,11 @@
+# PLACEHOLDER SEED DATA — not real employment history.
+# Replaced with the curated content in task 10, which passes the R3 privacy gate.
+# See docs/experience-authoring.md (task 9) for the authoring rules.
+- organisation: "Placeholder Organisation"
+  title: "Placeholder Role"
+  start: "2020-01"
+  end: "2020-02"
+  location: "Placeholder Location"
+  summary: "Placeholder summary retained only so the collection resolves against a file on disk."
+  highlights:
+    - "Placeholder highlight line, long enough to clear the minimum length bound."

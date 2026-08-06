@@ -16,8 +16,11 @@ import { countWordsFromMdast } from "./src/lib/build/word-count";
 import { KNOWN_FIXTURE_SLUGS, derivePostSlug } from "./src/lib/build/derive-post-slug.mjs";
 import { checkProjectHeadings } from "./src/lib/build/check-project-headings";
 import { contributionEntrySchema } from "./src/lib/build/contributions-schema";
+import { educationEntrySchema } from "./src/lib/build/education-schema";
+import { experienceEntrySchema } from "./src/lib/build/experience-schema";
 import { readingEntrySchema, readingLoaderSchema } from "./src/lib/build/reading-schema";
 import { resourceEntrySchema } from "./src/lib/build/resources-schema";
+import { skillEntrySchema } from "./src/lib/build/skills-schema";
 import { makeContentYamlLoader } from "./src/lib/build/content-yaml-loader";
 
 // Typed content collections for the site. Downstream specs extend this file
@@ -433,6 +436,30 @@ const reading = defineCollection({
   schema: readingEntrySchema,
 });
 
+// Profile/resume data collections. The `pattern` basenames are load-bearing
+// twice over: `makeContentYamlLoader` keys its schema map on them, and
+// `IDENTIFIER_FIELD_BY_BASENAME` (content-error-format.ts) keys the
+// error-locator field on them. Renaming a file without updating both silently
+// degrades build errors to locating by `title` — a field skills and education
+// entries do not even have.
+const experience = defineCollection({
+  name: "ExperienceRole",
+  pattern: "experience.yaml",
+  schema: experienceEntrySchema,
+});
+
+const skills = defineCollection({
+  name: "SkillGroup",
+  pattern: "skills.yaml",
+  schema: skillEntrySchema,
+});
+
+const education = defineCollection({
+  name: "EducationEntry",
+  pattern: "education.yaml",
+  schema: educationEntrySchema,
+});
+
 export default defineConfig({
   root: "content",
   output: {
@@ -441,12 +468,26 @@ export default defineConfig({
     base: "/static/",
     clean: true,
   },
-  collections: { pages, profile, posts, projects, contributions, resources, reading },
+  collections: {
+    pages,
+    profile,
+    posts,
+    projects,
+    contributions,
+    resources,
+    reading,
+    experience,
+    skills,
+    education,
+  },
   loaders: [
     makeContentYamlLoader({
       "contributions.yaml": contributionEntrySchema,
       "resources.yaml": resourceEntrySchema,
       "reading.yaml": readingLoaderSchema,
+      "experience.yaml": experienceEntrySchema,
+      "skills.yaml": skillEntrySchema,
+      "education.yaml": educationEntrySchema,
     }),
   ],
   mdx: {
