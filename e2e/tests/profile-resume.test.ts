@@ -353,6 +353,59 @@ test.describe("/profile — composition, cross-linking, print, and contact-data 
     }
   });
 
+  /**
+   * REGRESSION (R6.2). The chrome-suppression rule in src/styles/print.css was
+   * written as `body:has(.profile-print-root) header`. `<header>` is content
+   * markup as well as chrome: every role emits
+   * `<header class="profile-role-header">` carrying the employer, job title and
+   * dates, and the bare selector hid all of them. The printed CV listed no
+   * employer and no date for any role — which is the whole point of the PDF.
+   *
+   * Three rounds of review read the CSS and missed it, because reading a rule
+   * does not tell you what it matches. This asserts the match set instead: the
+   * chrome goes, the role headers and their text stay.
+   */
+  test("print emulation hides site chrome but keeps every role's employer, title, and dates", async ({
+    page,
+  }) => {
+    await page.goto(PROFILE_PATH);
+
+    const roleHeaders = page.locator(".profile-role-header");
+    const roleCount = await roleHeaders.count();
+    expect(roleCount, "the shipped content must render at least one role").toBeGreaterThan(0);
+
+    // On screen first. `toBeHidden` also passes for an element that does not
+    // exist, so without this the chrome assertions below would score full
+    // marks if someone dropped the `site-header` class and print.css silently
+    // stopped matching anything.
+    await expect(
+      page.locator(".site-header"),
+      "the site header must exist on screen",
+    ).toBeVisible();
+    await expect(
+      page.locator(".site-footer"),
+      "the site footer must exist on screen",
+    ).toBeVisible();
+
+    await page.emulateMedia({ media: "print" });
+
+    // The chrome the rule is actually aimed at.
+    await expect(page.locator(".site-header"), "the site header must not print").toBeHidden();
+    await expect(page.locator(".site-footer"), "the site footer must not print").toBeHidden();
+
+    // ...and nothing else. Each role header, plus the dates/title/organisation
+    // inside it, must survive — asserted per role, not just on the first.
+    for (let i = 0; i < roleCount; i += 1) {
+      const header = roleHeaders.nth(i);
+      await expect(header, `role ${i}: header must print`).toBeVisible();
+      await expect(header.locator("time").first(), `role ${i}: dates must print`).toBeVisible();
+      await expect(header.locator("h3"), `role ${i}: job title must print`).toBeVisible();
+      // The organisation is the last <p> of the header block — a link when the
+      // role carries `organisationUrl`, plain text when it does not.
+      await expect(header.locator("p").last(), `role ${i}: employer must print`).toBeVisible();
+    }
+  });
+
   test("the contact-data detector flags every known-bad shape and clears the known-good ones", () => {
     // POSITIVE CONTROL for the page scan below. Without it, the empty findings
     // array that test asserts proves nothing: a detector whose patterns had

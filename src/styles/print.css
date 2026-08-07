@@ -18,7 +18,9 @@
  * (the .profile-print-root wrapper lives on the /profile page container).
  *
  * MARKUP HOOKS (Task 20, R6.2-6.6). These rules are inert without the classes
- * the /profile components emit, so the two move together:
+ * the components emit, so the two move together:
+ *   .site-header           — the site header (layout/header.tsx)
+ *   .site-footer           — the site footer (layout/footer.tsx)
  *   .profile-narrative     — the personal narrative <article> (page.tsx)
  *   .profile-role          — each role <li> (experience-timeline.tsx)
  *   .profile-role-header   — dates + title + organisation (experience-role-item.tsx)
@@ -33,6 +35,21 @@
      dark-mode session. */
   :root,
   .dark {
+    /* Chrome paints the PAGE MARGIN BOX from the root element's colour scheme,
+       not from body's background. Re-declaring the tokens below turns the
+       content area white but leaves a black 2cm frame on every sheet of a
+       dark-mode print — six full-bleed black borders on the CV (R6.6),
+       confirmed by rendering the PDF and sampling its corner pixels.
+
+       `!important` is REQUIRED, not defensive: next-themes writes
+       `style="color-scheme: dark"` directly on <html>, and an author
+       declaration only outranks an inline style when it is important. Without
+       it this rule loses the cascade and the black frame survives — which is
+       exactly what a first attempt at this fix did. Setting
+       `html { background-color: white !important }` instead does NOT work; the
+       margin box does not read it. */
+    color-scheme: light !important;
+
     --background: white;
     --foreground: black;
     --card: white;
@@ -56,11 +73,21 @@
 
   /* --- Profile route only (scoped via the page wrapper) --- */
 
-  /* Hide site chrome and interactive-only elements: header (which contains the
-     theme toggle), footer, search, and the contact FORM. Email + social links
-     are plain elements (not <form>), so they survive as text. */
-  body:has(.profile-print-root) header,
-  body:has(.profile-print-root) footer,
+  /* Hide site chrome and interactive-only elements: the site header (which
+     contains the theme toggle), the site footer, search, and the contact FORM.
+     Email + social links are plain elements (not <form>), so they survive as
+     text.
+
+     CLASS HOOKS, NOT BARE `header`/`footer` (regression, caught by rendering a
+     PDF): `<header>` and `<footer>` are content markup as well as chrome —
+     every role on this page emits `<header class="profile-role-header">` with
+     the employer, job title, and dates. `body:has(.profile-print-root) header`
+     matched those too and hid them, so the printed CV listed no employers and
+     no dates at all. `.site-header` / `.site-footer` are emitted by
+     src/components/layout/{header,footer}.tsx and match chrome only; the
+     e2e print-emulation test asserts the role headers survive. */
+  body:has(.profile-print-root) .site-header,
+  body:has(.profile-print-root) .site-footer,
   body:has(.profile-print-root) [data-pagefind-ui],
   body:has(.profile-print-root) .profile-print-root form {
     display: none !important;
