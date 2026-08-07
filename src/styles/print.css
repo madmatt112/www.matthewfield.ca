@@ -15,7 +15,17 @@
  *
  * The token re-declaration is GLOBAL to @media print; the chrome-hiding and
  * measure rules are scoped to the profile route via `body:has(.profile-print-root)`
- * (the .profile-print-root wrapper lives on the /profile page container). */
+ * (the .profile-print-root wrapper lives on the /profile page container).
+ *
+ * MARKUP HOOKS (Task 20, R6.2-6.6). These rules are inert without the classes
+ * the /profile components emit, so the two move together:
+ *   .profile-narrative     — the personal narrative <article> (page.tsx)
+ *   .profile-role          — each role <li> (experience-timeline.tsx)
+ *   .profile-role-header   — dates + title + organisation (experience-role-item.tsx)
+ *   .profile-print-no-url  — organisation and institution links, opting out of
+ *                            URL expansion
+ *   .profile-internal-link — /projects/<slug> cross-links, expanded against the
+ *                            site origin */
 
 @media print {
   /* Force LIGHT by re-declaring the token custom properties. Listing `.dark`
@@ -56,6 +66,14 @@
     display: none !important;
   }
 
+  /* Suppress the personal narrative (R6.3). This is an EDITORIAL cut, not
+     chrome-hiding: the printed document is strictly professional and opens on
+     the summary instead, so the page reads as a person while the PDF reads as
+     a candidate. Route-scoped like the rules above. */
+  body:has(.profile-print-root) .profile-narrative {
+    display: none !important;
+  }
+
   /* Black-on-white prose at the 75ch measure with generous gutters dropped. */
   body:has(.profile-print-root) .profile-print-root {
     max-width: 75ch;
@@ -72,16 +90,58 @@
     page-break-after: avoid;
   }
 
-  .profile-print-root :is(h1, h2, h3, h4, h5, h6, li) {
+  /* `li:not(.profile-role)` (R6.5): a role <li> runs to most of a page, so
+     `break-inside: avoid` on it does not prevent a mid-heading break — it
+     shunts the whole role to the next sheet and strands the remainder of the
+     current one. Role list items are therefore exempt and the guarantee is
+     scoped to their header below. Nested delivery/highlight bullets are short
+     and keep the blanket rule. */
+  .profile-print-root :is(h1, h2, h3, h4, h5, h6, li:not(.profile-role)) {
     break-inside: avoid;
     page-break-inside: avoid;
   }
 
+  /* The achievable guarantee: dates, title, and organisation stay together and
+     travel with the content that follows them, so a role never opens with an
+     orphaned heading at the foot of a page. */
+  .profile-print-root .profile-role-header {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
   /* Expand EXTERNAL link hrefs after the link text so the URL survives on
      paper. Scoped to absolute http(s) links only — internal/relative links and
-     in-page anchors are not expanded (they'd be useless or absurd on print). */
-  .profile-print-root a[href^="http"]::after {
+     in-page anchors are handled separately below.
+
+     `:not(.profile-print-no-url)` (R6.4): organisation and institution links
+     opt OUT. The employer or school name is the identifier on a CV, so
+     "CrowdStrike (https://www.crowdstrike.com)" on every role is pure noise.
+     Contact and social links carry no opt-out class and keep their expansion,
+     which is where the URL earns its ink. */
+  .profile-print-root a[href^="http"]:not(.profile-print-no-url)::after {
     content: " (" attr(href) ")";
+    font-size: 0.85em;
+    word-break: break-all;
+  }
+
+  /* Internal /projects/* cross-links (R6.4): on paper a link-styled internal
+     href is dead text — coloured and underlined, pointing nowhere. Drop the
+     link styling and expand the href against the site origin instead, so
+     "Rudder (https://www.matthewfield.ca/projects/rudder)" is followable from a
+     printed page. Unlayered, so it outranks the Tailwind utility classes on the
+     anchor.
+
+     The origin is a literal because CSS cannot read siteConfig — keep it in
+     sync with `siteConfig.url` (src/config/site.ts). */
+  .profile-print-root a.profile-internal-link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .profile-print-root a.profile-internal-link::after {
+    content: " (https://www.matthewfield.ca" attr(href) ")";
     font-size: 0.85em;
     word-break: break-all;
   }
