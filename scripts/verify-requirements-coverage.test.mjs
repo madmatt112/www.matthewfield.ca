@@ -6,11 +6,11 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, rmSync, symlinkSync } from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
+import { mkdtempSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import {
   coversAtLeastOneTask,
   parseMatrixTableRow,
@@ -101,6 +101,34 @@ test("coversAtLeastOneTask requires a task number or the explicit n/a sentinel",
   assert.equal(coversAtLeastOneTask("n/available soon"), false);
 });
 
+test("the n/a sentinel only counts when it LEADS the covering-tasks cell", () => {
+  // NO_COVERAGE_SENTINEL_RE is anchored on purpose. Unanchored, an `n/a`
+  // appearing anywhere in the cell reads as a deliberate no-coverage
+  // statement, so each of these flips from ORPHAN to covered.
+  for (const cell of ["TBD n/a", "(n/a)", "see 18 n/a"]) {
+    assert.equal(coversAtLeastOneTask(cell), false, `expected "${cell}" to assert no coverage`);
+  }
+  // The anchor also decides whether parseMatrix parses the cell's task
+  // numbers at all. Unanchored, this row is treated as a sentinel row, its
+  // task numbers are never collected, and task 99 escapes the UNKNOWN-TASK
+  // check even though tasks.md never declares it.
+  const tasks = tasksDoc(["| R1 — Thing | 1.1 | 2, 4 |", "| | 1.2 | 99 (n/a for print) |"]);
+  const { failures } = verifySpecTexts(REQUIREMENTS, tasks, "fixture");
+  assert.equal(failures.length, 1);
+  assert.match(failures[0], /UNKNOWN-TASK \(fixture\)/);
+  assert.match(failures[0], /task 99/);
+});
+
+test("the n/a sentinel survives the padding the bullet-form capture keeps", () => {
+  // MATRIX_BULLET_RE captures the covering-tasks payload from between `**`
+  // markers, retaining whatever spacing the author typed inside them. The
+  // `.trim()` in coversAtLeastOneTask is therefore load-bearing: without it a
+  // padded sentinel cell matches neither the sentinel nor TASK_TOKEN_RE, and
+  // a genuine negative requirement is reported as an ORPHAN.
+  assert.equal(coversAtLeastOneTask("  n/a — no route created; verified by absence  "), true);
+  assert.equal(coversAtLeastOneTask("\tn/a"), true);
+});
+
 test("verifySpecTexts passes when every AC cites at least one real task", () => {
   const tasks = tasksDoc(["| R1 — Thing | 1.1 | 2, 4 |", "| | 1.2 | 4 |"]);
   const { failures, summary } = verifySpecTexts(REQUIREMENTS, tasks, "fixture");
@@ -160,6 +188,24 @@ test("the entrypoint guard runs the script through a symlink under a path with a
     symlinkSync(SCRIPT, link);
     const stdout = execFileSync(process.execPath, [link], { encoding: "utf8" });
     assert.match(stdout, /\[verify-requirements-coverage\]/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("importing the module does not run main()", () => {
+  // The other half of the entrypoint guard: this test file — and any other
+  // importer — pulls in the parser exports, and must not thereby verify the
+  // checkout's specs as a side effect. An unconditional `main()` call prints
+  // its OK/SKIPPED/failure output from a plain import.
+  const dir = mkdtempSync(path.join(tmpdir(), "verify-import-"));
+  try {
+    const importer = path.join(dir, "importer.mjs");
+    writeFileSync(importer, `import ${JSON.stringify(pathToFileURL(SCRIPT).href)};\n`);
+    const result = spawnSync(process.execPath, [importer], { encoding: "utf8" });
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+    assert.equal(result.status, 0);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
