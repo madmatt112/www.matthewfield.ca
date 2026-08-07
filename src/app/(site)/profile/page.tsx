@@ -114,9 +114,16 @@ export default function ProfilePage() {
       </article>
 
       {/* The professional summary: a field distinct from the narrative (R2.3).
-          On screen it introduces the experience section; in print it is what the
-          CV opens with once the narrative above is suppressed. */}
-      <section id="summary" aria-label="Professional summary" className="mt-10 max-w-measure">
+          PRINT-ONLY. On screen it restated the About narrative directly above it,
+          so it is hidden there; in print it is the CV's only professional framing,
+          because task 20's rule suppresses `.profile-narrative` for R6.3. Removing
+          the field outright would leave the PDF opening on the experience timeline
+          with no framing at all — hence hidden, not deleted. */}
+      <section
+        id="summary"
+        aria-label="Professional summary"
+        className="mt-10 hidden max-w-measure print:block"
+      >
         <p className="text-base text-muted-foreground">{profileSummary}</p>
       </section>
 

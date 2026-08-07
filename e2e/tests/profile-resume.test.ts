@@ -354,6 +354,25 @@ test.describe("/profile — composition, cross-linking, print, and contact-data 
     }
   });
 
+  test("the professional summary is print-only: hidden on screen, present in the PDF", async ({
+    page,
+  }) => {
+    await page.goto(PROFILE_PATH);
+
+    // The summary restates the About narrative, which is visible on screen, so
+    // showing both was redundant. It is hidden rather than deleted because print
+    // suppresses `.profile-narrative` (R6.3) — without it the PDF would open on
+    // the experience timeline with no professional framing at all.
+    const summary = page.locator("#summary");
+    await expect(summary, "summary must be hidden on screen").toBeHidden();
+    await expect(page.locator(".profile-narrative")).toBeVisible();
+
+    await page.emulateMedia({ media: "print" });
+
+    await expect(summary, "summary must reappear in print").toBeVisible();
+    await expect(summary).toContainText("decade");
+  });
+
   /**
    * REGRESSION (R6.2). The chrome-suppression rule in src/styles/print.css was
    * written as `body:has(.profile-print-root) header`. `<header>` is content
