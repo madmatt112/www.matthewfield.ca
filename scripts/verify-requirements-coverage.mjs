@@ -120,7 +120,7 @@ function readFile(p) {
  * numbered lines while inside a "### Requirement N:" section AND before the
  * next "### Requirement" header.
  */
-function extractRequirementIds(text) {
+export function extractRequirementIds(text) {
   const lines = text.split(/\r?\n/);
   /** @type {Set<string>} */
   const ids = new Set();
@@ -167,7 +167,7 @@ function extractRequirementIds(text) {
  * Requirements Coverage Matrix region so matrix bullets are not mistaken for
  * task declarations).
  */
-function extractTaskNumbers(text) {
+export function extractTaskNumbers(text) {
   const lines = text.split(/\r?\n/);
   /** @type {Set<string>} */
   const tasks = new Set();
@@ -203,10 +203,16 @@ function extractTaskNumbers(text) {
  * row. Returns null for the header row, the `|---|` separator, and NFR rows
  * whose AC cell is an em-dash rather than a list of IDs.
  *
+ * Also returns null when the covering-tasks cell is empty or whitespace-only:
+ * such a row asserts no coverage at all, so its acceptance criteria must fall
+ * through to the ORPHAN check rather than counting as covered. This matches
+ * the strictness of the bullet form, whose `**tasks**` segment is likewise
+ * required to be non-empty by MATRIX_BULLET_RE.
+ *
  * @param {string} line
  * @returns {{ lhs: string, rhs: string } | null}
  */
-function parseMatrixTableRow(line) {
+export function parseMatrixTableRow(line) {
   const m = MATRIX_TABLE_ROW_RE.exec(line);
   if (!m) return null;
   const cells = m[1].split("|").map((c) => c.trim());
@@ -219,6 +225,7 @@ function parseMatrixTableRow(line) {
     .filter(Boolean);
   if (idTokens.length === 0) return null;
   if (!idTokens.every((t) => ID_TOKEN_RE.test(t))) return null;
+  if (cells[2] === "") return null;
   return { lhs: idCell, rhs: cells[2] };
 }
 
@@ -230,7 +237,7 @@ function parseMatrixTableRow(line) {
  *     bullets: Array<{ line: number, ids: string[], tasks: string[] }>,
  *   }
  */
-function parseMatrix(text, label = "tasks.md") {
+export function parseMatrix(text, label = "tasks.md") {
   const lines = text.split(/\r?\n/);
   /** @type {Set<string>} */
   const citedRequirementIds = new Set();
@@ -323,16 +330,15 @@ function parseMatrix(text, label = "tasks.md") {
 // ---------------------------------------------------------------------------
 
 /**
- * Verify one spec's coverage matrix. Returns the (possibly empty) failure
- * list plus a one-line summary for the OK path.
+ * Verify one spec's coverage matrix from its two document bodies. Returns the
+ * (possibly empty) failure list plus a one-line summary for the OK path.
+ * Exported for unit-test use.
  *
- * @param {{ slug: string, requirementsPath: string, tasksPath: string }} spec
+ * @param {string} reqText     requirements.md contents
+ * @param {string} tasksText   tasks.md contents
+ * @param {string} label       spec slug, used in diagnostics
  */
-function verifySpec(spec) {
-  const label = spec.slug;
-  const reqText = readFile(spec.requirementsPath);
-  const tasksText = readFile(spec.tasksPath);
-
+export function verifySpecTexts(reqText, tasksText, label) {
   const declaredRequirementIds = extractRequirementIds(reqText);
   const declaredTaskNumbers = extractTaskNumbers(tasksText);
   const { citedRequirementIds, citedTaskNumbers, bullets } = parseMatrix(
@@ -411,6 +417,15 @@ function verifySpec(spec) {
   };
 }
 
+/**
+ * Read one spec's documents off disk and verify its coverage matrix.
+ *
+ * @param {{ slug: string, requirementsPath: string, tasksPath: string }} spec
+ */
+function verifySpec(spec) {
+  return verifySpecTexts(readFile(spec.requirementsPath), readFile(spec.tasksPath), spec.slug);
+}
+
 function main() {
   /** @type {string[]} */
   const allFailures = [];
@@ -453,4 +468,6 @@ function idCompare(a, b) {
   return 0;
 }
 
-main();
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main();
+}
