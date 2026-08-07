@@ -85,22 +85,34 @@ const EMAIL_PATTERN = () =>
 /**
  * Characters that may separate the digit groups of a telephone number: `.`,
  * ASCII `-`, `\s` (which in JS already covers U+00A0 non-breaking space and
- * the other unicode spaces), and U+2010-U+2015 — hyphen, non-breaking hyphen,
- * figure dash, en dash, em dash, horizontal bar. A word processor autocorrects
- * `-` into one of those, so a number pasted out of the source `.docx` arrives
- * as "780–555–0108" rather than "780-555-0108" and an ASCII-only class misses
- * it entirely. Deliberately NOT widened past dashes, spaces and dots: adding
- * `/` or `:` would start matching dates and times.
+ * the other unicode spaces), U+2010-U+2015 — hyphen, non-breaking hyphen,
+ * figure dash, en dash, em dash, horizontal bar — and three more that a word
+ * processor or a font-substituting paste produces just as readily: U+00AD soft
+ * hyphen (invisible, so a number carrying them reads as a bare run to a human
+ * but as a separated one to a regex), U+2212 minus sign, and U+00B7 middle
+ * dot. A word processor autocorrects `-` into one of those, so a number pasted
+ * out of the source `.docx` arrives as "780–555–0108" rather than
+ * "780-555-0108" and an ASCII-only class misses it entirely. Deliberately NOT
+ * widened past dashes, spaces and dots: adding `/` or `:` would start matching
+ * dates and times.
  */
-const SEPARATOR_CHARS = String.raw`\s.\u2010-\u2015-`;
+const SEPARATOR_CHARS = String.raw`\s.\u00ad\u00b7\u2010-\u2015\u2212-`;
 const SEPARATOR = `[${SEPARATOR_CHARS}]`;
 
 /**
  * Telephone shapes, deliberately over-broad and then narrowed by
  * `MIN_TELEPHONE_DIGITS` below. Calibrated against every prerendered page in
- * `.next/server/app/` (68 documents), in both scan views: zero matches, so the
- * site's real content — ISO dates, `40+`, version numbers, oklch triples, byte
- * counts, DOIs — does not trip any of them.
+ * `.next/server/app/`, in both scan views, for the widest and the narrowest
+ * build this repo produces: `BLOG_INCLUDE_DRAFTS=1 PROJECTS_INCLUDE_DRAFTS=1`
+ * (69 HTML documents; the e2e harness sets only the first of those and gets
+ * 68) and a plain production `pnpm build` with drafts excluded (56). Zero
+ * matches in any of them, so the site's real content — ISO dates, `40+`,
+ * version numbers, oklch triples, byte counts, DOIs — does not trip any of
+ * them. Those counts are what the calibration covered, not an invariant: they
+ * move with every page and every draft added, so re-measure rather than trust
+ * them — and delete `.next` first, because `next build` leaves the previous
+ * build's prerendered HTML in place and a re-count picks up pages the current
+ * flags did not produce.
  */
 const TELEPHONE_PATTERNS: Array<{ label: string; pattern: () => RegExp }> = [
   // A `tel:` URI anywhere, including in an attribute. Always a violation.
@@ -124,13 +136,16 @@ const TELEPHONE_PATTERNS: Array<{ label: string; pattern: () => RegExp }> = [
     label: "local 3-4",
     pattern: () => new RegExp(String.raw`(?<!\d)\d{3}${SEPARATOR}\d{4}(?!\d)`, "g"),
   },
-  // Unseparated run of 10-11 digits. The leading lookbehind also rejects `.`
-  // and `/`, so a digit run that is a segment of a dotted or slashed
-  // identifier is not read as a number: `doi:10.1073/pnas.1320040111` in the
-  // 2008-crisis post's reference list is a DOI, not a phone. Only the LEADING
-  // side rejects them — a trailing `.` is just the end of a sentence, and
-  // "call 7805550121." must still be caught.
-  { label: "bare 10-11 digits", pattern: () => /(?<![\d./])\d{10,11}(?!\d)/g },
+  // Unseparated run of 10-11 digits. Only an adjacent DIGIT disqualifies it.
+  // It is tempting to also reject a leading `.` or `/` so that a segment of a
+  // dotted-and-slashed identifier — the `doi:10.1073/pnas.1320040111` in the
+  // ethics post's reference list — is not read as a number, but that opens a
+  // hole wide enough to walk a real number through: `https://wa.me/17805550121`
+  // and `Tel.7805550121` both carry a dialable number behind exactly those two
+  // characters, and nothing else in this set would catch them (no `+`, no
+  // separators, no `tel:` scheme). The DOI is removed at source instead, by
+  // `maskNumericNoise`, which is where a false positive of that shape belongs.
+  { label: "bare 10-11 digits", pattern: () => /(?<!\d)\d{10,11}(?!\d)/g },
 ];
 
 /** A real number carries at least a 7-digit local part; below that it is noise. */
@@ -139,10 +154,23 @@ const MIN_TELEPHONE_DIGITS = 7;
 /**
  * Blank the parts of a document that are numeric soup by construction and can
  * never carry contact data as text: SVG geometry attributes, CSS in `<style>`,
- * and base64 payloads. Everything else — prose, attributes, JSON-LD, and the
- * Next.js flight payload (which carries the page's text a second time) — is
- * scanned. SVG *text* content is deliberately left in; only the coordinate
+ * base64 payloads, and DOIs. Everything else — prose, attributes, JSON-LD, and
+ * the Next.js flight payload (which carries the page's text a second time) —
+ * is scanned. SVG *text* content is deliberately left in; only the coordinate
  * attributes are removed.
+ *
+ * DOIs earn their place here because they are the one thing in content/ shaped
+ * like a phone number: `doi:10.1073/pnas.1320040111` ends in an 11-digit run.
+ * Masking the identifier is strictly better than teaching the telephone
+ * patterns to ignore what precedes a digit run — see the "bare 10-11 digits"
+ * comment above for the number that walked through when they were taught that.
+ *
+ * What is removed is only the real `10.NNNN/suffix` shape, with or without a
+ * `doi:` label and whatever URL prefix a `doi.org/...` link puts in front of
+ * it. Masking everything after a bare `doi:` instead would be its own hole —
+ * "doi: 780-555-0121" would blank a genuine number. The trailing character
+ * class stops at whitespace, quotes and angle brackets, so masking can never
+ * swallow a tag and weld the words either side of it together.
  */
 function maskNumericNoise(source: string): string {
   return source
@@ -150,7 +178,8 @@ function maskNumericNoise(source: string): string {
     .replace(/\sviewBox="[^"]*"/gi, " ")
     .replace(/\spoints="[^"]*"/gi, " ")
     .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/data:[a-z/;+-]*base64,[A-Za-z0-9+/=]+/gi, " ");
+    .replace(/data:[a-z/;+-]*base64,[A-Za-z0-9+/=]+/gi, " ")
+    .replace(/\b(?:doi:\s*)?10\.\d{4,9}\/[^\s"'<>]+/gi, " ");
 }
 
 function countDigits(value: string): number {
@@ -344,6 +373,19 @@ test.describe("/profile — composition, cross-linking, print, and contact-data 
       ["&#64; entity", "probe&#64;example.org"],
       ["tag-split @", "probe<span>@</span>example.org"],
       ["en-dash separated (U+2013)", "780–555–0108"],
+      // Escapes, not literals: a soft hyphen is invisible in an editor and a
+      // minus sign is indistinguishable from a hyphen, so pasting them raw
+      // would make this file lie about what it tests.
+      ["soft-hyphen separated (U+00AD)", "780\u00ad555\u00ad0108"],
+      ["minus-sign separated (U+2212)", "780\u2212555\u22120108"],
+      ["middle-dot separated (U+00B7)", "780\u00b7555\u00b70108"],
+      // A bare run behind a `/` or a `.`: no `+`, no separators, no `tel:`
+      // scheme, so the bare-digit pattern is the only thing that sees these.
+      ["wa.me link", '<a href="https://wa.me/17805550121">Message me</a>'],
+      ["t.me link", "https://t.me/17805550121"],
+      ["dot-prefixed run", "Tel.7805550121"],
+      ["sms: URI", '<a href="sms:17805550121">Text me</a>'],
+      ["callto: URI", "callto:+17805550121"],
       ["reversed address", reverse("probe@example.org")],
     ];
 
@@ -355,6 +397,10 @@ test.describe("/profile — composition, cross-linking, print, and contact-data 
     const mustNotBeFlagged: Array<[label: string, sample: string]> = [
       ["ISO date", "Shipped 2024-01-15 after review."],
       ["version number", "Bumped to 1.780.555 in the changelog."],
+      // Verbatim from the ethics post's reference list — the one string in
+      // content/ shaped like a bare 11-digit number. Masked, not tolerated.
+      ["DOI", "PNAS, 111(24), 8788-8790. doi:10.1073/pnas.1320040111"],
+      ["DOI as a link", '<a href="https://doi.org/10.1073/pnas.1320040111">PNAS</a>'],
       ["allowlisted address", SITE_EMAIL],
       ["allowlisted address, reversed", reverse(SITE_EMAIL)],
     ];
