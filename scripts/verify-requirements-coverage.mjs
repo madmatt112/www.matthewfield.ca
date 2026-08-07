@@ -20,23 +20,33 @@
  *
  * CLI: `node scripts/verify-requirements-coverage.mjs`
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..");
 
-const REQUIREMENTS_PATH = path.join(repoRoot, ".spec-workflow/specs/blog-core/requirements.md");
-const TASKS_PATH = path.join(repoRoot, ".spec-workflow/specs/blog-core/tasks.md");
+// Specs whose coverage matrix this verifier checks. Paths are repo-relative.
+// A spec whose documents are not present in the current checkout is reported
+// as SKIPPED rather than silently ignored, so a clean run cannot be mistaken
+// for a verified one.
+const SPEC_SLUGS = ["blog-core", "profile-resume"];
+const SPECS = SPEC_SLUGS.map((slug) => ({
+  slug,
+  requirementsPath: path.join(repoRoot, `.spec-workflow/specs/${slug}/requirements.md`),
+  tasksPath: path.join(repoRoot, `.spec-workflow/specs/${slug}/tasks.md`),
+}));
 
 // ---------------------------------------------------------------------------
 // Pinned regexes (mechanical contract — do not "simplify" without re-checking
 // the matrix shape in tasks.md and the requirements.md AC numbering).
 // ---------------------------------------------------------------------------
 
-// Major requirement header: "### Requirement 7: Draft handling"
-const REQ_HEADER_RE = /^###\s+Requirement\s+(\d+)\s*:/;
+// Major requirement header. Two punctuations are in use across specs:
+//   blog-core:       "### Requirement 7: Draft handling"
+//   profile-resume:  "### Requirement 7 — Machine-readable professional data"
+const REQ_HEADER_RE = /^###\s+Requirement\s+(\d+)\s*[:—–-]/;
 
 // Numbered acceptance criterion line at column 0, e.g. "7.  WHEN ..."
 // Tolerates leading bold markers like "5. **Author-controlled `updated`**".
@@ -63,13 +73,22 @@ const MATRIX_REQ_HEADER_RE = /^###\s+Req\s+(\d+)\s*\(/;
 // trailing segment lists task numbers.
 const MATRIX_BULLET_RE = /^-\s+(.+?)\s+—\s+.+?\s+—\s+\*\*(.+?)\*\*\s*$/;
 
+// profile-resume states the same matrix as a three-column markdown table
+// rather than blog-core's bullet list:
+//   | R1 — Experience as validated structured content | 1.1 | 2, 4, 6 |
+//   |                                                 | 1.2 | 2, 4, 9 |
+// Column 2 carries the acceptance-criterion IDs, column 3 the covering tasks
+// — the same two payloads the bullet form puts either side of the em-dashes.
+const MATRIX_TABLE_ROW_RE = /^\|(.+)\|\s*$/;
+const TABLE_SEPARATOR_CELL_RE = /^:?-{2,}:?$/;
+
 // Inside the bullet LHS, IDs are comma-separated. Each ID may be either
 // "N" (whole requirement) or "N.M" or "N.Ma".
 const ID_TOKEN_RE = /^\s*(\d+)(?:\.(\d+)([a-z])?)?\s*$/;
 
-// Inside the bolded RHS, task numbers may be "N" or "N.M" possibly followed
-// by parenthetical notes (e.g. "3 (rehypeSlug in shared rehype array)").
-// We strip parenthetical notes then split on commas.
+// Inside the covering-tasks cell, task numbers may be "N" or "N.M" possibly
+// followed by parenthetical notes (e.g. "3 (rehypeSlug in shared rehype
+// array)"). We strip parenthetical notes then split on commas.
 const TASK_TOKEN_RE = /^\s*(\d+(?:\.\d+)?)\s*$/;
 
 // Task header line, e.g. "- [x] 22.5. synthetic-input ..." or "- [ ] 4.1 Schema fields ..."
@@ -179,6 +198,31 @@ function extractTaskNumbers(text) {
 }
 
 /**
+ * Split a markdown table row into `{ lhs, rhs }` — the acceptance-criterion
+ * cell and the covering-tasks cell — or null when the row is not a coverage
+ * row. Returns null for the header row, the `|---|` separator, and NFR rows
+ * whose AC cell is an em-dash rather than a list of IDs.
+ *
+ * @param {string} line
+ * @returns {{ lhs: string, rhs: string } | null}
+ */
+function parseMatrixTableRow(line) {
+  const m = MATRIX_TABLE_ROW_RE.exec(line);
+  if (!m) return null;
+  const cells = m[1].split("|").map((c) => c.trim());
+  if (cells.length !== 3) return null;
+  const idCell = cells[1];
+  if (TABLE_SEPARATOR_CELL_RE.test(idCell)) return null;
+  const idTokens = idCell
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
+  if (idTokens.length === 0) return null;
+  if (!idTokens.every((t) => ID_TOKEN_RE.test(t))) return null;
+  return { lhs: idCell, rhs: cells[2] };
+}
+
+/**
  * Parse the Requirements Coverage Matrix section. Returns:
  *   {
  *     citedRequirementIds: Set<string>,
@@ -186,7 +230,7 @@ function extractTaskNumbers(text) {
  *     bullets: Array<{ line: number, ids: string[], tasks: string[] }>,
  *   }
  */
-function parseMatrix(text) {
+function parseMatrix(text, label = "tasks.md") {
   const lines = text.split(/\r?\n/);
   /** @type {Set<string>} */
   const citedRequirementIds = new Set();
@@ -212,11 +256,14 @@ function parseMatrix(text) {
     }
     if (!inMatrix) continue;
 
-    const m = MATRIX_BULLET_RE.exec(line);
-    if (!m) continue;
+    // Two matrix shapes are in use: blog-core's bullet list and
+    // profile-resume's markdown table. Both yield the same two payloads.
+    const bullet = MATRIX_BULLET_RE.exec(line);
+    const row = bullet ? { lhs: bullet[1], rhs: bullet[2] } : parseMatrixTableRow(line);
+    if (!row) continue;
 
-    const lhs = m[1];
-    const rhs = m[2];
+    const lhs = row.lhs;
+    const rhs = row.rhs;
 
     // Split LHS on commas, validate each token.
     /** @type {string[]} */
@@ -225,7 +272,7 @@ function parseMatrix(text) {
       const t = ID_TOKEN_RE.exec(tok.trim());
       if (!t) {
         process.stderr.write(
-          `[verify-requirements-coverage] line ${i + 1}: cannot parse requirement-id token "${tok.trim()}" in bullet LHS\n`,
+          `[verify-requirements-coverage] ${label} line ${i + 1}: cannot parse requirement-id token "${tok.trim()}" in matrix requirement cell\n`,
         );
         continue;
       }
@@ -241,13 +288,16 @@ function parseMatrix(text) {
     // Strip parenthetical notes from each RHS task token: "3 (rehypeSlug...)" → "3"
     /** @type {string[]} */
     const tasks = [];
-    for (const rawTok of rhs.split(",")) {
-      const tok = rawTok.replace(/\([^)]*\)/g, "").trim();
+    // Strip parenthetical notes across the whole cell BEFORE splitting, so a
+    // note containing a comma ("2 (schema permits, no task authors it)")
+    // doesn't shred into unparseable fragments.
+    for (const rawTok of rhs.replace(/\([^)]*\)/g, "").split(",")) {
+      const tok = rawTok.trim();
       if (!tok) continue;
       const t = TASK_TOKEN_RE.exec(tok);
       if (!t) {
         process.stderr.write(
-          `[verify-requirements-coverage] line ${i + 1}: cannot parse task-number token "${rawTok.trim()}" in bullet RHS\n`,
+          `[verify-requirements-coverage] ${label} line ${i + 1}: cannot parse task-number token "${rawTok.trim()}" in matrix task cell\n`,
         );
         continue;
       }
@@ -260,7 +310,7 @@ function parseMatrix(text) {
 
   if (!started) {
     process.stderr.write(
-      `[verify-requirements-coverage] FATAL: "## Requirements Coverage Matrix" heading not found in tasks.md\n`,
+      `[verify-requirements-coverage] FATAL: "## Requirements Coverage Matrix" heading not found in ${label}\n`,
     );
     process.exit(2);
   }
@@ -272,13 +322,23 @@ function parseMatrix(text) {
 // Main
 // ---------------------------------------------------------------------------
 
-function main() {
-  const reqText = readFile(REQUIREMENTS_PATH);
-  const tasksText = readFile(TASKS_PATH);
+/**
+ * Verify one spec's coverage matrix. Returns the (possibly empty) failure
+ * list plus a one-line summary for the OK path.
+ *
+ * @param {{ slug: string, requirementsPath: string, tasksPath: string }} spec
+ */
+function verifySpec(spec) {
+  const label = spec.slug;
+  const reqText = readFile(spec.requirementsPath);
+  const tasksText = readFile(spec.tasksPath);
 
   const declaredRequirementIds = extractRequirementIds(reqText);
   const declaredTaskNumbers = extractTaskNumbers(tasksText);
-  const { citedRequirementIds, citedTaskNumbers, bullets } = parseMatrix(tasksText);
+  const { citedRequirementIds, citedTaskNumbers, bullets } = parseMatrix(
+    tasksText,
+    `${label}/tasks.md`,
+  );
 
   /** @type {string[]} */
   const failures = [];
@@ -309,7 +369,7 @@ function main() {
   }
   if (uncited.length > 0) {
     failures.push(
-      `[verify-requirements-coverage] ORPHAN: the following requirement IDs are declared in requirements.md but NOT cited in the Requirements Coverage Matrix:\n  - ${uncited.sort(idCompare).join("\n  - ")}`,
+      `[verify-requirements-coverage] ORPHAN (${label}): the following requirement IDs are declared in requirements.md but NOT cited in the Requirements Coverage Matrix:\n  - ${uncited.sort(idCompare).join("\n  - ")}`,
     );
   }
 
@@ -323,7 +383,7 @@ function main() {
   }
   if (dangling.length > 0) {
     failures.push(
-      `[verify-requirements-coverage] DANGLING: the following requirement IDs are cited in the matrix but NOT declared in requirements.md:\n  - ${dangling.sort(idCompare).join("\n  - ")}`,
+      `[verify-requirements-coverage] DANGLING (${label}): the following requirement IDs are cited in the matrix but NOT declared in requirements.md:\n  - ${dangling.sort(idCompare).join("\n  - ")}`,
     );
   }
 
@@ -337,21 +397,45 @@ function main() {
   }
   if (unknownTasks.length > 0) {
     failures.push(
-      `[verify-requirements-coverage] UNKNOWN-TASK: the following task numbers are cited in the matrix but NOT declared in tasks.md:\n  - ${unknownTasks.join("\n  - ")}`,
+      `[verify-requirements-coverage] UNKNOWN-TASK (${label}): the following task numbers are cited in the matrix but NOT declared in tasks.md:\n  - ${unknownTasks.join("\n  - ")}`,
     );
-  }
-
-  if (failures.length > 0) {
-    for (const f of failures) process.stderr.write(f + "\n");
-    process.exit(1);
   }
 
   // Count: requirements matched = number of declared AC-shaped IDs (N.M / N.Ma)
   const acIds = [...declaredRequirementIds].filter((id) => id.includes(".") && !id.endsWith(".0"));
   const cited = acIds.filter((id) => citedRequirementIds.has(id));
-  process.stdout.write(
-    `[verify-requirements-coverage] OK — ${cited.length} requirements matched, ${citedTaskNumbers.size} tasks referenced (across ${bullets.length} matrix bullets)\n`,
-  );
+
+  return {
+    failures,
+    summary: `${label}: ${cited.length} requirements matched, ${citedTaskNumbers.size} tasks referenced (across ${bullets.length} matrix entries)`,
+  };
+}
+
+function main() {
+  /** @type {string[]} */
+  const allFailures = [];
+  /** @type {string[]} */
+  const summaries = [];
+
+  for (const spec of SPECS) {
+    if (!existsSync(spec.requirementsPath) || !existsSync(spec.tasksPath)) {
+      // Not present in this checkout — announce it, don't pretend it passed.
+      process.stdout.write(
+        `[verify-requirements-coverage] SKIPPED — .spec-workflow/specs/${spec.slug} not present in this checkout\n`,
+      );
+      continue;
+    }
+    const { failures, summary } = verifySpec(spec);
+    allFailures.push(...failures);
+    summaries.push(summary);
+  }
+
+  if (allFailures.length > 0) {
+    for (const f of allFailures) process.stderr.write(f + "\n");
+    process.exit(1);
+  }
+
+  process.stdout.write(`[verify-requirements-coverage] OK — ${summaries.join("; ")}\n`);
 }
 
 function idCompare(a, b) {
