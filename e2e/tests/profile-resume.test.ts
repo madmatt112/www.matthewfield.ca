@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 
+import { THEME_STORAGE_KEY } from "../../src/components/layout/theme-provider";
 import { siteConfig } from "../../src/config/site";
 
 /**
@@ -404,6 +405,42 @@ test.describe("/profile — composition, cross-linking, print, and contact-data 
       // role carries `organisationUrl`, plain text when it does not.
       await expect(header.locator("p").last(), `role ${i}: employer must print`).toBeVisible();
     }
+  });
+
+  /**
+   * REGRESSION (R6.6). Chrome paints the @page margin box from the root
+   * element's colour scheme, so a dark-mode print put a black 2cm frame on
+   * every sheet. The fix is `color-scheme: light !important` on `:root, .dark`
+   * inside `@media print` (src/styles/print.css) — important because
+   * next-themes writes `style="color-scheme: dark"` inline on <html>, which an
+   * ordinary author declaration cannot outrank.
+   *
+   * Reading the rule does not prove it wins the cascade; this asserts the
+   * resolved value instead. Dropping the `!important` makes it fail.
+   */
+  test("print emulation resolves the root colour scheme to light even from dark mode", async ({
+    page,
+  }) => {
+    await page.addInitScript(
+      ({ key, value }) => {
+        localStorage.setItem(key, value);
+      },
+      { key: THEME_STORAGE_KEY, value: "dark" },
+    );
+
+    await page.goto(PROFILE_PATH);
+
+    // The dark theme must actually be active, or "light" below proves nothing.
+    await expect(page.locator("html")).toHaveClass(/\bdark\b/);
+    await expect
+      .poll(() => page.evaluate(() => getComputedStyle(document.documentElement).colorScheme))
+      .toBe("dark");
+
+    await page.emulateMedia({ media: "print" });
+
+    await expect
+      .poll(() => page.evaluate(() => getComputedStyle(document.documentElement).colorScheme))
+      .toBe("light");
   });
 
   test("the contact-data detector flags every known-bad shape and clears the known-good ones", () => {
