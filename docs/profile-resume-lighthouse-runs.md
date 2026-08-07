@@ -6,12 +6,14 @@ Records Lighthouse results for `/profile` (Req NFR Performance: Performance ≥9
 and `docs/contributions-and-resources-lighthouse-runs.md` each pair their log with a
 cadence script (`scripts/check-lighthouse-cadence.mjs`,
 `scripts/check-contributions-resources-lighthouse-cadence.mjs`) that parses the most
-recent entry's count line and fires red in CI when the content count crosses a
-threshold. **This log deliberately ships no cadence script and no count line, and
-nothing in CI reads it.** `/profile` is a single fixed page whose content grows a role
-at a time rather than a collection that accretes entries, so there is no count to
-trigger on. Re-running is a manual decision, not an automated pin. Do not add a
-`- ... at run time: N` line here expecting a script to read it — none exists.
+recent entry's count line and exits non-zero when the content count crosses a
+threshold. Neither script is wired into `.github/workflows/ci.yml` — there is no
+Lighthouse step in CI at all — so both are developer-run, not enforced gates, whatever
+their own runs-logs say. **This log deliberately ships no cadence script and no count
+line.** `/profile` is a single fixed page whose content grows a role at a time rather
+than a collection that accretes entries, so there is no count to trigger on. Re-running
+is a manual decision, not an automated pin. Do not add a `- ... at run time: N` line
+here expecting a script to read it — none exists.
 
 ## How these numbers were produced
 
