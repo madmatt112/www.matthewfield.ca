@@ -207,7 +207,8 @@ The guard owns the error message end to end.
 The summary must state Matthew's experience as **"a decade"** (R9.1). Three
 surfaces carry that figure: `siteConfig.intro`, the `profile.mdx` narrative,
 and this summary. All three use the same phrasing, so change one and you change
-all three.
+all three. `src/lib/profile-summary.test.ts` asserts the phrase on each surface
+separately, and the failure names the one that drifted.
 
 The summary is the professional register: what Matthew does, at what scale,
 with what. Personal material stays in the narrative body.
@@ -281,7 +282,10 @@ Mechanical, and will fail CI:
 - `end: null` (rejected as a type error);
 - an unresolvable, draft, or fixture `project` slug;
 - more than 8 skill groups, or a group with no items;
-- a missing or too-short `summary` in `content/profile.mdx`.
+- a missing or too-short `summary` in `content/profile.mdx`;
+- R9.1's **"a decade"** phrasing dropped from any one of `siteConfig.intro`, the
+  `content/profile.mdx` narrative body, or the `content/profile.mdx`
+  frontmatter `summary`.
 
 Judgement, and will not fail anything:
 
@@ -290,10 +294,6 @@ Judgement, and will not fail anything:
 - whether a highlight states an outcome or an activity;
 - whether the skills list is curated or exhaustive;
 - whether interests were merged or appended.
-
-R9.1's "a decade" phrasing belongs in the first list but has no check behind
-it. Verify by hand that `siteConfig.intro`, the narrative, and the summary
-agree.
 
 Errors from the first list name the file, the entry, and the field. Entries are
 located by `organisation` in `experience.yaml`, `category` in `skills.yaml`,

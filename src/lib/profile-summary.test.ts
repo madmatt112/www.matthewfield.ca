@@ -3,8 +3,11 @@
 // calling the function. The static import below is deliberate: it is the real
 // content passing through the real guard, so deleting `summary` from
 // content/profile.mdx (or shortening it) fails this suite at import time.
+import fs from "node:fs";
+import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { siteConfig } from "@/config/site";
 import { getProfileSummary, profileSummary } from "@/lib/profile-summary";
 
 afterEach(() => {
@@ -54,5 +57,41 @@ describe("getProfileSummary", () => {
     const mod = await loadWith(valid);
     expect(mod.getProfileSummary()).toBe("a".repeat(120));
     expect(mod.profileSummary).toBe("a".repeat(120));
+  });
+});
+
+// R9.1: three surfaces state Matthew's years of experience, and they must
+// agree. The agreed figure is "a decade". The narrative is read from disk
+// rather than from the compiled `profile.body` so that the frontmatter can be
+// stripped: each surface is then asserted on its own text, and a failure names
+// exactly the one that drifted.
+const YEARS_PHRASE = "a decade";
+
+const PROFILE_MDX = path.resolve(__dirname, "../../content/profile.mdx");
+
+/** The narrative body of content/profile.mdx, with frontmatter stripped. */
+function readProfileNarrative(): string {
+  const raw = fs.readFileSync(PROFILE_MDX, "utf8");
+  const body = raw.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, "");
+  if (body === raw) {
+    throw new Error(`${PROFILE_MDX} has no frontmatter block; cannot isolate the narrative body`);
+  }
+  return body;
+}
+
+describe("years-of-experience consistency (R9.1)", () => {
+  const surfaces = [
+    { surface: "siteConfig.intro (src/config/site.ts)", read: () => siteConfig.intro },
+    { surface: "the content/profile.mdx narrative body", read: readProfileNarrative },
+    { surface: "the content/profile.mdx frontmatter summary", read: () => profileSummary },
+  ];
+
+  it.each(surfaces)(`$surface states the experience as "${YEARS_PHRASE}"`, ({ surface, read }) => {
+    expect(
+      read().toLowerCase(),
+      `R9.1 drift: ${surface} no longer says "${YEARS_PHRASE}". All three surfaces — ` +
+        `siteConfig.intro, the content/profile.mdx narrative body, and the ` +
+        `content/profile.mdx frontmatter summary — must state the same figure.`,
+    ).toContain(YEARS_PHRASE);
   });
 });
