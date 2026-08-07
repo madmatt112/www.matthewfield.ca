@@ -3,14 +3,15 @@
 # before editing. There is no contact field here, and none may be added.
 #
 # Dates are month-precision (YYYY-MM). The master resume gives most role
-# boundaries as a year only, so six of them carry an assumed month of 01 and
-# need Matthew's confirmation:
-#   - CrowdStrike start (2021) and end (2026)
-#   - Computronix start (2018) and end (2021)
-#   - CARNA start (2017) and end (2018)
-# Mossfoot's start is the only boundary the master resume dates to a month
-# ("January 2026"). CrowdStrike's end month is corroborated by that same date
-# and by the "unemployed since January 2026" line in the blog post.
+# boundaries as a year only; Matthew confirmed the six missing months directly
+# on 2026-08-06, and they are recorded here as facts, not assumptions:
+#   - CARNA        2017-04 → 2018-04
+#   - Computronix  2018-04 → 2021-09
+#   - CrowdStrike  2021-09 → 2026-01
+#   - Mossfoot     2026-01 → current (the one boundary the resume dated to a
+#                  month, "January 2026")
+# Each end month equals the next role's start month, which is a continuous
+# career with no gaps — not a data error. Do not "correct" the duplication.
 #
 # Project pages linked from a delivery carry their own `date`, which is the
 # write-up's original publication date (docs/projects-authoring.md §2), not the
@@ -30,7 +31,7 @@
 - organisation: "CrowdStrike"
   organisationUrl: "https://www.crowdstrike.com"
   title: "Infrastructure Engineer III"
-  start: "2021-01"
+  start: "2021-09"
   end: "2026-01"
   location: "Remote"
   summary: "Member of the Infrastructure Engineering Kubernetes team inside the Product Platform organization. Our 40+ clusters ran the bulk of the Falcon Platform's microservices and its data science and ML workflows, in public cloud and in our own datacenters."
@@ -72,8 +73,8 @@
 - organisation: "Computronix"
   organisationUrl: "https://www.computronix.com"
   title: "Technical Analyst II"
-  start: "2018-01"
-  end: "2021-01"
+  start: "2018-04"
+  end: "2021-09"
   location: "Edmonton, AB"
   summary: "Computronix sells POSSE, a SaaS platform for permitting, licensing, and enforcement workflows used by governments across North America. We ran three datacenters alongside Azure tenancies and were moving internal systems and hosted products onto Azure."
   tech:
@@ -105,11 +106,11 @@
 
 - organisation: "College and Association of Registered Nurses of Alberta"
   title: "Infrastructure Support"
-  start: "2017-01"
-  end: "2018-01"
+  start: "2017-04"
+  end: "2018-04"
   location: "Edmonton, AB"
   summary: "IT infrastructure support and project delivery for the provincial nursing regulator, covering the server, network, and end-user estate."
   highlights:
-    - "Deployed a network-based imaging system that cut device onboarding from a full day to a couple of hours."
+    - "Deployed a network-based imaging system that cut device onboarding from a full day to a few hours."
     - "Wrote the organization's first IT service catalogue, giving staff one place to see what IT offered and how to ask for it."
     - "Rolled out Duo two-factor authentication for SSL VPN remote access."
