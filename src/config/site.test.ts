@@ -43,12 +43,16 @@ describe("siteConfig.url ↔ print.css origin", () => {
     const printCssPath = path.join(__dirname, "..", "styles", "print.css");
     const printCss = fs.readFileSync(printCssPath, "utf8");
     const origin = new URL(siteConfig.url).origin;
+    // Match the whole declaration, not just the origin: the origin also appears
+    // in the surrounding prose comment, so a substring check would pass even
+    // with a stale literal in the rule itself. Whitespace is collapsed so
+    // prettier reflowing the declaration cannot break the guard.
+    const declaration = `content: " (${origin}" attr(href) ")";`;
 
     expect(
-      printCss.includes(origin),
-      `src/styles/print.css must contain the origin "${origin}" from siteConfig.url ` +
-        `(src/config/site.ts) — update the literal in print.css's ` +
-        `.profile-internal-link::after rule to match.`,
-    ).toBe(true);
+      printCss.replace(/\s+/g, " "),
+      `src/styles/print.css's .profile-internal-link::after rule must declare ` +
+        `\`${declaration}\`, built from siteConfig.url (src/config/site.ts).`,
+    ).toContain(declaration);
   });
 });
