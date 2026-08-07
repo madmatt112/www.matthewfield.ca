@@ -90,7 +90,11 @@ export default function ProfilePage() {
               // brand against muted-foreground is ~1.05:1 in light theme, so
               // colour alone cannot distinguish the link from its sentence — axe
               // reported `link-in-text-block` here until this underline landed.
-              className="text-brand underline underline-offset-4"
+              //
+              // `profile-print-no-url` (R6.4): this is an organisation link like
+              // the ones on roles and education, so print.css must not expand it
+              // into "Mossfoot Digital (https://www.mossfootdigital.com)".
+              className="profile-print-no-url text-brand underline underline-offset-4"
             >
               {profile.availabilityLinkLabel}
               <NewTabHint />
