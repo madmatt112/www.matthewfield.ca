@@ -6,5 +6,5 @@
   language: "TypeScript"
   links:
     - kind: "release"
-      label: "v4.0.0 release"
-      url: "https://github.com/madmatt112/spec-workflow-mcp/releases/tag/v4.0.0"
+      label: "v5.1.0 release"
+      url: "https://github.com/madmatt112/spec-workflow-mcp/releases/tag/v5.1.0"
