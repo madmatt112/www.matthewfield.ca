@@ -174,6 +174,24 @@ Personal website rebuild for Matthew Field — replacing WordPress.com with a ma
 
 ---
 
+### 10. profile-resume
+
+**Scope**: Bring Matthew's resume content onto `/profile`. Work history becomes a validated Velite collection (roles, nested "highlighted delivery" blocks, responsibility highlights) rendered as a timeline beneath the existing narrative, plus curated skills and education. Adds a professional-summary frontmatter field, JSON-LD `Person` data derived from the same collection, and print rules that suppress the personal narrative so the PDF is strictly professional. Content is curated rather than a full resume dump — no phone number, no personal email, no ATS keyword inventories.
+
+**Delivers**: The `/profile` page finally keeps `product.md`'s promise that it functions "as a visual resume/CV" — today it renders a bio with no employment history. Deepens the professional inbound funnel and wires employment claims to the project pages that evidence them.
+
+**End-to-end verification**: `/profile` renders narrative → experience → skills/education → contact in both themes at the named breakpoints; a delivery links through to `/projects/rudder`; malformed experience data fails the build; printing produces a clean light CV with the narrative suppressed; axe reports zero violations.
+
+**Dependencies**: professional-profile (owns the page and its contact section), project-showcase (cross-links resolve to project slugs), visual-design (print stylesheet, tokens, measure rules).
+
+**Design considerations**:
+- Structured data, not pasted MDX — the print stylesheet needs per-role page-break control, and the schema enables cross-linking and JSON-LD that prose cannot.
+- No `/resume` route: the PDF is a *rendering* of `/profile`, so a resume and a profile cannot drift apart.
+- The `.docx` master stays the complete ATS artifact; the site is the curated cut. Authoring the collection is a manual editorial act, not document parsing.
+- A project page for the Temporal platform delivery is out of scope here (content work for the project showcase) but the schema must not block it.
+
+---
+
 ## Dependency Graph
 
 ```mermaid

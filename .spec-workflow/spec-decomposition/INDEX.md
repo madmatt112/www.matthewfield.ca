@@ -16,3 +16,4 @@
 | 7 | project-showcase | Complete | 40/40 |
 | 8 | contributions-and-resources | Complete | 26/26 |
 | 9 | slash-pages | Complete | 16/16 |
+| 10 | profile-resume | Complete | 24/24 |
