@@ -1,0 +1,28 @@
+---
+title: "Release Announcement: spec-workflow-mcp v5.1.0 — Improved cross-session progress tracking"
+description: "My spec-driven-development MCP server used to report the roadmap finished while three specs were still in flight. v5.1.0 makes the spec index name what to work on next."
+date: "2026-08-07"
+tags: ["spec-workflow-mcp", "mcp", "oss", "release"]
+categories: ["tooling"]
+draft: false
+---
+
+[spec-workflow-mcp](https://github.com/madmatt112/spec-workflow-mcp) is my fork of Pimzino's spec-driven-development MCP server. [v5.1.0 is out.](https://github.com/madmatt112/spec-workflow-mcp/releases/tag/v5.1.0)
+
+## What was wrong
+
+INDEX.md listed every spec and its state across three tables. Choosing what to work on next was left to you, or to your agent.
+
+The rule behind that read only two of those tables. Once every spec named in `decomposition.md` was complete it called the roadmap finished, never reaching the "Other specs" table where everything added after decomposition lives. I had a project with three specs in flight, all three in that table, one of them open on screen, and INDEX.md still told me there was nothing left to do.
+
+## What changed
+
+INDEX.md now opens with a `## Next` section naming one spec and the reason. The `spec-index` tool returns the same thing as `routing`, so an agent reads a field instead of re-deriving a rule from prose.
+
+It also reports what it can't decide: two half-built specs with no declared order gets you both candidates and a stop. And when the work really is done it says every spec _on disk_ is complete rather than claiming the roadmap is finished, because `decomposition.md` often names the next spec before its directory exists. That gap is the whole bug.
+
+Resuming an interrupted run got better too. A spec on its last task used to read as not-yet-started, which could strand it between the document loop and the implementation loop.
+
+To upgrade, run `spec-index` with `action: generate` once per project. INDEX.md is written to disk rather than computed on read, so your existing file keeps its old shape until something rewrites it.
+
+[Full release notes](https://github.com/madmatt112/spec-workflow-mcp/releases/tag/v5.1.0) and [changelog](https://github.com/madmatt112/spec-workflow-mcp/blob/main/CHANGELOG.md#510---2026-08-07).

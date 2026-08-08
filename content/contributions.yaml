@@ -1,10 +1,10 @@
 - repo: "madmatt112/spec-workflow-mcp"
   repoUrl: "https://github.com/madmatt112/spec-workflow-mcp"
   title: "Adversarial review and decomposition fork of the spec-workflow MCP server"
-  description: "Hard fork of Pimzino/spec-workflow-mcp adding four features: adversarial review of spec docs, a required decomposition phase, a deferred-decisions tracker, and fresh-context task review, plus design-system as a first-class steering doc in v4.0.0."
+  description: "Hard fork of Pimzino/spec-workflow-mcp. Adds adversarial review of spec docs, a required decomposition phase, deferred-decisions tracking, fresh-context task review, design-system steering, correct git-worktree execution, and an index that names the next spec to build."
   date: "2026-06-22"
   language: "TypeScript"
   links:
     - kind: "release"
-      label: "v4.0.0 release"
-      url: "https://github.com/madmatt112/spec-workflow-mcp/releases/tag/v4.0.0"
+      label: "v5.1.0 release"
+      url: "https://github.com/madmatt112/spec-workflow-mcp/releases/tag/v5.1.0"
