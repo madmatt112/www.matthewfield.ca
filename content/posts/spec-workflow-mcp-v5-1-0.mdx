@@ -1,30 +1,28 @@
 ---
-title: "spec-workflow-mcp v5.1.0 — INDEX.md tells you what's next"
-description: "My spec-driven-development MCP server used to report the roadmap finished while three specs were still in flight. v5.1.0 adds a Next section that names the spec to work on, and says so when it can't tell."
+title: "Release Announcement: spec-workflow-mcp v5.1.0 — Improved cross-session progress tracking"
+description: "My spec-driven-development MCP server used to report the roadmap finished while three specs were still in flight. v5.1.0 makes the spec index name what to work on next."
 date: "2026-08-07"
 tags: ["spec-workflow-mcp", "mcp", "oss", "release"]
 categories: ["tooling"]
 draft: false
 ---
 
-[spec-workflow-mcp](https://github.com/madmatt112/spec-workflow-mcp) is my fork of Pimzino's spec-driven-development MCP server, with adversarial review, a required decomposition phase, a deferred-decisions tracker, and fresh-context task review added on top. [v5.1.0 is out.](https://github.com/madmatt112/spec-workflow-mcp/releases/tag/v5.1.0)
+[spec-workflow-mcp](https://github.com/madmatt112/spec-workflow-mcp) is my fork of Pimzino's spec-driven-development MCP server. [v5.1.0 is out.](https://github.com/madmatt112/spec-workflow-mcp/releases/tag/v5.1.0)
 
-## The bug worth telling you about
+## What was wrong
 
-INDEX.md was always a decent inventory: three tables of which specs exist and what state each one is in. The choice of what to actually work on next was left to you, or to your agent.
+INDEX.md listed every spec and its state across three tables. Choosing what to work on next was left to you, or to your agent.
 
-The rule behind that only ever read two of the three tables. Once every spec named in `decomposition.md` was complete, it called the roadmap finished and never reached the "Other specs" table below, which is where every spec added after decomposition lives. I had a project with three specs in flight, all three of them in that table, one of them open on screen at the time, and INDEX.md still told me there was nothing left to do.
+The rule behind that read only two of those tables. Once every spec named in `decomposition.md` was complete it called the roadmap finished, never reaching the "Other specs" table where everything added after decomposition lives. I had a project with three specs in flight, all three in that table, one of them open on screen, and INDEX.md still told me there was nothing left to do.
 
-## What 5.1.0 does about it
+## What changed
 
-INDEX.md now opens with a `## Next` section naming one spec and the reason for it, mirrored in the `spec-index` tool result as `routing` so an agent branches on a field instead of re-deriving the rule from prose.
+INDEX.md now opens with a `## Next` section naming one spec and the reason. The `spec-index` tool returns the same thing as `routing`, so an agent reads a field instead of re-deriving a rule from prose.
 
-It also admits when it doesn't know. Two half-built specs with no declared order between them gets you both candidates and a stop, not a confident guess. And when everything really is done, it says every spec _on disk_ is complete rather than claiming the roadmap is finished, because `decomposition.md` routinely names the next spec before its directory exists. That gap is the whole bug.
+It also reports what it can't decide: two half-built specs with no declared order gets you both candidates and a stop. And when the work really is done it says every spec _on disk_ is complete rather than claiming the roadmap is finished, because `decomposition.md` often names the next spec before its directory exists. That gap is the whole bug.
 
-Two smaller fixes came along for the ride. A spec sitting on its last task read as not-yet-implementing, which could leave the document loop and the implementation loop each waiting on the other after an interrupted run. And open checkboxes the task parser can't read now raise a warning instead of quietly counting for nothing.
+Resuming an interrupted run got better too. A spec on its last task used to read as not-yet-started, which could strand it between the document loop and the implementation loop.
 
-## Upgrading
+To upgrade, run `spec-index` with `action: generate` once per project. INDEX.md is written to disk rather than computed on read, so your existing file keeps its old shape until something rewrites it.
 
-Run the `spec-index` tool once with `action: generate` in each project. INDEX.md is written to disk rather than computed when read, so your existing file keeps its old shape until something rewrites it.
-
-Full notes are on the [v5.1.0 release page](https://github.com/madmatt112/spec-workflow-mcp/releases/tag/v5.1.0), and the entry lives in the [changelog](https://github.com/madmatt112/spec-workflow-mcp/blob/main/CHANGELOG.md#510---2026-08-07) alongside every release before it.
+[Full release notes](https://github.com/madmatt112/spec-workflow-mcp/releases/tag/v5.1.0) and [changelog](https://github.com/madmatt112/spec-workflow-mcp/blob/main/CHANGELOG.md#510---2026-08-07).
