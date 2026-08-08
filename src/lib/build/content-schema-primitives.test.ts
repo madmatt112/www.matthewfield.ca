@@ -8,6 +8,7 @@ import {
   BUILD_START_UTC,
   httpUrl,
   isoDate,
+  isoMonth,
   trimmed,
   uniqueByKind,
 } from "./content-schema-primitives";
@@ -112,5 +113,49 @@ describe("uniqueByKind", () => {
   it("rejects links sharing a kind", () => {
     const result = schema.safeParse([{ kind: "pr" }, { kind: "pr" }]);
     expect(result.success).toBe(false);
+  });
+});
+
+/**
+ * The distinctness assertions are the point of this block. `2026-13` must fail
+ * as a BAD MONTH, not as a future date — a `\d{2}` month regex would let
+ * `new Date("2026-13-01T…")` roll into January 2027 and report the wrong cause,
+ * sending an author looking in the wrong place.
+ */
+describe("isoMonth()", () => {
+  const schema = isoMonth();
+  const messageOf = (value: string) => {
+    const result = schema.safeParse(value);
+    expect(result.success).toBe(false);
+    return result.success ? "" : result.error.issues[0].message;
+  };
+
+  it.each(["2026-08", "1998-01", "2021-12"])("accepts %s and stores it verbatim", (value) => {
+    const result = schema.safeParse(value);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toBe(value);
+    }
+  });
+
+  it.each(["2026-13", "2026-00"])(
+    "rejects out-of-range month %s as a format error, not a future date",
+    (value) => {
+      expect(messageOf(value)).toContain("YYYY-MM format");
+      expect(messageOf(value)).not.toContain("future");
+    },
+  );
+
+  it.each(["2026-1", "2026", "2026-08-01", "", "not-a-month"])(
+    "rejects malformed shape %s",
+    (value) => {
+      expect(messageOf(value)).toContain("YYYY-MM format");
+    },
+  );
+
+  it("rejects a future month with a distinct message", () => {
+    const future = new Date(BUILD_START_UTC + 1000 * 60 * 60 * 24 * 400);
+    const value = `${future.getUTCFullYear()}-${String(future.getUTCMonth() + 1).padStart(2, "0")}`;
+    expect(messageOf(value)).toContain("future");
   });
 });

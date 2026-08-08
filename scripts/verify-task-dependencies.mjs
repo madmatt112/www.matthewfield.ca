@@ -24,12 +24,19 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..");
 
-// Only blog-core's tasks.md is verified in CI (the decimal-ID regex
-// extensions make this verifier capable of parsing blog-enhanced's
-// multi-level IDs, but blog-enhanced has authoring-time dangling refs
-// the verifier shouldn't fail on yet — its `_Depends on:` cross-spec
-// edges land in a later task).
-const TASKS_PATHS = [path.join(repoRoot, ".spec-workflow/specs/blog-core/tasks.md")];
+// Specs whose tasks.md this verifier checks. blog-enhanced is deliberately
+// absent: the decimal-ID regex extensions make this verifier capable of
+// parsing its multi-level IDs, but it has authoring-time dangling refs the
+// verifier shouldn't fail on yet — its `_Depends on:` cross-spec edges land
+// in a later task.
+//
+// Paths are repo-relative. A spec whose tasks.md is not present in the
+// current checkout is reported as SKIPPED rather than silently ignored, so a
+// clean run cannot be mistaken for a verified one.
+const SPEC_SLUGS = ["blog-core", "profile-resume"];
+const TASKS_PATHS = SPEC_SLUGS.map((slug) =>
+  path.join(repoRoot, `.spec-workflow/specs/${slug}/tasks.md`),
+);
 
 // ---------------------------------------------------------------------------
 // Pinned regexes.
@@ -305,19 +312,32 @@ function main() {
   let totalNodes = 0;
   let totalEdges = 0;
 
+  /** @type {string[]} */
+  const verified = [];
+  /** @type {string[]} */
+  const skipped = [];
+
   for (const p of TASKS_PATHS) {
+    const label = path.relative(repoRoot, p) || p;
     let text;
     try {
       text = readFileSync(p, "utf8");
     } catch {
-      // Optional file — skip if absent.
+      // Not present in this checkout — announce it, don't pretend it passed.
+      skipped.push(label);
       continue;
     }
-    const label = path.relative(repoRoot, p) || p;
     const { failures, nodes, edgeCount } = verifyTasksText(text, label);
     allFailures.push(...failures);
     totalNodes += nodes.length;
     totalEdges += edgeCount;
+    verified.push(label);
+  }
+
+  for (const label of skipped) {
+    process.stdout.write(
+      `[verify-task-dependencies] SKIPPED — ${label} not present in this checkout\n`,
+    );
   }
 
   if (allFailures.length > 0) {
@@ -326,7 +346,7 @@ function main() {
   }
 
   process.stdout.write(
-    `[verify-task-dependencies] OK — ${totalNodes} tasks, ${totalEdges} edges, topological order verified\n`,
+    `[verify-task-dependencies] OK — ${totalNodes} tasks, ${totalEdges} edges, topological order verified across ${verified.length} spec(s): ${verified.join(", ") || "(none)"}\n`,
   );
 }
 

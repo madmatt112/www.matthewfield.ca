@@ -2,7 +2,7 @@
 /**
  * check-authoring-docs.mjs
  *
- * Fail-loud heading-drift gate for authoring docs (contributions + slash-pages).
+ * Fail-loud heading-drift gate for the authoring docs listed in AUTHORING_DOCS.
  *
  * Behavior per doc:
  *   - Missing heading → bare `::warning::<message>` on stdout (GitHub
@@ -58,6 +58,20 @@ export const PLAYGROUND_HEADINGS = [
   "## Launch constraints",
 ];
 
+/** Canonical headings for experience-authoring.md. */
+export const EXPERIENCE_HEADINGS = [
+  "## Source of truth",
+  "## Experience YAML shape",
+  "## Dates and the current role",
+  "## Deliveries and project links",
+  "## Skills YAML shape",
+  "## Education YAML shape",
+  "## The professional summary",
+  "## The R3 curation checklist",
+  "## One interests list and one voice",
+  "## What the build checks and what it cannot",
+];
+
 /** All authoring docs to check. */
 export const AUTHORING_DOCS = [
   {
@@ -71,6 +85,10 @@ export const AUTHORING_DOCS = [
   {
     path: "docs/playground-authoring.md",
     headings: PLAYGROUND_HEADINGS,
+  },
+  {
+    path: "docs/experience-authoring.md",
+    headings: EXPERIENCE_HEADINGS,
   },
 ];
 

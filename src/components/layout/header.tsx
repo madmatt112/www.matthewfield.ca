@@ -3,9 +3,16 @@ import { DesktopNav, MobileNav } from "@/components/layout/nav";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Wordmark } from "@/components/layout/wordmark";
 
+/**
+ * PRINT HOOK: `site-header` is what src/styles/print.css hides. It must be a
+ * CLASS, not a bare `header` selector — `<header>` is also content markup (the
+ * role header on /profile, the post header on /blog/[slug]), and an unscoped
+ * `header { display: none }` under @media print hid every employer, job title,
+ * and date from the printed CV.
+ */
 export function Header() {
   return (
-    <header className="sticky top-0 z-sticky border-b border-border bg-background/80 backdrop-blur">
+    <header className="site-header sticky top-0 z-sticky border-b border-border bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
         <Wordmark className="text-base" />
         <div className="flex items-center gap-2">

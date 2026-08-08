@@ -97,6 +97,62 @@ export function isoDate() {
 }
 
 /**
+ * Validates a `YYYY-MM` month and stores the RAW string verbatim.
+ *
+ * Month-precision on purpose: employment and education dates are known to the
+ * month at best, and `isoDate()` would force a fabricated day into the content
+ * files.
+ *
+ * The `(0[1-9]|1[0-2])` alternation is load-bearing. A `\d{2}` month would
+ * accept `2026-13`, which `new Date("2026-13-01T…")` then rolls into January
+ * 2027 — so the value would be reported as *future-dated* rather than as a bad
+ * month, sending an author looking in the wrong place. Keeping the two failures
+ * distinct is the point of the three separate issue messages below.
+ *
+ * Validate-only via `superRefine` with `fatal: true`, mirroring `isoDate()`:
+ * a transform body that constructs a `Date` can throw a bare RangeError instead
+ * of a clean ZodIssue.
+ */
+export function isoMonth() {
+  const ISO_MONTH = /^(\d{4})-(0[1-9]|1[0-2])$/;
+  return s.string().superRefine((value, ctx) => {
+    const match = ISO_MONTH.exec(value);
+    if (!match) {
+      ctx.addIssue({
+        code: "custom",
+        fatal: true,
+        message: `'${value}' is not a valid month; use the YYYY-MM format with a month of 01-12.`,
+      });
+      return;
+    }
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const parsed = new Date(`${value}-01T00:00:00.000Z`);
+    if (
+      Number.isNaN(parsed.getTime()) ||
+      parsed.getUTCFullYear() !== year ||
+      parsed.getUTCMonth() + 1 !== month
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        fatal: true,
+        message: `'${value}' is not a real calendar month.`,
+      });
+      return;
+    }
+    // Anchored on the build-start instant so a value cannot be valid at load
+    // time and invalid mid-build (same reasoning as BUILD_START_UTC's docblock).
+    if (parsed.getTime() > BUILD_START_UTC) {
+      ctx.addIssue({
+        code: "custom",
+        fatal: true,
+        message: `'${value}' is in the future; employment and education dates must not be future-dated.`,
+      });
+    }
+  });
+}
+
+/**
  * `superRefine` for a `links` array: adds an issue when two links share a
  * `kind` (Req 3.2). Designed to be attached via
  * `s.array(linkSchema).superRefine(uniqueByKind)`.

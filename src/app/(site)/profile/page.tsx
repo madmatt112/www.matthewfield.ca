@@ -3,6 +3,9 @@ import Image from "next/image";
 
 import { profile } from "#site/content";
 
+import { EducationList } from "@/components/profile/education-list";
+import { ExperienceTimeline } from "@/components/profile/experience-timeline";
+import { SkillsList } from "@/components/profile/skills-list";
 import { AvatarPlaceholder } from "@/components/shared/avatar-placeholder";
 import { ContactForm } from "@/components/shared/contact-form";
 import { MDXContent } from "@/components/shared/mdx-content";
@@ -11,8 +14,23 @@ import { ObfuscatedEmail } from "@/components/shared/obfuscated-email";
 import { SectionKicker } from "@/components/shared/section-kicker";
 import { SocialLinks } from "@/components/shared/social-links";
 import { Button } from "@/components/ui/button";
+import { getEducation, getExperience, getSkills } from "@/lib/experience";
+import { buildProfileJsonLd } from "@/lib/profile-json-ld";
+import { profileSummary } from "@/lib/profile-summary";
 
 export const dynamic = "force-static";
+
+/**
+ * Serialize the JSON-LD for an inline `<script type="application/ld+json">`.
+ *
+ * `</script>` inside a string value would close the element early, so every
+ * `<` is escaped to its JSON `<` form — still the same string once parsed,
+ * but inert to the HTML tokenizer. The inline script itself is permitted by the
+ * site CSP (`script-src 'self' 'unsafe-inline'`, next.config.ts).
+ */
+function serializeJsonLd(value: unknown): string {
+  return JSON.stringify(value).replace(/</g, "\\u003c");
+}
 
 export function generateMetadata(): Metadata {
   return {
@@ -22,9 +40,26 @@ export function generateMetadata(): Metadata {
   };
 }
 
+/**
+ * SECTION ORDER (design §Section order and the narrative/summary split):
+ * hero → narrative → summary → experience → skills → education → contact.
+ * In print the narrative drops out (task 20 suppresses `.profile-narrative`),
+ * leaving hero → summary → … — the page opens as a person, the PDF opens as a
+ * candidate (R2.1, R6.3). Nothing here is print-only: every printed element is
+ * on screen too, so the two renderings cannot silently diverge.
+ *
+ * Experience, skills, and education each return `null` when their collection is
+ * empty, so this page must NOT emit their headings itself — that is what keeps
+ * an absent section from leaving an empty heading behind (R2.6/R5.4).
+ */
 export default function ProfilePage() {
   return (
     <div className="profile-print-root mx-auto w-full max-w-5xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(buildProfileJsonLd()) }}
+      />
+
       <section className="flex flex-col items-start gap-6 md:flex-row md:items-center md:gap-10">
         {profile.headshot ? (
           <Image
@@ -51,7 +86,15 @@ export default function ProfilePage() {
               href={profile.availabilityLinkHref}
               target="_blank"
               rel="noopener"
-              className="text-brand underline-offset-4 hover:underline"
+              // PERMANENT underline, never `hover:underline` (R8.3, WCAG 1.4.1):
+              // brand against muted-foreground is ~1.05:1 in light theme, so
+              // colour alone cannot distinguish the link from its sentence — axe
+              // reported `link-in-text-block` here until this underline landed.
+              //
+              // `profile-print-no-url` (R6.4): this is an organisation link like
+              // the ones on roles and education, so print.css must not expand it
+              // into "Mossfoot Digital (https://www.mossfootdigital.com)".
+              className="profile-print-no-url text-brand underline underline-offset-4"
             >
               {profile.availabilityLinkLabel}
               <NewTabHint />
@@ -63,9 +106,30 @@ export default function ProfilePage() {
         </div>
       </section>
 
-      <article className="prose dark:prose-invert max-w-measure mt-10">
+      {/* The personal narrative. `profile-narrative` is the hook task 20's print
+          rule targets — without this exact class the PDF would keep the personal
+          material and R6.3 would silently not hold. */}
+      <article className="profile-narrative prose dark:prose-invert max-w-measure mt-10">
         <MDXContent code={profile.body} />
       </article>
+
+      {/* The professional summary: a field distinct from the narrative (R2.3).
+          PRINT-ONLY. On screen it restated the About narrative directly above it,
+          so it is hidden there; in print it is the CV's only professional framing,
+          because task 20's rule suppresses `.profile-narrative` for R6.3. Removing
+          the field outright would leave the PDF opening on the experience timeline
+          with no framing at all — hence hidden, not deleted. */}
+      <section
+        id="summary"
+        aria-label="Professional summary"
+        className="mt-10 hidden max-w-measure print:block"
+      >
+        <p className="text-base text-muted-foreground">{profileSummary}</p>
+      </section>
+
+      <ExperienceTimeline roles={getExperience()} />
+      <SkillsList groups={getSkills()} />
+      <EducationList entries={getEducation()} />
 
       <section id="get-in-touch" className="mt-16 flex max-w-measure flex-col gap-4">
         <p className="text-base text-foreground">

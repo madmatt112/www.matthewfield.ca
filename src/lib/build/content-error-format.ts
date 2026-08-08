@@ -295,13 +295,29 @@ function valueAtPath(entry: unknown, path: (string | number)[]): unknown {
 }
 
 /**
+ * Which field locates an entry, per data file (contract item 2). Keyed on the
+ * FILENAME, never on field presence: `resources.yaml` also carries a `category`
+ * field, so presence-based detection would silently locate a resources error by
+ * its category instead of its title. Files absent from this map fall back to
+ * `title` (`resources.yaml`, `reading.yaml`).
+ */
+const IDENTIFIER_FIELD_BY_BASENAME: Record<string, string> = {
+  "contributions.yaml": "repo",
+  "experience.yaml": "organisation",
+  "skills.yaml": "category",
+  "education.yaml": "credential",
+};
+
+const DEFAULT_IDENTIFIER_FIELD = "title";
+
+/**
  * Formats one contract line per ZodIssue (contract items 1–6). Returns an array
  * of strings — one per issue, each potentially multi-line when hints are
  * appended (each hint on its own `Hint: `-prefixed line).
  */
 export function formatZodIssues(issues: ZodIssueLike[], context: FormatContext): string[] {
   const { basename, entry, index, schema } = context;
-  const identifierField = basename.startsWith("contributions") ? "repo" : "title";
+  const identifierField = IDENTIFIER_FIELD_BY_BASENAME[basename] ?? DEFAULT_IDENTIFIER_FIELD;
 
   return issues.map((issue) => {
     const locator = chooseLocator(issue, entry, index, identifierField);

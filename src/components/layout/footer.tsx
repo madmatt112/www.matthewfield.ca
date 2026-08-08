@@ -3,10 +3,16 @@ import Link from "next/link";
 import { NewTabHint } from "@/components/shared/new-tab-hint";
 import { getBuildInfo } from "@/lib/build-info";
 
+/**
+ * PRINT HOOK: `site-footer`, a class for the same reason `site-header` is —
+ * `<footer>` is content markup too (the post footer on /blog/[slug]), so a bare
+ * `footer` selector in print.css would be a latent repeat of the role-header
+ * bug that hid the printed CV's employers and dates.
+ */
 export function Footer() {
   const build = getBuildInfo();
   return (
-    <footer className="border-t border-border">
+    <footer className="site-footer border-t border-border">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <p>&copy; {new Date().getFullYear()} Matthew Field</p>

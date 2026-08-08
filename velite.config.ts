@@ -14,10 +14,19 @@ import { rehypeAbsolutizeUrls } from "./src/lib/build/rehype-absolutize-urls";
 import { rehypeCopyButton } from "./src/lib/build/rehype-copy-button";
 import { countWordsFromMdast } from "./src/lib/build/word-count";
 import { KNOWN_FIXTURE_SLUGS, derivePostSlug } from "./src/lib/build/derive-post-slug.mjs";
+import {
+  type ExperienceRoleLike,
+  type RawProjectLike,
+  checkExperienceProjectLinks,
+  checkSkillsGroupCap,
+} from "./src/lib/build/check-experience-project-links";
 import { checkProjectHeadings } from "./src/lib/build/check-project-headings";
 import { contributionEntrySchema } from "./src/lib/build/contributions-schema";
+import { educationEntrySchema } from "./src/lib/build/education-schema";
+import { experienceEntrySchema } from "./src/lib/build/experience-schema";
 import { readingEntrySchema, readingLoaderSchema } from "./src/lib/build/reading-schema";
 import { resourceEntrySchema } from "./src/lib/build/resources-schema";
+import { skillEntrySchema } from "./src/lib/build/skills-schema";
 import { makeContentYamlLoader } from "./src/lib/build/content-yaml-loader";
 
 // Typed content collections for the site. Downstream specs extend this file
@@ -82,6 +91,12 @@ const profile = defineCollection({
       availability: s.string().max(200),
       availabilityLinkLabel: s.string().max(100),
       availabilityLinkHref: s.string().url(),
+      // Deliberately optional. A required field would abort the whole profile
+      // parse when it is absent, and velite reports that as
+      // `no data resolved for 'profile' collection` — naming neither the file
+      // nor the field. All validation lives in getProfileSummary()
+      // (src/lib/profile-summary.ts), which owns the only error message.
+      summary: s.string().optional(),
       headshot: s.image().optional(),
       body: s.mdx(),
     })
@@ -433,6 +448,30 @@ const reading = defineCollection({
   schema: readingEntrySchema,
 });
 
+// Profile/resume data collections. The `pattern` basenames are load-bearing
+// twice over: `makeContentYamlLoader` keys its schema map on them, and
+// `IDENTIFIER_FIELD_BY_BASENAME` (content-error-format.ts) keys the
+// error-locator field on them. Renaming a file without updating both silently
+// degrades build errors to locating by `title` — a field skills and education
+// entries do not even have.
+const experience = defineCollection({
+  name: "ExperienceRole",
+  pattern: "experience.yaml",
+  schema: experienceEntrySchema,
+});
+
+const skills = defineCollection({
+  name: "SkillGroup",
+  pattern: "skills.yaml",
+  schema: skillEntrySchema,
+});
+
+const education = defineCollection({
+  name: "EducationEntry",
+  pattern: "education.yaml",
+  schema: educationEntrySchema,
+});
+
 export default defineConfig({
   root: "content",
   output: {
@@ -441,12 +480,26 @@ export default defineConfig({
     base: "/static/",
     clean: true,
   },
-  collections: { pages, profile, posts, projects, contributions, resources, reading },
+  collections: {
+    pages,
+    profile,
+    posts,
+    projects,
+    contributions,
+    resources,
+    reading,
+    experience,
+    skills,
+    education,
+  },
   loaders: [
     makeContentYamlLoader({
       "contributions.yaml": contributionEntrySchema,
       "resources.yaml": resourceEntrySchema,
       "reading.yaml": readingLoaderSchema,
+      "experience.yaml": experienceEntrySchema,
+      "skills.yaml": skillEntrySchema,
+      "education.yaml": educationEntrySchema,
     }),
   ],
   mdx: {
@@ -483,5 +536,17 @@ export default defineConfig({
         byOrder.set(order, slug);
       }
     }
+
+    // Profile/resume cross-collection invariants (design §Error Handling
+    // Scenario 1; R4.1, R4.2, R5.2). Both live in
+    // src/lib/build/check-experience-project-links.ts so they are unit-testable
+    // without booting velite — this hook only supplies the data. They THROW:
+    // `strict: true` is not set on this config, so a check that merely logged
+    // would exit 0 and ship the bad data.
+    checkExperienceProjectLinks({
+      experience: (data as { experience?: ExperienceRoleLike[] }).experience ?? [],
+      projects: (data as { projects?: RawProjectLike[] }).projects ?? [],
+    });
+    checkSkillsGroupCap((data as { skills?: unknown[] }).skills ?? []);
   },
 });
