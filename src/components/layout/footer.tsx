@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { NewTabHint } from "@/components/shared/new-tab-hint";
+import { siteConfig } from "@/config/site";
 import { getBuildInfo } from "@/lib/build-info";
 
 /**
@@ -39,7 +40,7 @@ export function Footer() {
             /slashes
           </Link>
           <a
-            href="https://github.com/madmatt112"
+            href={siteConfig.links.github}
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-foreground"
@@ -48,7 +49,7 @@ export function Footer() {
             <NewTabHint />
           </a>
           <a
-            href="https://www.linkedin.com/in/matthewfieldca/"
+            href={siteConfig.links.linkedin}
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-foreground"
