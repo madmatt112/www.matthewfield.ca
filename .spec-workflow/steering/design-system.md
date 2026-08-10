@@ -70,9 +70,27 @@ property of the live site (see Scope on the already-built sections).
   emit `bg-success`/etc. (they resolve to nothing) and must not invent one-off feedback colors.
 - **Reserved (out of contract):** `chart-*` and `sidebar-*` exist in `tokens.css` as inherited
   shadcn defaults but are **not** part of the active set — no surface may rely on them until a real
-  need promotes them. The site has no sidebar. Data visualization is out of scope: the active
-  palette has no chroma *system* for distinguishing data series, charts must never encode meaning by
-  color alone (WCAG 1.4.1), and any charts are a design-spec decision.
+  need promotes them. The site has no sidebar. Multi-series data visualization remains out of scope:
+  the active palette has no chroma *system* for distinguishing data series, charts must never encode
+  meaning by color alone (WCAG 1.4.1), and any charts are a design-spec decision.
+- **Carve-out — single-hue sequential ramps (added for `github-activity`).** One exception to the
+  clause above, deliberately narrow. A chart that encodes a **single ordered magnitude** may use a
+  sequential ramp built from **one existing active role at varying alpha** over a token surface. It
+  does not need a chroma *system*, because it distinguishes no series — it orders one. Conditions,
+  all required:
+  - **One role, alpha only.** No second hue, no `chart-*`, no new token.
+  - **Ordered by luminance, not hue**, so the encoding survives color-vision deficiency and a
+    greyscale render. This is what answers WCAG 1.4.1 for this class; it is a design-practice
+    argument, not a cited W3C technique, and a spec relying on it must say so.
+  - **A measured adjacent-step separation**, recorded in the consuming spec's design document with a
+    per-step table and a greyscale render. A ramp whose steps are not separately resolvable fails the
+    condition above and must reduce its step count.
+  - **A non-color channel** carrying the same information — a text equivalent, a table, or labels.
+    The ramp is never the only route to the data.
+  - **The scale's meaning must be disclosed** where it is relative to the data shown rather than
+    absolute, so a reader cannot mistake a period-relative maximum for an absolute one.
+  Anything beyond one ordered magnitude — categorical series, diverging scales, multiple hues —
+  remains out of scope and needs its own decision.
 - **Contrast is a pair property, not a role property.** Any text or icon must clear its contrast
   gate against the **surface it actually sits on** — meta text inside a `Card` on `muted` is gated
   against `muted`, not against `background` — in both themes. Interactive state colors

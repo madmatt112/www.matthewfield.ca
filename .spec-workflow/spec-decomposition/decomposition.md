@@ -192,6 +192,43 @@ Personal website rebuild for Matthew Field — replacing WordPress.com with a ma
 
 ---
 
+### 11. github-activity
+
+**Scope**: A rolling 26-week GitHub contribution heatmap below the curated cards on `/contributions`. A new `githubActivity` Velite collection reads a flat `{date, count}` YAML file; a pure, clock-free helper derives the window, quartile buckets, grid, and monthly totals; a server component renders inline SVG with month labels, a legend, and a `<details>` table as the non-color channel. The file is seeded by hand and refreshed by hand; a CI script warns on stale, impossible, or incomplete data. Zero client JS, zero network calls at build or runtime, no CSP change, no credential anywhere in the deployed app.
+
+**Delivers**: On-site corroboration that the open-source work on the page is sustained rather than a one-off, without sending the visitor to GitHub and without the site depending on GitHub being up.
+
+**End-to-end verification**: `/contributions` renders the grid below the cards in both themes at the named breakpoints and fits 320px without scrolling; a malformed, duplicated, gapped, or future-dated record fails the build with a named error; an absent, empty, all-zero, or under-covering file produces the documented outcome and a CI warning rather than a wrong graphic; the published period never extends beyond the data at either edge; printing hides the grid and keeps the totals; axe reports zero violations.
+
+**Dependencies**: contributions-and-resources (owns the page, the YAML loader, and the shared build-time error contract), visual-design (tokens, print stylesheet, and the non-text-data-mark amendment this spec required), site-foundation (Velite pipeline, CI).
+
+**Design considerations**:
+- Data lives in git, not in an API call — the page must render correctly during a GitHub outage, and a stale graphic is an accepted soft failure that the visible "as of" line discloses.
+- The window is a fixed editorial parameter and never moves to avoid a gap; the *published period* shrinks to whatever the data actually covers, at both edges.
+- Levels are bucketed locally rather than taken from GitHub, for reproducibility from the committed file — not for stability of meaning, which a rolling window cannot give.
+- Required the first data-visualization carve-out in the design system: a single-hue sequential ramp of `brand` at alpha, gated mark-versus-surface. Multi-series charts remain out of scope.
+- Sync automation is deliberately deferred to a follow-on spec (#12); the manual seed plus a staleness detector is the launch posture.
+
+### 12. github-activity-sync
+
+**Scope**: A scheduled GitHub Actions workflow that refreshes `content/github-activity.yaml` on its own. It queries the contributions calendar with a repo secret, rewrites the file in the same ascending, fully-covered shape spec 11 validates, verifies the payload before committing, and pushes to `main` — which triggers a Vercel deploy. No change to the application: the page stays static, the render path stays network-free, and no credential enters the deployed app or the browser.
+
+**Delivers**: The heatmap stays current without anyone remembering to refresh it, closing the one manual step spec 11 shipped with. Turns spec 11's staleness warning from a routine chore reminder into a genuine alarm.
+
+**End-to-end verification**: The workflow runs on schedule and on manual dispatch; a refreshed file passes spec 11's schema, duplicate, and contiguity checks before it is committed; a failed or empty API response leaves the committed file untouched rather than truncating it; a run that produces no change makes no commit; the deployed page reflects the new data after the resulting Vercel build; spec 11's freshness check reports zero warnings on a synced repo.
+
+**Dependencies**: github-activity (#11) — owns the file format, the coverage contract, the validation pipeline, and the freshness detector this spec feeds. Must be implemented, not merely specified, since the sync writes to a contract only the built pipeline enforces.
+
+**Design considerations**:
+- **Auth is settled and deliberately minimal** (verified 2026-08-10): a **classic PAT with no scopes** reaches `user(login:).contributionsCollection` and returns the same figure as a `read:user` token, because there are currently zero restricted contributions. No-scope is chosen over `read:user` so the published number is **public-only by construction** — a scoped token would silently begin inflating the graph above the verifiable public profile if private work ever appeared. Stored as `GH_CONTRIBUTIONS_TOKEN`; GitHub forbids secret names beginning with `GITHUB_`.
+- **The PAT never touches the repository.** The commit uses the workflow's auto-injected `GITHUB_TOKEN` with `contents: write`. The PAT is read-only against the account and needs no repository access at all.
+- **Validate before committing, not after.** A commit authored by the injected `GITHUB_TOKEN` does not trigger `ci.yml`, so the workflow must run the content validation itself. Vercel's build is a backstop, not the gate — a bad payload there fails the deploy and leaves the previous one live.
+- **Never write a short or empty file.** A truncated payload is exactly the failure spec 11's coverage contract exists to catch; the workflow must abort rather than commit one, since the resulting build error is a worse outcome than a stale graphic.
+- **Seed and sync must agree.** Spec 11's one-time seed uses the same no-scope token, so the initial file and every later refresh cannot diverge in what they count.
+- **Token expiry is a foreseen failure, not an incident.** A one-year expiry lapses silently into "no more updates"; spec 11's 45-day freshness warning is the detector, which is why that check is load-bearing rather than decorative.
+
+---
+
 ## Dependency Graph
 
 ```mermaid
