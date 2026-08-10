@@ -24,6 +24,7 @@ const TODO_BYTE_WEIGHT_PLACEHOLDER = 2_500_000; // TODO: replace per-URL after m
 const urls = [
   `${baseUrl}/profile`,
   `${baseUrl}/contact`,
+  `${baseUrl}/contributions`,
   `${baseUrl}/blog`,
   `${baseUrl}/blog/fixture-code`,
   `${baseUrl}/blog/fixture-toc`,
