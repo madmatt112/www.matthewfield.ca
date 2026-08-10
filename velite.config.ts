@@ -20,10 +20,12 @@ import {
   checkExperienceProjectLinks,
   checkSkillsGroupCap,
 } from "./src/lib/build/check-experience-project-links";
+import { runGithubActivityInvariants } from "./src/lib/build/check-github-activity-invariants";
 import { checkProjectHeadings } from "./src/lib/build/check-project-headings";
 import { contributionEntrySchema } from "./src/lib/build/contributions-schema";
 import { educationEntrySchema } from "./src/lib/build/education-schema";
 import { experienceEntrySchema } from "./src/lib/build/experience-schema";
+import { githubActivityEntrySchema } from "./src/lib/build/github-activity-schema";
 import { readingEntrySchema, readingLoaderSchema } from "./src/lib/build/reading-schema";
 import { resourceEntrySchema } from "./src/lib/build/resources-schema";
 import { skillEntrySchema } from "./src/lib/build/skills-schema";
@@ -436,6 +438,12 @@ const contributions = defineCollection({
   schema: contributionEntrySchema,
 });
 
+const githubActivity = defineCollection({
+  name: "GithubActivityEntry",
+  pattern: "github-activity.yaml",
+  schema: githubActivityEntrySchema,
+});
+
 const resources = defineCollection({
   name: "Resource",
   pattern: "resources.yaml",
@@ -486,6 +494,7 @@ export default defineConfig({
     posts,
     projects,
     contributions,
+    githubActivity,
     resources,
     reading,
     experience,
@@ -495,6 +504,7 @@ export default defineConfig({
   loaders: [
     makeContentYamlLoader({
       "contributions.yaml": contributionEntrySchema,
+      "github-activity.yaml": githubActivityEntrySchema,
       "resources.yaml": resourceEntrySchema,
       "reading.yaml": readingLoaderSchema,
       "experience.yaml": experienceEntrySchema,
@@ -548,5 +558,16 @@ export default defineConfig({
       projects: (data as { projects?: RawProjectLike[] }).projects ?? [],
     });
     checkSkillsGroupCap((data as { skills?: unknown[] }).skills ?? []);
+
+    // GitHub-activity cross-entry invariants (Reqs 1.10, 11.2, 11.3): duplicate
+    // dates and gaps inside the covered range. Neither is expressible in a
+    // per-entry schema, so they run here — the same hook, and for the same
+    // reason, as the two checks above. Both live in
+    // src/lib/build/check-github-activity-invariants.ts and THROW; `strict: true`
+    // is not set on this config, so a check that merely logged would exit 0.
+    // An empty file (`[]`) passes both by design (Req 11.7).
+    runGithubActivityInvariants(
+      (data as { githubActivity?: { date: string }[] }).githubActivity ?? [],
+    );
   },
 });
