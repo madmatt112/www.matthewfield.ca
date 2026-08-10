@@ -4,6 +4,7 @@ import {
   formatCount,
   formatDateRange,
   formatMonthAbbrev,
+  formatMonthYear,
 } from "@/lib/format-date";
 import type { ActivityWindow } from "@/lib/github-activity";
 
@@ -57,6 +58,13 @@ const LABEL_BASELINE = 13;
  * guarantee that ink never exceeds 286px.
  */
 const MONTH_LABEL_WIDTH = 27;
+
+/**
+ * Levels 0–4 (Req 2.3). The legend renders only the levels in `levelsPresent`,
+ * so this is the count a FULL ramp would show — anything short of it is a
+ * period-relative scale and must say so (Req 4.6).
+ */
+const RAMP_LEVELS = 5;
 
 type MonthLabel = {
   month: string;
@@ -123,6 +131,33 @@ export function ContributionHeatmap({ window }: ContributionHeatmapProps) {
   const updated = formatContentDate(window.anchorDate);
   const monthLabels = buildMonthLabels(window);
 
+  /* The headline figures are built ONCE and spent twice — in the visible
+   * summary and in the aria-label — because Req 5.1 makes the label the
+   * canonical announcement of the same two numbers the summary shows, and two
+   * independently assembled sentences drift. */
+  const headline = `${pluralize(window.totalContributions, "contribution")} across ${pluralize(
+    window.activeDays,
+    "active day",
+  )}`;
+
+  /* Derived from ActivityWindow, never hand-written prose (Req 5.2), and
+   * stating the PUBLISHED range — putting windowStart/windowEnd here is the
+   * single most-relitigated regression in this spec (Reqs 2.2, 5.2, 7.2). */
+  const ariaLabel = `GitHub contributions heatmap: ${headline}, from ${range.start.display} to ${range.end.display}.`;
+
+  /* Ascending, and only the levels a covered cell actually reached (Req 4.6):
+   * a five-swatch legend over a three-level grid is the exact untruth the
+   * criterion forbids. A Set has no order, so sort rather than trust it. */
+  const legendLevels = [...window.levelsPresent].sort((a, b) => a - b);
+  const isPeriodRelativeScale = legendLevels.length < RAMP_LEVELS;
+
+  /* Same 9px mark and 11px pitch as the grid, so the legend is dimensionally
+   * the key to the graphic rather than a lookalike. The 1px viewBox margin is
+   * there for the same reason as the grid's: contributions.css paints a 1px
+   * forced-colors outline on the level-0 swatch, which would clip at x = −1
+   * against a zero-margin viewBox. */
+  const legendWidth = Math.max(0, legendLevels.length * PITCH - (PITCH - MARK));
+
   return (
     // data-pagefind-ignore (Req 6.3): /contributions has no
     // data-pagefind-body, so Pagefind indexes the whole page. The graphic and
@@ -137,9 +172,7 @@ export function ContributionHeatmap({ window }: ContributionHeatmapProps) {
        * windowStart/windowEnd are internal geometry and never visitor-facing
        * (Reqs 2.2, 7.2). */}
       <p>
-        {pluralize(window.totalContributions, "contribution")} across{" "}
-        {pluralize(window.activeDays, "active day")}, from{" "}
-        <time dateTime={window.publishedRangeStart}>{range.start.display}</time> to{" "}
+        {headline}, from <time dateTime={window.publishedRangeStart}>{range.start.display}</time> to{" "}
         <time dateTime={window.publishedRangeEnd}>{range.end.display}</time>.
       </p>
       <p>
@@ -156,7 +189,11 @@ export function ContributionHeatmap({ window }: ContributionHeatmapProps) {
        * tabindex and no accessible name: at the pinned pitch nothing scrolls,
        * so a focusable region here would be permanently inert. */}
       <div className="contrib-heatmap__scroll">
-        <svg width="288" height="100" viewBox="-1 -1 288 100">
+        {/* role="img" collapses the whole graphic to ONE leaf node carrying one
+         * name (Reqs 5.1, 5.4, 5.5). That is why there are no per-cell <title>
+         * elements and nothing here is focusable: descendants of an img leave
+         * the accessibility tree, so 182 titles would be announced to nobody. */}
+        <svg role="img" aria-label={ariaLabel} width="288" height="100" viewBox="-1 -1 288 100">
           {/* fill="currentColor" is load-bearing, not decoration. SVG's initial
            * `fill` is black, and nothing else paints these labels — the marks'
            * colour comes from .contrib-heatmap__cell and contributions.css
@@ -198,6 +235,111 @@ export function ContributionHeatmap({ window }: ContributionHeatmapProps) {
           )}
         </svg>
       </div>
+      {/* print:hidden on the ROW, not just the <svg>: Req 4.12 hides "the <svg>
+       * and the legend" in print, contributions.css owns that rule and can only
+       * name .contrib-heatmap__legend — which sits on the <svg> — so the HTML
+       * endpoints beside it would otherwise print as a stray "Less More" beside
+       * nothing. The endpoints are HTML rather than SVG <text> deliberately
+       * (design §Accessibility, SC 1.4.12): they reflow under a text-spacing
+       * override, which words on a fixed baseline in a fixed-width <svg> could
+       * not. */}
+      <div className="mt-4 print:hidden">
+        <div className="flex items-center gap-2 text-xs">
+          <span>Less</span>
+          {/* An inline <svg> of <rect>s, NOT five <span>s with background-color:
+           * `background-color` is a forced property under forced-colors and
+           * `fill-opacity` is not, so the HTML reading collapses the whole
+           * legend to invisible boxes in High Contrast. As rects the swatches
+           * take the SAME per-level rules as the grid marks (contributions.css
+           * writes each opacity once against a selector list covering both), so
+           * legend and grid physically cannot disagree about a level.
+           *
+           * aria-hidden: the swatches are a colour key to a graphic that is
+           * already a single labelled leaf. They carry nothing a non-visual
+           * reader can use, and the <details> table below is the full-fidelity
+           * route to the same data (Req 5.3). */}
+          <svg
+            className="contrib-heatmap__legend"
+            aria-hidden="true"
+            width={legendWidth + 2}
+            height={MARK + 2}
+            viewBox={`-1 -1 ${legendWidth + 2} ${MARK + 2}`}
+          >
+            {legendLevels.map((level, index) => (
+              <rect
+                key={level}
+                className="contrib-heatmap__swatch"
+                data-level={level}
+                x={index * PITCH}
+                y={0}
+                width={MARK}
+                height={MARK}
+                rx={CORNER}
+              />
+            ))}
+          </svg>
+          <span>More</span>
+        </div>
+        {/* Req 4.6 / Req 11.12: a short legend is a truthful legend, but on its
+         * own it invites the reading "this mid-alpha IS the maximum". The
+         * disclosure is what makes the shorter scale honest rather than merely
+         * accurate. It states no period of its own — the summary above owns
+         * that (Req 7.2). */}
+        {isPeriodRelativeScale ? (
+          <p className="mt-2 text-xs">
+            The scale is relative to this period, so it shows only the levels these counts reach.
+          </p>
+        ) : null}
+      </div>
+      {/* The Req 5.3 text equivalent, and it sits INSIDE the
+       * data-pagefind-ignore section on purpose (Req 6.3) — after </section> it
+       * would drop out of the aria-labelledby framing and put a month-by-month
+       * table into every site-search excerpt.
+       *
+       * Ships CLOSED — no `open` attribute. contributions.css forces it open in
+       * print through ::details-content, and a disclosure that shipped open
+       * would make that rule, and the print check that exercises it, vacuous.
+       * The .contrib-heatmap__details class is the sole handle that rule
+       * selects on: without it the monthly table prints collapsed. */}
+      <details className="contrib-heatmap__details mt-6">
+        <summary>Monthly totals</summary>
+        {/* Month, contributions, active days — and deliberately NOT
+         * totalContributions or activeDays (Req 5.3). The summary and the
+         * aria-label already carry those, and Req 5.5 rejects repetition on
+         * announcement cost; a third recital would make a screen-reader user
+         * hear the same sentence three times traversing one section. Active
+         * days is a column rather than an omission: volume without consistency
+         * is the one thing the grid adds over the summary line. */}
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Month</th>
+              <th scope="col">Contributions</th>
+              <th scope="col">Active days</th>
+            </tr>
+          </thead>
+          <tbody>
+            {window.monthlyTotals.map((monthTotal) => {
+              const covered = formatDateRange(monthTotal.rangeStart, monthTotal.rangeEnd);
+              const label = formatMonthYear(monthTotal.month);
+              return (
+                <tr key={monthTotal.month}>
+                  <th scope="row">
+                    <time dateTime={label.datetime}>{label.display}</time>
+                    {/* A partially covered month reports a total for part of a
+                     * month while wearing a whole month's name, so the row says
+                     * which days it counted. `isClipped` is computed, not
+                     * positional — the first month is NOT always clipped. */}
+                    {monthTotal.isClipped ? <> (covers {covered.display})</> : null}
+                  </th>
+                  <td>{formatCount(monthTotal.total)}</td>
+                  <td>{formatCount(monthTotal.activeDays)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </details>
     </section>
   );
 }

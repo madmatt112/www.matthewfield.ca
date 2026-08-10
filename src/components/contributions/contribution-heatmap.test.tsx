@@ -89,6 +89,33 @@ function gridSvg(container: HTMLElement): SVGSVGElement {
   return svg;
 }
 
+/**
+ * The legend `<svg>`, located STRUCTURALLY — the one `<svg>` in the section that
+ * is not the grid — rather than by `.contrib-heatmap__legend`.
+ *
+ * That is the whole point of the helper. The swatch assertions below check a
+ * class on every rect, and the class assertion below checks
+ * `contrib-heatmap__legend` on this element; selecting the scope root by either
+ * of those classes would make the matching assertion vacuous, since a missing
+ * class would simply select nothing and pass. Structure is the independent
+ * handle.
+ */
+function legendSvg(container: HTMLElement): SVGSVGElement {
+  const svgs = [...container.querySelectorAll("svg")].filter(
+    (svg) => svg.closest(".contrib-heatmap__scroll") === null,
+  );
+  if (svgs.length !== 1) {
+    throw new Error(`expected exactly one non-grid <svg>, found ${svgs.length}`);
+  }
+  return svgs[0];
+}
+
+function detailsElement(container: HTMLElement): HTMLDetailsElement {
+  const details = container.querySelector("details");
+  if (!details) throw new Error("<details> text equivalent not found");
+  return details;
+}
+
 describe("ContributionHeatmap", () => {
   // Two uncovered leading days (Feb 8-9) and, in the second fixture, three
   // uncovered trailing days.
@@ -201,5 +228,174 @@ describe("ContributionHeatmap", () => {
     expect(link.getAttribute("href")).toBe("https://github.com/madmatt112");
     expect(link.getAttribute("rel")).toBe("noopener");
     expect(link.hasAttribute("target")).toBe(false);
+  });
+
+  it("gives the legend its own svg carrying the shared style handle", () => {
+    const { container } = render(<ContributionHeatmap window={full.activityWindow} />);
+    // The class is the print rule's only handle (`@media print` hides
+    // .contrib-heatmap__legend) and the scope root every swatch assertion below
+    // depends on. Located structurally above, so this cannot pass vacuously.
+    expect(legendSvg(container).getAttribute("class")).toBe("contrib-heatmap__legend");
+    // An <svg> of <rect>s, never five <span>s with background-color:
+    // `background-color` is forced under forced-colors and `fill-opacity` is
+    // not, so the HTML reading collapses the legend to invisible boxes.
+    expect(legendSvg(container).querySelectorAll("rect").length).toBeGreaterThan(0);
+  });
+
+  it("hides the legend swatches from the accessibility tree", () => {
+    const { container } = render(<ContributionHeatmap window={full.activityWindow} />);
+    // The swatches are a colour key to a graphic that is already a single
+    // labelled leaf, and the <details> table is the full-fidelity route to the
+    // same data (Req 5.3). Without this, five unnamed decorative rects start
+    // being announced.
+    expect(legendSvg(container).getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it("flanks the swatches with the Less and More endpoints", () => {
+    const { container } = render(<ContributionHeatmap window={full.activityWindow} />);
+    const legend = legendSvg(container);
+    const less = legend.previousElementSibling;
+    const more = legend.nextElementSibling;
+    // Req 4.6 / design §Components: with the <svg> aria-hidden, these two words
+    // are the legend's ENTIRE accessible surface, so they are asserted as the
+    // siblings either side of the swatches rather than as strings loose in the
+    // document — the direction of the ramp is what they encode.
+    expect(less?.textContent).toBe("Less");
+    expect(more?.textContent).toBe("More");
+    // ...and they only carry that meaning while they are themselves announced.
+    expect(less?.closest('[aria-hidden="true"]')).toBeNull();
+    expect(more?.closest('[aria-hidden="true"]')).toBeNull();
+  });
+
+  it("marks every legend rect as a swatch at its own level, ascending", () => {
+    const { container } = render(<ContributionHeatmap window={full.activityWindow} />);
+    const swatches = [...legendSvg(container).querySelectorAll("rect")];
+    expect(swatches.map((rect) => rect.getAttribute("data-level"))).toEqual([
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+    ]);
+    swatches.forEach((rect) => {
+      // The same class/data-level contract as the grid cells, because
+      // contributions.css writes each opacity once against a selector list
+      // covering both — that shared rule is what stops the legend and the grid
+      // disagreeing about what a level looks like.
+      expect(rect.getAttribute("class")).toBe("contrib-heatmap__swatch");
+      expect(rect.getAttribute("width")).toBe("9");
+      expect(rect.getAttribute("height")).toBe("9");
+      expect(rect.getAttribute("rx")).toBe("2");
+    });
+  });
+
+  it("renders only the levels present and discloses a period-relative scale", () => {
+    // design §Testing's empty-band case: S = [1,1,1,1,2,3,4,10] leaves no
+    // integer in 1 < c <= 1.5, so level 2 is never assigned and the legend must
+    // not offer a swatch for it.
+    const subset: ActivityWindow = {
+      ...full.activityWindow,
+      levelsPresent: new Set<Level>([0, 1, 3, 4]),
+    };
+    const { container } = render(<ContributionHeatmap window={subset} />);
+    const swatches = [...legendSvg(container).querySelectorAll("rect")];
+    expect(swatches.map((rect) => rect.getAttribute("data-level"))).toEqual(["0", "1", "3", "4"]);
+    // Without this, a four-swatch legend reads as "this is the absolute
+    // maximum" (Reqs 4.6, 11.12).
+    expect(container.textContent).toContain("The scale is relative to this period");
+  });
+
+  it("omits the period-relative disclosure when every level is present", () => {
+    const { container } = render(<ContributionHeatmap window={full.activityWindow} />);
+    expect(legendSvg(container).querySelectorAll("rect")).toHaveLength(5);
+    expect(container.textContent).not.toContain("The scale is relative to this period");
+  });
+
+  it("names the graphic once with the published range and both headline figures", () => {
+    // anchorDate stops three days short of windowEnd, so a label built from the
+    // window frame rather than the published range would be visible here.
+    const partial = buildWindow("2026-02-10", "2026-08-05");
+    const { container } = render(<ContributionHeatmap window={partial.activityWindow} />);
+    const svg = gridSvg(container);
+
+    expect(svg.getAttribute("role")).toBe("img");
+    const label = svg.getAttribute("aria-label") ?? "";
+    expect(label).toContain("1,234 contributions");
+    expect(label).toContain("152 active days");
+    expect(label).toContain("February 10, 2026");
+    expect(label).toContain("August 5, 2026");
+    // Neither the label nor the visible copy may state windowStart/windowEnd or
+    // reach past anchorDate (Reqs 2.2, 5.2, 7.2) — the most-relitigated
+    // decision in this spec.
+    expect(label).not.toContain("February 8, 2026");
+    expect(label).not.toContain("August 8, 2026");
+    expect(container.textContent).not.toContain("February 8, 2026");
+    expect(container.textContent).not.toContain("August 8, 2026");
+
+    // role="img" makes the element a leaf, so per-cell titles would be
+    // announced to nobody and cells are not tree nodes (Reqs 5.4, 5.5).
+    expect(svg.querySelector("title")).toBeNull();
+    expect(svg.querySelector("[tabindex]")).toBeNull();
+  });
+
+  it("ships the text equivalent as a closed details carrying the print handle", () => {
+    const { container } = render(<ContributionHeatmap window={full.activityWindow} />);
+    const details = detailsElement(container);
+    // contributions.css forces this open in print via
+    // .contrib-heatmap__details::details-content; without the class the rule
+    // selects nothing and the monthly table prints collapsed.
+    expect(details.getAttribute("class")).toContain("contrib-heatmap__details");
+    // Closed on load — an already-open disclosure would make the print
+    // force-open rule, and the check that exercises it, vacuous.
+    expect(details.hasAttribute("open")).toBe(false);
+  });
+
+  it("keeps the text equivalent inside the pagefind-ignored section", () => {
+    const { container } = render(<ContributionHeatmap window={full.activityWindow} />);
+    const section = container.querySelector("section");
+    // Req 6.3: after </section> the table would land in every search excerpt
+    // and drop out of the aria-labelledby framing.
+    expect(detailsElement(container).closest("[data-pagefind-ignore]")).toBe(section);
+  });
+
+  it("tabulates every month without restating the headline figures", () => {
+    const { container } = render(<ContributionHeatmap window={full.activityWindow} />);
+    const details = detailsElement(container);
+    expect([...details.querySelectorAll("thead th")].map((cell) => cell.textContent)).toEqual([
+      "Month",
+      "Contributions",
+      "Active days",
+    ]);
+
+    const rows = [...details.querySelectorAll("tbody tr")];
+    expect(rows).toHaveLength(full.activityWindow.monthlyTotals.length);
+    const march = full.activityWindow.monthlyTotals[1];
+    expect(rows[1].textContent).toContain("March 2026");
+    expect([...rows[1].querySelectorAll("td")].map((cell) => cell.textContent)).toEqual([
+      String(march.total),
+      String(march.activeDays),
+    ]);
+
+    // Req 5.3: the summary and the aria-label already carry these, and a third
+    // recital makes a screen-reader user hear the same sentence three times.
+    expect(details.textContent).not.toContain("1,234");
+    expect(details.textContent).not.toContain("152");
+  });
+
+  it("shows the covered range on clipped month rows only", () => {
+    const { container } = render(<ContributionHeatmap window={full.activityWindow} />);
+    const rows = [...detailsElement(container).querySelectorAll("tbody tr")];
+
+    // February is covered from the 10th, August only to the 8th, so both wear a
+    // whole month's name over a partial total and must say which days they
+    // counted. `isClipped` is computed, not positional.
+    expect(full.activityWindow.monthlyTotals[0].isClipped).toBe(true);
+    expect(rows[0].textContent).toContain("covers");
+    expect(rows[0].textContent).toContain("February 10, 2026");
+    expect(rows[0].textContent).toContain("February 28, 2026");
+
+    // March is whole, so it carries no range.
+    expect(full.activityWindow.monthlyTotals[1].isClipped).toBe(false);
+    expect(rows[1].textContent).not.toContain("covers");
   });
 });
