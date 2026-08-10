@@ -62,8 +62,22 @@ jobs:
       - name: "Self-tests for check-playground-css"
         run: node --test scripts/check-playground-css.test.mjs
 
+      - name: "Self-tests for check-github-activity-freshness"
+        run: node --test scripts/check-github-activity-freshness.test.mjs
+
       - name: Unit tests
         run: pnpm test
+
+      # This step is the ONLY thing that runs the two-zone blocks in
+      # src/lib/github-activity.test.ts. Under the plain `Unit tests` step above,
+      # both zones skip (the describe.each setup asserts process.env.TZ and skips
+      # when it does not match). Deleting this step removes all timezone coverage
+      # while leaving every suite green.
+      - name: Unit tests (pinned timezones)
+        run: pnpm test:tz
+
+      - name: Check GitHub activity freshness
+        run: node scripts/check-github-activity-freshness.mjs
 
       - name: Build
         run: pnpm build
