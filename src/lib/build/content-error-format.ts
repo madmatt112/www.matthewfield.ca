@@ -306,6 +306,7 @@ const IDENTIFIER_FIELD_BY_BASENAME: Record<string, string> = {
   "experience.yaml": "organisation",
   "skills.yaml": "category",
   "education.yaml": "credential",
+  "github-activity.yaml": "date",
 };
 
 const DEFAULT_IDENTIFIER_FIELD = "title";

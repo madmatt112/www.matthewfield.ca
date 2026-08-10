@@ -13,6 +13,7 @@ import {
 } from "./content-error-format";
 import { educationEntrySchema } from "./education-schema";
 import { experienceEntrySchema } from "./experience-schema";
+import { githubActivityEntrySchema } from "./github-activity-schema";
 import { resourceEntrySchema } from "./resources-schema";
 import { skillEntrySchema } from "./skills-schema";
 
@@ -374,5 +375,23 @@ describe("(h) identifier-field map — the locator field is chosen by FILENAME",
     });
     expect(lines[0]).toContain("contributions.yaml: owner/name: description = ");
     expect(lines[0]).not.toContain("A valid title");
+  });
+
+  it("locates a github-activity issue by date", () => {
+    // These entries have only `date` and `count`, so the `title` fallback would
+    // find nothing and every message would degrade to entry[n].
+    const entry = { date: "2026-05-28", count: -1 };
+    const result = githubActivityEntrySchema.safeParse(entry);
+    expect(result.success).toBe(false);
+    if (result.success) return;
+
+    const lines = formatZodIssues(result.error.issues as never, {
+      basename: "github-activity.yaml",
+      entry,
+      index: 3,
+      schema: githubActivityEntrySchema as never,
+    });
+    expect(lines[0]).toContain("github-activity.yaml: 2026-05-28: count = -1");
+    expect(lines[0]).not.toContain("entry[3]");
   });
 });
