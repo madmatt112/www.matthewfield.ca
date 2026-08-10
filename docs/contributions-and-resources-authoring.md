@@ -296,3 +296,173 @@ scoped:
 In practice, callers can expect both anchor families to remain stable across any
 deploy that does not add, remove, rename, or re-sort entries. If you publish a
 deep link externally, be aware it can break under exactly the conditions above.
+
+## GitHub activity data
+
+`content/github-activity.yaml` holds the daily GitHub contribution counts that
+render as the activity heatmap on `/contributions`. It is a third YAML content
+file under `content/`, registered in the loader's `schemasByBasename` map
+alongside `contributions.yaml` and `resources.yaml`, so it gets the same strict
+per-entry validation (see
+[Loader forward-coupling](#loader-forward-coupling--registering-a-future-yaml-collection)).
+
+### Generated file — do not hand-edit it row by row
+
+This file is **generated** by running the refresh query below and writing the
+whole file from the response. Do not edit individual rows by hand. A hand-tuned
+count silently stops matching GitHub, and nothing in the build can detect it:
+the schema only checks shape, not truth.
+
+The raw API response the current seed was generated from is committed at
+`scripts/__fixtures__/github-activity/seed-52w.json` so any number in the YAML
+can be checked against the payload it came from. That path is listed in
+`.prettierignore` deliberately — the fixture must stay byte-identical to what
+the API returned, so it is never reformatted.
+
+### Entry shape
+
+Two lines per record, one record per calendar day, ascending by `date`:
+
+```yaml
+- date: "2026-02-10"
+  count: 12
+```
+
+- `date` (ISO `YYYY-MM-DD`) — a single calendar day. Upper-bounded by the build
+  clock, so a future date fails the build.
+- `count` (integer ≥ 0) — that day's contribution count.
+
+The object is `.strict()` and there are exactly these two fields. In particular
+GitHub's own `contributionLevel` is **not** stored: it is bucketed against the
+account's personal maximum over whatever period was queried, so it cannot be
+reproduced offline. Levels are derived locally in `src/lib/github-activity.ts`,
+which makes the guarantee _same file → same grid_.
+
+### The refresh query
+
+Authenticated GitHub GraphQL API v4, run by hand through the `gh` CLI. This is
+the exact query the current data was seeded with — copy it verbatim rather than
+rewriting it from the GitHub docs, or a refresh can quietly produce a different
+span or a different field selection. Save it as `query.graphql`:
+
+```graphql
+query ContributionCalendar($login: String!, $from: DateTime!, $to: DateTime!) {
+  user(login: $login) {
+    contributionsCollection(from: $from, to: $to) {
+      contributionCalendar {
+        totalContributions
+        weeks {
+          contributionDays {
+            date
+            contributionCount
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+Invocation, verbatim:
+
+```bash
+gh api graphql \
+  -F login=madmatt112 \
+  -F from="2025-08-12T00:00:00Z" \
+  -F to="2026-08-10T23:59:59Z" \
+  -F query=@query.graphql
+```
+
+`from` and `to` are **RFC 3339 `DateTime` values, not bare dates**.
+`contributionsCollection` rejects a bare `YYYY-MM-DD`.
+
+The recorded range is 52 weeks: `2025-08-12` through `2026-08-10`, 364 days
+inclusive, which is under GitHub's one-year cap on `contributionsCollection`.
+It produced 364 records — `dataStart` `2025-08-12`, `anchorDate` `2026-08-10`,
+2003 total contributions, 129 active days. The API returns the calendar as
+Sunday-aligned weeks and the bounds above made its first and last week partial,
+so flatten `weeks[].contributionDays[]` into a single ascending list of
+`{date, count}` and write that. Record every count exactly as returned: the
+anchor day is usually still in progress at query time, so a trailing `count: 0`
+is the honest value, not something to adjust.
+
+### Re-derive from and to on every refresh
+
+Re-running the invocation above with its literal dates reproduces the
+_procedure_ but not the _range_ — it would re-fetch the same year and leave the
+data as stale as it was. Both bounds must be re-derived from the new anchor:
+
+- `to` = the new anchor date at `T23:59:59Z`. Use the most recent day the API
+  actually reports, which also keeps the schema's future-date bound satisfied.
+- `from` = anchor − 363 days at `T00:00:00Z`, which gives 364 days inclusive.
+
+Shortening that span is not caught as an error — see the next section.
+
+### Every day in the covered range must be present
+
+The build requires a record for **every** calendar day from `dataStart` (the
+minimum `date`) to `anchorDate` (the maximum `date`), inclusive, including days
+with `count: 0`. A gap fails the build naming the first missing date, and a
+duplicated date fails naming the date. Zero-count days are data, not padding:
+without them a quiet period and an unseeded period would look identical.
+
+Contiguity makes coverage decidable from the file alone, but only _within_ what
+the file covers. **A short refresh silently shortens the published period** — a
+90-day pull is perfectly contiguous, passes every build check, and simply
+publishes 90 days instead of the full range. Nothing fails; the page just
+covers less. This is why the span is re-derived rather than shortened for
+convenience.
+
+### The 26-week frame and the published range are different things
+
+The grid is a fixed frame of 26 columns × 7 rows = 182 days, ending on the
+Saturday on-or-after `anchorDate`. That is grid geometry, an implementation
+fact.
+
+The **published range** is the intersection of that frame with the data the file
+actually carries: it starts at whichever of `dataStart` or the frame's start is
+later, and ends at `anchorDate`. It is whatever the data covers — never assume
+or write "26 weeks" as the period shown to a visitor. Days inside the frame but
+outside the covered range are rendered as _no data_, not as zero-activity days.
+
+Seeding 52 weeks while framing 26 is intentional: the surplus is ignored by the
+grid and exists so the longer payload stays checkable.
+
+### Staleness is a soft failure and the as-of line is the tell
+
+Nothing about staleness fails the build. The page always renders a freshness
+disclosure stating `anchorDate` — that "as of" line is the tell. If it reads
+months ago, the data is old; the graphic is honest-but-limited rather than
+broken, so it is never hidden.
+
+`scripts/check-github-activity-freshness.mjs` runs in CI before the build and
+emits `::warning::` annotations for:
+
+- **Stale** — `anchorDate` older than **45 days** before the build clock. This
+  threshold is a contract, not a tunable.
+- **Incomplete coverage** — the file spans fewer than 182 days.
+- **Impossible date** — `anchorDate` ahead of the build clock.
+- **All counts zero** — records exist but every `count` is `0`, the signature of
+  a mis-parameterised refresh query.
+- **File absent** or **file is `[]`** — no data to render at all.
+
+It **always exits 0**. Every one of these is a nudge to reseed, never a build
+failure.
+
+### An occasional coverage warning on a complete file is expected
+
+The coverage check is a span rule: it warns whenever
+`anchorDate − dataStart + 1 < 182`. It deliberately does not re-implement the
+window arithmetic.
+
+That test never misses an incomplete file. The frame's start is
+`anchorDate + k − 181`, where `k ∈ [0, 6]` is the anchor's distance to the
+following Saturday, so a file that genuinely fails to cover the frame always has
+a span below 182. The cost of the simplification is over-warning: when the
+anchor is not a Saturday the rule also fires on up to six span values that do in
+fact cover the frame — six at a Sunday anchor, none at a Saturday.
+
+So a coverage warning on a file that covers the frame is **expected behaviour,
+not a bug**. The check is built to over-warn rather than ever go silent. If you
+see it and the span is at or just below 182, widen the refresh window and it
+goes away.
