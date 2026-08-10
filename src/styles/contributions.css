@@ -154,6 +154,153 @@
 }
 
 /* ------------------------------------------------------------------ *
+ * Contribution heatmap
+ *   The marks composite directly over --background: there is no card
+ *   wrapper, because .contribution-card's 1.5rem padding + 1px border
+ *   leaves 238px for 286px of grid at a 320px viewport, and a card buys
+ *   nothing in light mode (--card and --background are byte-identical)
+ *   while costing dark-mode adjacent-step contrast.
+ *
+ * COLOUR CONTRACT (Req 5.6): every mark is `fill: var(--brand)` plus a
+ *   SEPARATE per-level `fill-opacity`. Never a baked alpha — no
+ *   color-mix(), no oklch(… / 25%) — because `fill` is a forced property
+ *   under forced-colors and `fill-opacity` is not. Baking the alpha into
+ *   the colour collapses all five levels into one flat CanvasText mark in
+ *   High Contrast, which is the whole reason Req 5.6 names the two
+ *   property classes separately. --chart-1 … --chart-5 are NOT used
+ *   (Req 4.4, and they are byte-identical across :root/.dark anyway) and
+ *   no GitHub green is used (Req 4.5).
+ *
+ * RAMP: --brand at 0.28 / 0.48 / 0.66 / 0.82 / 1 for levels 0–4 over
+ *   --background. These are measured values, not adjustable taste — each
+ *   one is a recorded contrast figure (level 0: 1.54:1 light, 1.65:1
+ *   dark; level 4: 6.34:1 / 8.61:1; worst adjacent pair 1.39:1, against
+ *   floors of 1.5 / 3.0 / 1.3 in Reqs 4.3 and 4.8). Changing an alpha
+ *   moves a published number.
+ *
+ * SELECTOR CONTRACT: grid marks carry .contrib-heatmap__cell, legend
+ *   swatches carry .contrib-heatmap__swatch, and both carry
+ *   data-level="0".."4". Each opacity is written ONCE against a selector
+ *   list covering both, so the legend physically cannot disagree with the
+ *   grid about what a level looks like. contribution-heatmap.tsx emits
+ *   the markup and the class names are shared — rename here, rename
+ *   there. Nothing in the test suite can observe a mismatch: jsdom does
+ *   not apply this stylesheet, so a divergence is caught only by eye.
+ *
+ * No animation, no transition, no hover motion anywhere in this section,
+ *   so prefers-reduced-motion (Req 5.8) is satisfied by construction.
+ * ------------------------------------------------------------------ */
+
+/* Pure CSS safety net around the <svg>, deliberately with NO `tabindex`
+ * and no accessible name (Req 3.6). At the pinned 11px pitch (9px mark +
+ * 2px gap) the 26-column grid is 286px wide and fits the 288px content
+ * box at a 320px viewport, so this container never scrolls at any
+ * supported width. Making it focusable would park a permanently inert
+ * region in the tab order — a keyboard cost with no benefit, and the
+ * exact affordance Req 3.6 removes. tabindex="0" plus an accessible name
+ * become required only if the pitch constraint is relaxed, and that is a
+ * change to the requirement, not a runtime condition. */
+.contrib-heatmap__scroll {
+  overflow-x: auto;
+}
+
+.contrib-heatmap__cell,
+.contrib-heatmap__swatch {
+  fill: var(--brand);
+}
+
+/* Level 0 (a covered day with zero contributions) is a deliberate pale
+ * brand tint, not a bug. Req 4.3 sets a ≥1.5:1 floor against the surface
+ * precisely so empty days stay visible rather than vanishing like
+ * --border does (1.26:1 light / 1.32:1 dark). 0.28 measures 1.54:1 /
+ * 1.65:1. The floor is tight: 0.27 is the minimum that still passes
+ * (1.5217) and 0.26 measures 1.4966, which FAILS. Lowering this alpha to
+ * make the grid look cleaner silently breaches Req 4.3 — if the tint has
+ * to go, the requirement changes first. */
+.contrib-heatmap__cell[data-level="0"],
+.contrib-heatmap__swatch[data-level="0"] {
+  fill-opacity: 0.28;
+}
+
+.contrib-heatmap__cell[data-level="1"],
+.contrib-heatmap__swatch[data-level="1"] {
+  fill-opacity: 0.48;
+}
+
+.contrib-heatmap__cell[data-level="2"],
+.contrib-heatmap__swatch[data-level="2"] {
+  fill-opacity: 0.66;
+}
+
+.contrib-heatmap__cell[data-level="3"],
+.contrib-heatmap__swatch[data-level="3"] {
+  fill-opacity: 0.82;
+}
+
+.contrib-heatmap__cell[data-level="4"],
+.contrib-heatmap__swatch[data-level="4"] {
+  fill-opacity: 1;
+}
+
+/* forced-colors / Windows High Contrast (Req 5.6). `fill` is a forced
+ * property, so it is pinned to the CanvasText system keyword — the one
+ * deliberate exception to this file's every-colour-is-a-var() rule.
+ * `fill-opacity` is NOT forced, so the five steps above survive and give
+ * 1.99 / 3.70 / 7.25 / 13.59 / 21.00 against Canvas under the standard
+ * black-on-white theme (worst adjacent separation 1.54). The outline adds
+ * a forced-property channel for the distinction opacity cannot carry, so
+ * three states resolve: no-data renders as no element at all (the
+ * component emits nothing), zero is outlined, non-zero is filled. This
+ * block ships unconditionally.
+ *
+ * The zero-state selectors are written out in full rather than as a bare
+ * [data-level="0"], which would reach any future data-level anywhere on
+ * the page and breach Req 4.10's .contrib-heatmap__*-prefixed rule. */
+@media (forced-colors: active) {
+  .contrib-heatmap__cell,
+  .contrib-heatmap__swatch {
+    fill: CanvasText;
+  }
+
+  .contrib-heatmap__cell[data-level="0"],
+  .contrib-heatmap__swatch[data-level="0"] {
+    outline: 1px solid CanvasText;
+  }
+}
+
+/* Print (Req 4.12): the graphic goes, the text channel stays. The <h2>,
+ * the visible summary, the freshness line and the monthly table are
+ * untouched and print. print.css reaches this route through globals.css
+ * and re-bases --background/--card to white and --brand to an on-white
+ * rust, but SVG fill prints even with background graphics disabled, so
+ * the grid and legend are hidden outright rather than relying on that.
+ *
+ * The disclosure is forced open through ::details-content, NOT through
+ * `display`. A closed <details> hides its content via that
+ * pseudo-element, which `display` on the host or on its children cannot
+ * reach, so `details { display: block }` is a no-op here — Req 4.12's
+ * "/ [open] equivalent" licenses this form. Measured under Playwright in
+ * Chromium 147, WebKit 26.4 and Firefox 148, and lightningcss (via
+ * @tailwindcss/postcss) passes it through unchanged. No `display`
+ * fallback beside it: it reveals nothing in any of the three engines and
+ * demotes the table to a block box, which shrink-wraps a width:100% table
+ * on paper. No !important either — an author declaration already beats
+ * the UA `details::details-content { content-visibility: hidden }`.
+ * Known gap, recorded rather than engineered around: Playwright's WebKit
+ * is not Safari, and an engine without ::details-content prints the table
+ * collapsed. The summary, range and freshness line still print. */
+@media print {
+  .contrib-heatmap__scroll,
+  .contrib-heatmap__legend {
+    display: none;
+  }
+
+  .contrib-heatmap__details::details-content {
+    content-visibility: visible;
+  }
+}
+
+/* ------------------------------------------------------------------ *
  * Resources: category sections (Req 5.9)
  *   Sections stack vertically at every breakpoint; entries are always
  *   single-column. No grid needed — block flow handles the stacking.
