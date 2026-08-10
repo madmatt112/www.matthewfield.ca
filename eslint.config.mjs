@@ -16,6 +16,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Pagefind generated bundle (built by `pnpm build:search`).
     "public/pagefind/**",
+    // Claude Code scratch space, incl. nested worktrees and their build output.
+    ".claude/**",
   ]),
   // Chokepoint-bypass guard: direct imports of "#site/content" are forbidden
   // outside the authorized helper. Consume posts via src/lib/blog.ts.
