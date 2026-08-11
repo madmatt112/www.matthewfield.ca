@@ -27,8 +27,10 @@ Req 10.6 reversed (below), that PR is now unconditionally independent: nothing i
 `contributions.yaml`, and nothing this spec builds changes when that PR lands.
 
 **Scheduled sync automation** is deferred to a follow-on spec. With no automation the file is seeded
-by hand (Req 8), which makes the freshness disclosure (Req 7.3), the coverage contract (Req 2.2), and
-the detector (Req 9) load-bearing rather than decorative.
+by hand (Req 8), which makes the coverage contract (Req 2.2) and the detector (Req 9) load-bearing
+rather than decorative. **[v5]** The third leg of that stool — the visitor-facing freshness
+disclosure — was withdrawn from Req 7.3 after implementation, so the detector now carries staleness
+alone and reports it to CI rather than to the reader.
 
 ### Why 26 weeks and not the conventional 52
 
@@ -578,23 +580,44 @@ it found them.
 
 6. No change to `src/app/sitemap.ts` or `/sitemap` is required.
 
-### Requirement 7: Published-range disclosure and data freshness
+### Requirement 7: Published-period disclosure and data freshness
 
 **User Story:** As a visitor, I want to know what period the graphic covers and how current it is.
 
+> **[v5 — amended 2026-08-11, post-implementation, at Matthew's direction.]** This requirement was
+> rewritten *after* the spec reached Complete, to match a product decision taken against the shipped
+> page. Two changes, recorded rather than back-dated:
+>
+> 1. **7.2 no longer states endpoints.** The summary reads "in the past 6 months" instead of
+>    "from February 15, 2026 to August 10, 2026". The duration is still derived from the published
+>    range, so a short seed still reports a short period.
+> 2. **7.3 is withdrawn.** The freshness line ("Counts are updated through …") is removed entirely.
+>
+> **The cost, stated because it is real and was accepted knowingly.** Together these leave the
+> section with no date anywhere. A duration is relative to when the data was *captured*, not when the
+> page is *read*, and the detector in Req 9 tolerates 45 days — so between reseeds the page can say
+> "the past 6 months" for a window that ended weeks earlier, with nothing on the page to correct it.
+> The v4 design deliberately paired the duration with an `anchorDate` for exactly this reason. That
+> pairing is gone; **Req 9's detector is now the only backstop**, and it warns CI rather than the
+> visitor. Reseeding cadence is what keeps this honest.
+
 #### Acceptance Criteria
 
-1. A **visible text summary** SHALL state the published range and the headline figures, derived from
+1. A **visible text summary** SHALL state the published period and the headline figures, derived from
    `ActivityWindow`, never hard-coded.
 
-2. **The summary SHALL state `publishedRangeStart → publishedRangeEnd`** — never `windowStart`, never
-   `windowEnd`. **[v4] No copy anywhere SHALL assert a fixed "26 weeks"**, because the published range
-   is 176–182 days when coverage is complete and shorter when it is not; v3's Introduction, Req 10.1,
-   and in-scope list all said "26 weeks" while Req 7.2 pinned a range that can disagree with it. The
-   26-week figure describes the grid frame, which is an implementation fact, not a claim to a visitor.
+2. **The summary SHALL state the published period as an approximate duration** derived from
+   `publishedRangeStart → publishedRangeEnd` — never `windowStart`, never `windowEnd`, and **[v5]**
+   never the endpoints themselves. Deriving rather than hard-coding is load-bearing: the published
+   range is 176–182 days at full coverage and shorter when incomplete, so a literal "6 months" would
+   be false for a thin seed. **[v4] No copy anywhere SHALL assert a fixed "26 weeks"** — the 26-week
+   figure describes the grid frame, an implementation fact, not a claim to a visitor.
    A link to `https://github.com/madmatt112` SHALL be present, `rel="noopener"`, same-tab.
 
-3. A **freshness disclosure SHALL be rendered**, stating `anchorDate`. Mandatory.
+3. **[v5 — WITHDRAWN.]** ~~A freshness disclosure SHALL be rendered, stating `anchorDate`.
+   Mandatory.~~ No freshness disclosure is rendered. `anchorDate` is not published to visitors in any
+   form. The criterion is struck rather than deleted so that reviews r1–r9, the design document, and
+   the implementation logs that cite "Req 7.3" still resolve to something that explains itself.
 
 4. Date and number formatting SHALL go through `src/lib/format-date.ts` — `formatContentDate` (en-CA,
    e.g. "August 8, 2026") for dates and `formatMonthYear` for month labels. **[v4] The module exports
@@ -603,7 +626,9 @@ it found them.
    component. No date library SHALL be introduced.
 
 5. **Staleness and partial coverage are soft failures**: neither SHALL fail the build or hide the
-   graphic. Reqs 7.2, 7.3 and 9 are the mitigations.
+   graphic. **[v5]** Req 7.2's shrinking period and Req 9's detector are the mitigations — Req 7.3 was
+   withdrawn, so partial coverage is disclosed to the visitor only as a shorter stated duration, and
+   staleness is disclosed to CI alone.
 
 ### Requirement 8: One-time seeding and review fixture
 
@@ -660,8 +685,10 @@ criteria deliver rather than to claim a channel that does not exist.
 4. The staleness threshold is **45 days**, pinned here because Req 10.1 requires the authoring doc to
    document it.
 
-5. It SHALL warn, not fail. A stale or partially covered graphic is honest-but-limited, and Reqs 7.2
-   and 7.3 already disclose it to visitors.
+5. It SHALL warn, not fail. A stale or partially covered graphic is honest-but-limited. **[v5]** Req
+   7.2's derived duration still shrinks with partial coverage, but Req 7.3 was withdrawn, so
+   **staleness is no longer disclosed to visitors at all** — this warning is the only signal, and it
+   reaches maintainers rather than readers.
 
 6. It SHALL emit bare `::warning::` lines, matching `scripts/check-vercel-auto-deploy.mjs` and
    `scripts/warn-no-pagefind.mjs`.
