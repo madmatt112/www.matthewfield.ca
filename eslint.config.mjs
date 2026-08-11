@@ -16,6 +16,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Pagefind generated bundle (built by `pnpm build:search`).
     "public/pagefind/**",
+    // Claude Code scratch space, incl. nested worktrees and their build output.
+    ".claude/**",
   ]),
   // Chokepoint-bypass guard: direct imports of "#site/content" are forbidden
   // outside the authorized helper. Consume posts via src/lib/blog.ts.
@@ -27,7 +29,7 @@ const eslintConfig = defineConfig([
           paths: [
             {
               name: "#site/content",
-              importNames: ["posts", "contributions", "resources"],
+              importNames: ["posts", "contributions", "resources", "githubActivity"],
               message:
                 'Import posts via src/lib/blog.ts helpers (e.g., getPublishedPosts) instead of "#site/content" directly.',
             },
@@ -41,6 +43,7 @@ const eslintConfig = defineConfig([
       "src/lib/blog.ts",
       "src/lib/contributions.ts",
       "src/lib/resources.ts",
+      "src/lib/github-activity.ts",
       "velite.config.ts",
       "src/__fixtures__/chokepoint-canary.ts",
       "src/__fixtures__/content-chokepoint-canary.ts",

@@ -20,3 +20,8 @@
 # verbatim; reformatting them silently breaks the canary tests.
 /src/__fixtures__/chokepoint-canary.ts
 /src/__fixtures__/content-chokepoint-canary.ts
+
+# GitHub contributions audit fixture — the raw API payload, kept byte-identical
+# so the seed in content/github-activity.yaml stays checkable against it.
+# Reformatting it destroys the only thing it is for.
+/scripts/__fixtures__/github-activity/

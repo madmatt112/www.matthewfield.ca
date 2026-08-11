@@ -17,9 +17,10 @@ here expecting a script to read it — none exists.
 
 ## How these numbers were produced
 
-`pnpm lhci` runs `lhci autorun` over **all seven URLs in `lighthouserc.js`**
-(`/profile`, `/contact`, `/blog`, `/blog/fixture-code`, `/blog/fixture-toc`,
-`/blog/tags/fixture`, `/blog/categories/fixture`), three runs each, desktop preset.
+`pnpm lhci` runs `lhci autorun` over **all eight URLs in `lighthouserc.js`**
+(`/profile`, `/contact`, `/contributions`, `/blog`, `/blog/fixture-code`,
+`/blog/fixture-toc`, `/blog/tags/fixture`, `/blog/categories/fixture`), three runs
+each, desktop preset.
 `/profile` is the first URL. The tables below record `/profile` specifically; the
 full-set outcome is summarised under each run for context.
 

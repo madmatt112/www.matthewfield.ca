@@ -13,9 +13,13 @@ export function ContributionCard({ contribution, index }: ContributionCardProps)
     <article className="contribution-card">
       <div className="contribution-card__head">
         <code className="contrib-repo">{repo}</code>
-        <h2 id={headingId} className="contribution-card__title">
+        {/* h3, not h2: the cards sit under the page's "Highlighted" <h2>, so
+         * levelling them with it would make each card a sibling of the heading
+         * that introduces the whole list. Styling is carried by the class, so
+         * the level is free to be the semantically correct one. */}
+        <h3 id={headingId} className="contribution-card__title">
           {title}
-        </h2>
+        </h3>
       </div>
       <p className="contribution-card__desc">{description}</p>
       <div className="contribution-card__meta">

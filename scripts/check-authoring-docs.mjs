@@ -37,6 +37,7 @@ export const CANONICAL_HEADINGS = [
   "## Empty-file behavior",
   "## No-draft policy and removal latency",
   "## Deep-link anchor stability",
+  "## GitHub activity data",
 ];
 
 /** Canonical headings for slash-pages-authoring.md. */

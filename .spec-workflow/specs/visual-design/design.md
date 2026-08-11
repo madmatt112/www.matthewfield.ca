@@ -170,10 +170,16 @@ uses — and **only** these:
 - active/selected affordances (active nav marker, active TOC item);
 - the `/` glyph in the wordmark and section kickers (the signature mark);
 - thin non-interactive brand indicators that are not surfaces: the reading-progress line and a
-  hairline section rule.
+  hairline section rule;
+- **non-text data marks in a single-hue sequential ramp** — brand at varying alpha, used to encode
+  one ordered magnitude, under the steering carve-out in `design-system.md` (§Color). Added for the
+  `github-activity` contribution heatmap. A data mark is a small non-interactive shape carrying no
+  foreground; the ramp orders marks by luminance and is always paired with a non-color channel.
 
 **Forbidden:** the brand SHALL NOT fill page/section backgrounds, cards, or any large surface
-(R2.3). The `brand` Button is a small control, not a surface.
+(R2.3). The `brand` Button is a small control, not a surface. **A field of data marks is not a
+surface** — individual marks are small, carry no content, and sit *on* a surface; but the field as a
+whole SHALL NOT be given a brand-tinted background, which would be the forbidden case.
 
 **Link states (R8.4), tokenized:**
 
@@ -235,6 +241,25 @@ target ratio; exact ratios verified against the contrast tooling at implementati
 | `brand` (link) | ✓ ≥4.5 | ✓ ≥4.5 | ✓ ≥4.5 | — |
 | `brand` ring / boundary | ✓ ≥3 (non-text) | ✓ ≥3 | ✓ ≥3 | — |
 | `<role>` text (status) | ✓ ≥4.5 | ✓ ≥4.5 (own tint over card) | — | ✓ ≥4.5 on own tint over bg |
+| `brand` data mark (non-text) | ✓ see below | ✓ see below | — | — |
+
+**Non-text data marks (added for `github-activity`).** A data mark has **no foreground**, so the
+foreground×surface matrix above cannot gate it; it is gated mark-versus-surface instead. For a
+single-hue sequential ramp of `brand` at alpha over **`background` or `card`** — both are legal, and
+the gates below are evaluated against whichever surface the marks actually sit on:
+
+| Gate | Target |
+|---|---|
+| Darkest step vs its surface | ≥3:1 (non-text, WCAG 1.4.11) |
+| Each step vs its immediate neighbour | ≥1.3:1 |
+| "No value" step vs its surface | ≥1.5:1 — must stay visible where `card` and `background` are both white |
+
+Both themes, composited, measured and recorded per-step in the consuming spec's design document.
+**Nesting carve-out:** data marks placed on `card` on `background` would be depth 3, one deeper than
+the max above. Permitted for this class only, because the marks carry no text and therefore trigger no
+text-contrast gate at any depth. The carve-out does not extend to any surface carrying content, and is
+not needed when the marks sit directly on `background` at depth 2 — which is the shipped arrangement
+for `github-activity`.
 
 Status text is gated on its `/10` tint **composited over both `background` and `card`** (the deepest
 legal nest) — see the status-roles compositing note above; the values were tuned for that, not just

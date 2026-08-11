@@ -1,134 +1,153 @@
 # HANDOFF — spec-workflow in-flight state
 
-Single source of in-flight phase state (per spec-loop-v3). The generated roadmap lives in
-`.spec-workflow/spec-decomposition/INDEX.md`; build order lives in `decomposition.md`.
+Single source of in-flight phase state (per `spec-loop-v3`). The generated roadmap lives in
+`.spec-workflow/spec-decomposition/INDEX.md` (never hand-edited); build order lives in
+`decomposition.md`.
 
-- **Active spec:** none. `profile-resume` (spec #10) was **implemented and marked Complete on
-  2026-08-07**. INDEX.md was regenerated and shows `profile-resume | Complete | 24/24`.
-- **Last completed spec:** `profile-resume` (spec #10), implemented 2026-08-07.
-- **Roadmap state:** all 10 specs in `decomposition.md` are `Complete`. Nothing is deferred.
-- **Next action:** re-running `sdd-router.md` will report **"SDD roadmap complete — no active spec"**
-  and exit. There is no next spec to route to. To continue, add a spec to `decomposition.md` first.
+## Current state (2026-08-11)
 
-## profile-resume — completion record (2026-08-07)
+- **`github-activity` (spec #11) is COMPLETE — 25/25 tasks, INDEX regenerated and showing `Complete`.**
+- Shipped on branch **`feat/github-activity`**, pushed, open as **PR #50**. Not merged — Matthew
+  reviews the Vercel preview first.
+- Every gate green at completion: 747 unit tests, `test:tz` in both pinned zones, 203 e2e, lint 0
+  errors, `pnpm build`, and Lighthouse **100/100/100/100** on `/contributions`.
+- **INDEX `## Next` is now `ambiguous`** — see §What the next run does.
 
-**Workspace.** Code lives in the git worktree `/home/mcf/repo/matthew-field.ca-profile-resume` on
-branch `spec/profile-resume`. Spec state lives here, in the main checkout. That worktree carries a
-**stale committed copy of `.spec-workflow/`** which predates this spec — reading it will make an
-agent conclude the roadmap is complete for the wrong reason. Resolve every `.spec-workflow` path
-against the main checkout, and never pass `projectPath` to an MCP call.
+## What this spec actually shipped
 
-**Nothing is merged.** 42 commits sit on `spec/profile-resume` above `main`; none on `main`. No PR
-yet. Working tree clean at `2f2d63d`.
+364 real contribution days (2025-08-12 → 2026-08-10, 2,003 contributions across 129 active days),
+hand-seeded from one authenticated `contributionsCollection` query and verified against an
+independent re-query with **zero mismatches**. The published 26-week window shows 1,712 across 107
+active days. No network call anywhere in the build (Req 1.7 verified by tripwire).
 
-> **Before opening a PR, read the spec-docs tracking decision below (`d-d3295c3e`).** The earlier
-> version of this file said the spec documents "must be copied into the branch" so the PR carries
-> spec and implementation together. **That instruction is now superseded** — see below.
+Both human-owned tasks were completed rather than stalled:
 
-### Tasks 20–24 (this run)
+- **Task 9** — Matthew authorised running the query in-session; data seeded and API-verified.
+- **Task 17** — Matthew gave the two by-eye verdicts on 2026-08-11: 9px ramp resolvability **PASS in
+  both themes**, including the ramp's two tightest pairs (light 2→3 at 1.39:1, 1→2 at 1.41:1).
+  Checks 3 and 4 passed mechanically; forced-colors used the **emulated** Playwright route (host High
+  Contrast was off), and that is named as emulated in design.md's appended `## Implementation
+  evidence` section, per Req 5.6.
 
-| # | Task | Commit(s) |
-|---|---|---|
-| 20 | print slice | `06c5d20`, `f3479a9`, `90b92b1`, later `37c3018`, `2f2d63d` |
-| 21 | "a decade" consistency test | `27895ab` |
-| 22 | coverage + dependency verifiers | `df25f6d`, `1809a68`, `92cf305`, `b5277ef` |
-| 23 | Lighthouse run record | `2ab4d9a`, `4f5790e` |
-| 24 | E2E + full verification | `0910138`, `a7d3fe8`, `c3fae2b` |
+## What the next run does
 
-Tasks 1–19 were completed in earlier runs; see the git history and the previous revision of this file.
+**Routes to `github-activity-sync`, at Requirements, in the document loop.** Deterministic — no
+choice to make:
 
-Every task: implemented → `log-implementation` → independent review → findings actioned → re-review
-→ `[x]`. Tasks 20, 22 and 24 each needed the full three fix+re-review rounds; 21 and 23 converged in
-one. **Task 20 was reopened after the completion gate** (see below) and re-closed.
+- INDEX `## Next` is `all-on-disk-complete` (every spec on disk is Complete). Per the router's own
+  rule that is *not* roadmap completion: it means read `decomposition.md` for a spec named there with
+  no `.spec-workflow/specs/<name>/` directory.
+- Exactly one qualifies: **`github-activity-sync`** (`decomposition.md:212`, spec #12). Specs are
+  created lazily, so its absence from disk is expected. Its auth, commit path and validation posture
+  are already pinned in the decomposition block.
 
-### The completion gate earned its keep — read this
+**Merge PR #50 first, then branch off a fresh `main`.** `github-activity-sync` gets its own branch
+and PR — it is deliberately *not* folded into #50, which stays reviewable as the heatmap on its own.
 
-The first end-to-end verification returned **`VERIFY: fail`**, catching a defect that **three rounds
-of independent class-level review had passed**:
+## Roadmap hygiene — resolved 2026-08-11
 
-`print.css`'s site-chrome rules were written as bare `header` / `footer` descendant selectors, so they
-also matched the role `<header class="profile-role-header">`. **The printed CV showed no employers,
-no job titles and no dates on any of the four roles** — the exact artifact R6 exists to produce.
-Every prior reviewer had verified that the *rules and class hooks* were correct; none had rendered a
-PDF. Fixed in `37c3018` by scoping chrome suppression to `.site-header` / `.site-footer` class hooks
-added to the layout components, plus a regression test.
+`.spec-workflow/specs/listening-sockets/` was a **stray empty directory** (an empty `reviews/`, no
+documents, no approvals, untracked in git) created against the wrong project. It was outside
+`decomposition.md`, so it made INDEX `## Next` report `ambiguous` and would have stopped the router.
 
-That same fix pass found a second, latent R6.6 violation: **dark-mode printing produced a black 2cm
-margin box on every sheet.** next-themes' inline `color-scheme: dark` drives Chrome's page margin box;
-`html { background: white }` does nothing and a non-`!important` declaration loses. Resolved with
-`color-scheme: light !important` inside `@media print`, guarded by a test (`2f2d63d`).
+**Deleted** (via `rmdir`, so it could not have removed anything non-empty). The real
+`listening-sockets` spec lives in **`~/repo/devtop/`** — 162k design, 128k requirements, 260k tasks,
+full reviews and implementation logs — and is untouched.
 
-**The lesson, for any future print work:** target chrome by class, never by element — and verify by
-**rendering an actual PDF**. Playwright's `emulateMedia({ media: "print" })` missed both defects.
+## Deferrals recorded during implementation
 
-The second end-to-end verification returned **`VERIFY: pass`** on all five scenario clauses.
+- **`d-eb289402`** — a link row in `src/components/layout/footer.tsx` overflows `<body>` to 342px at
+  a 320px viewport on **every** site route, heatmap or not. Pre-existing; this spec did not cause it.
+  Req 3.10 only asks that the heatmap not *cause* overflow, so task 23 asserts causation instead and
+  the page bug stays visible rather than masked.
+- **`d-cd92bbdf`** — a future-dated entry is correctly rejected, but with Zod's generic
+  `Invalid input` rather than a message naming the `BUILD_START_UTC` rule. Matches the existing
+  `resources-schema.ts` / `reading-schema.ts` precedent, so fixing one without the other three would
+  be inconsistent. Diagnostic quality, not correctness.
+- `d-db7c55e9` (the data-viz palette deferral) was carried in from the document phase, unchanged.
 
-### Verified state at `2f2d63d`
+## Corrected in passing
 
-- vitest **593 passed / 1 skipped / 0 failed** (589/2 on a clean tree — see the `feed.xml` note below)
-- Playwright **182 passed / 16 skipped / 0 failed** (198 total). Developer-run; **CI runs no Playwright.**
-- `tsc --noEmit`, `pnpm exec velite build`, `pnpm build`, prettier — all clean
-- eslint — 0 errors, 7 pre-existing warnings in untouched files
-- axe — **zero violations on `/profile` in both themes**
-- Lighthouse `/profile` — **Performance 100, Accessibility 100, Best Practices 100, SEO 100**
-  (recorded in `docs/profile-resume-lighthouse-runs.md`; developer-run, not a CI gate)
+`docs/profile-resume-lighthouse-runs.md` said "all seven URLs"; task 21 added `/contributions` as the
+eighth and thereby falsified it, so this branch fixed it. Everything else out of scope was recorded
+rather than edited.
 
-> A reported Playwright count of "168 passed" during this run was a **misread of the list reporter's
-> per-test ordinal**, not lost tests. The true stable count is 198 = 182 passed + 16 skipped,
-> confirmed by `--list` and two full runs. Recorded here so it is not re-investigated.
+## GitHub token — settled 2026-08-10, verified by query
 
-> `src/app/feed.xml/parity.test.ts` is build-gated on `.next/server/app/blog/fixture-code.html`: with
-> that artifact present it contributes 4 passes, without it 1 skip. Expect 593/1 after a `pnpm build`,
-> 589/2 on a clean tree. **Not a regression.**
+Task 9 and the follow-on sync spec both use the same credential, so the seed and every later refresh
+cannot diverge in what they count.
 
-### One known pre-existing failure, unrelated to this spec
+- **Classic PAT with zero scopes ticked.** Verified working against
+  `user(login: "madmatt112").contributionsCollection.contributionCalendar` → 2004 contributions in
+  the trailing 52 weeks. Fine-grained PATs are not used (GraphQL support for `contributionsCollection`
+  is undocumented); there is no unauthenticated route.
+- **No-scope over `read:user`, deliberately.** `restrictedContributionsCount` is 0, so both return
+  the same figure today — but a scoped token would silently begin inflating the published graph above
+  the verifiable public profile if private work ever appeared. No-scope makes the number
+  **public-only by construction**.
+- Secret name **`GH_CONTRIBUTIONS_TOKEN`** (GitHub forbids `GITHUB_`-prefixed secrets, and the
+  auto-injected `GITHUB_TOKEN` is repo-scoped and cannot read the calendar at all). One-year expiry;
+  Req 9's 45-day freshness check is the detector when it lapses.
 
-`scripts/verify-ci-topology.test.mjs` — the "meta-gate — PHASE_POST_23.3 with flag unset" case fails
-on missing blog-enhanced `ci.yml` "Build 2" steps. Confirmed pre-existing by stashing, three separate
-times. **Do not attribute it to this spec.**
+## Committed
 
-### Deferrals recorded this run
+Everything from this spec is committed on `feat/github-activity` (17 commits) and pushed. Spec
+documents landed first, then one commit per task or coupled task-group, following the project's rules:
+**never `git add -A`**, and site changes go on a feature branch rather than straight to `main`.
 
-| ID | What |
-|---|---|
-| `d-d3295c3e` | **profile-resume's spec docs are untracked in git** — the only one of ten. Both verifier scripts therefore print `SKIPPED` for it. **User decision: leave untracked.** This repo is PUBLIC and a personal resume leaked into it once before, requiring a history rewrite; these docs discuss curated employment history specifically. Their clean 45/45 run was obtained against temporary copies. |
-| `d-5bfb5a4d` | Nine repo scripts have fragile entrypoint guards (space-in-path and/or symlink) that make them **silently exit 0**. `check-authoring-docs.mjs` is the sharpest risk — it genuinely runs in CI. |
-| `d-71a32ac4` | The `n/a` sentinel is now the **only** way to declare deliberate no-coverage in a requirements matrix. Undocumented in spec-authoring guidance. |
-| `d-11755b74` | `pnpm lhci` aborts at URL 4/7 unless built with `BLOG_INCLUDE_DRAFTS=1` — the four `/blog/fixture-*` URLs 404 as drafts, and lhci exits before the assert step, so gates are never evaluated. |
-| `d-fcec30d3` | **Two sibling Lighthouse runs-logs falsely claim a CI cadence gate that does not exist.** Neither cadence script is wired into `ci.yml`. Only this spec's new runs-log was corrected. |
-| `d-007389a8` | The DOI mask in `/profile`'s contact-data scan can swallow a phone number typed hard against a `10.NNNN/` prefix. Accepted as strictly better than the `wa.me/` hole it replaced. |
-| `d-a31e2253` | **`pnpm build` alone does not gate malformed content** — it exits 0 against a stale `.velite/`. The real gate is `pnpm exec velite build`, reached via `postinstall`. Supersedes the standing constraint previously recorded here as `d-096a531a`. |
+`Implementation Logs/` and the task-17 screenshot evidence are gitignored (`.gitignore:63`) by design —
+they are evidence, not repository artifacts.
 
-Still open from earlier runs: `d-c216e0c9` (raw NUL byte in `src/lib/mail.ts:52` makes git treat the
-file as binary), `d-b2055869` (velite `strict: true`), `d-3a396493` (content chokepoint parity —
-**settled, do not re-litigate**), `d-096a531a` (see `d-a31e2253` above).
+## Roadmap change
 
-### Decisions taken during this run
+**`### 12. github-activity-sync` added to `decomposition.md`** and INDEX regenerated. It has no spec
+directory yet (specs are created lazily), so it will not appear in the roadmap table until
+`github-activity` is Complete — at which point it becomes the active spec. Its auth, commit path and
+validation posture are already pinned in the decomposition block.
 
-- **`.spec-workflow/specs/profile-resume/` stays untracked.** See `d-d3295c3e`. This **supersedes**
-  the earlier instruction in this file to copy the spec documents into the branch before opening a
-  PR. If that is revisited, the docs must first be reviewed against the R3 curation checklist in
-  `docs/experience-authoring.md` — and staged directory-by-directory, **never** with `git add -A`.
-- **AC 6.1's coverage-matrix cell was rewritten** to `n/a — no /resume route created; negative
-  requirement, verified by absence`, because task 22 tightened the verifier to require a real task
-  number or an explicit sentinel. R6.1 is a negative requirement and legitimately has no covering task.
-- **Task 20 deviated from "do not touch the token re-declaration block."** Justified: R6.6 (light CV
-  from dark mode) is squarely in that task's scope and could not be satisfied otherwise. Reviewed and
-  ruled sound.
-- **Task 23 ships no cadence script**, unlike the two sibling runs-logs. The non-parity is stated
-  explicitly in that doc's header rather than implied.
+## Recorded, not resolved
 
-### Open follow-ups for the human (non-blocking, NOT defects)
+**Design §Components' `TZ` premise is false.** It justifies the `test:tz` split-run with *"Vitest
+reads `process.env.TZ` at worker start, so a single run cannot hold two zones."* Assigning
+`process.env.TZ` mid-process switches both `Date` and `Intl` under Node 24, and
+`src/lib/format-date-tz.test.ts:4` — the precedent the design itself cites — is the counterexample. A
+single-run `beforeAll` form would give both zones inside the existing `Unit tests` step and delete a
+`package.json` script, a CI step and two full Velite builds per CI run. **The approved mechanism is
+implemented as specified**; tasks v9 corrects only its rationale. Matthew's call whether to amend the
+design later. Decided 2026-08-10: leave it.
 
-- **`content/experience.yaml:113`** says "a couple of hours" where the master resume says "a few
-  hours" — a small unsourced tightening. Worth a glance.
-- **Cosmetic, task 7.** A comment and error message in `src/lib/build/check-experience-project-links.ts`
-  say drafts are filtered "on production only"; `getPublishedProjects()` filters them in every
-  environment unless `PROJECTS_INCLUDE_DRAFTS=1`. Only the `fixture-` filter is production-only.
-- **Minor, task 19.** `getExperience()/getSkills()/getEducation()` each run twice per render (once for
-  the page, once inside `buildProfileJsonLd()`). Trivial under `force-static`.
-- **Detector limits, task 16.** The recursive JSON-LD contact-data test is defence in depth, not a
-  security boundary. Its `PHONE_SHAPED` pattern matches any 7+ digit run, so **moving employment dates
-  to day precision would turn the R7.3 test spuriously red.**
-- **The site is not deployed from this branch.** Per standing preference, site changes go on a feature
-  branch and get pushed for a Vercel preview — never straight to `main`.
+## Tasks-phase convergence record
+
+Nine versions, nine adversarial rounds. **Finding curve 25 → 15 → 11 → 7 → 5 → 4 → 6 → 5 → 2**,
+`DESIGN_READY: yes` from r4 onward, zero MUST_FIX in four of the last five rounds. Capped at v9; r9's
+two remaining items were closed in place (v10 is forbidden) and that closure is the one edit no review
+has seen. From r6 onward every round's findings were defects introduced by the previous round's own
+repair, all circling one ~20-line neighbourhood — the print block and its single gate — while the
+other twenty-four tasks went untouched from r4 on.
+
+Verified mechanically after every version: 25 tasks; **32 DAG edges from the `_Depends on:_` footers,
+32 from the mermaid graph, identical in both directions**, acyclic, valid topological order; **all 99
+acceptance criteria covered**, coverage table and footers agreeing both ways, all 25 embedded
+`_Prompt:` strings matching their footers; **zero citation drift across six consecutive versions**.
+
+## Approval records (resume contract)
+
+- Requirements v4 — approved 2026-08-09, record deleted after approval.
+- Design v9 — `approval_1786330529757_4d3qmr95l`, approved 2026-08-10.
+- Tasks v1–v9 — nine coexisting records, none deleted (the loop never deletes approvals). **v9 is the
+  live one: `approval_1786345399035_a9cvusyk2`, approved.** v7 was also approved by mistake — ignore
+  it; v9 supersedes.
+
+## Workspace contract
+
+- Main checkout **is** the cwd: `/home/mcf/repo/matthew-field.ca`. `git rev-parse --git-common-dir`
+  and `--git-dir` agree — no worktree/spec-state split for this spec.
+- **Never pass `projectPath` to an MCP call.**
+- Per `spec-loop-v3`, commits land on whatever branch HEAD is on and the loop never switches branches.
+
+## Not started
+
+- Implementation of all 25 tasks.
+- Content PR (four external contributions to `contributions.yaml`) — independent of this spec, ship
+  any time.
+- Spec #12 `github-activity-sync` — after this spec completes.

@@ -10,6 +10,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:tz": "TZ=America/Edmonton vitest run src/lib/github-activity.test.ts && TZ=Europe/Berlin vitest run src/lib/github-activity.test.ts",
     "test:e2e": "node scripts/run-e2e.mjs",
     "build:search": "node scripts/run-pagefind-crawl.mjs",
     "check:authoring-docs": "node scripts/check-authoring-docs.mjs",

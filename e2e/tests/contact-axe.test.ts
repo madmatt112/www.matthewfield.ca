@@ -3,11 +3,15 @@ import { expect, test } from "@playwright/test";
 
 import { THEME_STORAGE_KEY } from "../../src/components/layout/theme-provider";
 
-const PAGES: Array<"/profile" | "/contact"> = ["/profile", "/contact"];
+const PAGES: Array<"/profile" | "/contact" | "/contributions"> = [
+  "/profile",
+  "/contact",
+  "/contributions",
+];
 const THEMES: Array<"light" | "dark"> = ["light", "dark"];
 const AXE_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 
-test.describe("profile + contact axe-core a11y (parameterized by page and theme)", () => {
+test.describe("profile + contact + contributions axe-core a11y (parameterized by page and theme)", () => {
   for (const path of PAGES) {
     for (const theme of THEMES) {
       test(`${path} is axe-clean in ${theme} theme`, async ({ page }) => {
