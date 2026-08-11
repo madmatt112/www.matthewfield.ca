@@ -6,9 +6,8 @@
 
 ## Next
 
-- **State:** ambiguous
-- **Why:** 1 spec(s) outside decomposition.md are not Complete, none started, and nothing declares their order. Pick one explicitly, or add them to decomposition.md to sequence them.
-- **Candidates:** listening-sockets (no tasks yet)
+- **State:** all-on-disk-complete
+- **Why:** Every spec on disk is Complete. This is NOT necessarily roadmap completion — check decomposition.md for a spec named there with no .spec-workflow/specs/<name>/ directory. Such a spec has not been created yet and is invisible here; it is the next spec, starting at Requirements.
 
 ## Active
 
@@ -25,9 +24,3 @@
 | 9 | slash-pages | Complete | 16/16 |
 | 10 | profile-resume | Complete | 24/24 |
 | 11 | github-activity | Complete | 25/25 |
-
-## Other specs (not in decomposition.md)
-
-| Spec | Status | Progress |
-| --- | --- | --- |
-| listening-sockets | Requirements | — |

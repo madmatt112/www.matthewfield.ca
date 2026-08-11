@@ -31,14 +31,28 @@ Both human-owned tasks were completed rather than stalled:
 
 ## What the next run does
 
-`spec-status` will report `github-activity` complete, so the router hands the **next** spec to the
-document loop. But **INDEX `## Next` currently reports `ambiguous`**, with one candidate:
-`listening-sockets` (Requirements, no tasks), which is not in `decomposition.md`.
+**Routes to `github-activity-sync`, at Requirements, in the document loop.** Deterministic — no
+choice to make:
 
-`### 12. github-activity-sync` is named in `decomposition.md` but has **no spec directory yet**
-(specs are created lazily). Per the router's `all-on-disk-complete` rule that is the real next spec —
-it starts at Requirements. Resolve the ambiguity by naming it explicitly, or by sequencing
-`listening-sockets` into `decomposition.md`.
+- INDEX `## Next` is `all-on-disk-complete` (every spec on disk is Complete). Per the router's own
+  rule that is *not* roadmap completion: it means read `decomposition.md` for a spec named there with
+  no `.spec-workflow/specs/<name>/` directory.
+- Exactly one qualifies: **`github-activity-sync`** (`decomposition.md:212`, spec #12). Specs are
+  created lazily, so its absence from disk is expected. Its auth, commit path and validation posture
+  are already pinned in the decomposition block.
+
+**Merge PR #50 first, then branch off a fresh `main`.** `github-activity-sync` gets its own branch
+and PR — it is deliberately *not* folded into #50, which stays reviewable as the heatmap on its own.
+
+## Roadmap hygiene — resolved 2026-08-11
+
+`.spec-workflow/specs/listening-sockets/` was a **stray empty directory** (an empty `reviews/`, no
+documents, no approvals, untracked in git) created against the wrong project. It was outside
+`decomposition.md`, so it made INDEX `## Next` report `ambiguous` and would have stopped the router.
+
+**Deleted** (via `rmdir`, so it could not have removed anything non-empty). The real
+`listening-sockets` spec lives in **`~/repo/devtop/`** — 162k design, 128k requirements, 260k tasks,
+full reviews and implementation logs — and is untouched.
 
 ## Deferrals recorded during implementation
 
