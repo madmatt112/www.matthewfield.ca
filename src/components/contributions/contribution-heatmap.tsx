@@ -164,22 +164,32 @@ export function ContributionHeatmap({ window }: ContributionHeatmapProps) {
     // its text equivalent exist for visitors and assistive technology, not for
     // search excerpts.
     <section aria-labelledby={headingId} data-pagefind-ignore="all" className="mt-12">
-      <h2 id={headingId}>GitHub activity</h2>
+      <h2 id={headingId} className="font-display text-2xl tracking-tight sm:text-3xl">
+        GitHub activity
+      </h2>
       {/* The summary carries the headline figures deliberately: the text
        * equivalent is forbidden from restating them (Req 5.3) and print hides
        * the graphic (Req 4.12), so this line is the only place a printed or
        * read-aloud page gets the totals. It states the PUBLISHED range —
        * windowStart/windowEnd are internal geometry and never visitor-facing
        * (Reqs 2.2, 7.2). */}
-      <p>
+      <p className="max-w-measure mt-2 text-muted-foreground">
         {headline}, from <time dateTime={window.publishedRangeStart}>{range.start.display}</time> to{" "}
         <time dateTime={window.publishedRangeEnd}>{range.end.display}</time>.
       </p>
-      <p>
+      <p className="mt-1 text-sm text-muted-foreground">
         Counts are updated through <time dateTime={window.anchorDate}>{updated.display}</time>.
       </p>
-      <p>
-        <a href={siteConfig.links.github} rel="noopener">
+      <p className="mt-4 text-sm">
+        {/* Same-tab by design, so no NewTabHint — that suffix pairs with
+         * target="_blank" (shared/new-tab-hint.tsx). Permanent underline, not
+         * hover-only: --brand against --muted-foreground is ~1.05:1, so colour
+         * alone would fail WCAG 1.4.1 and axe's link-in-text-block. */}
+        <a
+          href={siteConfig.links.github}
+          rel="noopener"
+          className="text-brand underline underline-offset-4"
+        >
           Matthew&rsquo;s GitHub profile
         </a>
       </p>
@@ -188,7 +198,7 @@ export function ContributionHeatmap({ window }: ContributionHeatmapProps) {
        * thing that can carry it, and CSS cannot conjure a wrapper. No
        * tabindex and no accessible name: at the pinned pitch nothing scrolls,
        * so a focusable region here would be permanently inert. */}
-      <div className="contrib-heatmap__scroll">
+      <div className="contrib-heatmap__scroll mt-6">
         {/* role="img" collapses the whole graphic to ONE leaf node carrying one
          * name (Reqs 5.1, 5.4, 5.5). That is why there are no per-cell <title>
          * elements and nothing here is focusable: descendants of an img leave
@@ -244,7 +254,7 @@ export function ContributionHeatmap({ window }: ContributionHeatmapProps) {
        * override, which words on a fixed baseline in a fixed-width <svg> could
        * not. */}
       <div className="mt-4 print:hidden">
-        <div className="flex items-center gap-2 text-xs">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>Less</span>
           {/* An inline <svg> of <rect>s, NOT five <span>s with background-color:
            * `background-color` is a forced property under forced-colors and
@@ -286,7 +296,7 @@ export function ContributionHeatmap({ window }: ContributionHeatmapProps) {
          * accurate. It states no period of its own — the summary above owns
          * that (Req 7.2). */}
         {isPeriodRelativeScale ? (
-          <p className="mt-2 text-xs">
+          <p className="max-w-measure mt-2 text-xs text-muted-foreground">
             The scale is relative to this period, so it shows only the levels these counts reach.
           </p>
         ) : null}
@@ -310,7 +320,7 @@ export function ContributionHeatmap({ window }: ContributionHeatmapProps) {
          * hear the same sentence three times traversing one section. Active
          * days is a column rather than an omission: volume without consistency
          * is the one thing the grid adds over the summary line. */}
-        <table>
+        <table className="contrib-heatmap__table">
           <thead>
             <tr>
               <th scope="col">Month</th>
@@ -330,7 +340,9 @@ export function ContributionHeatmap({ window }: ContributionHeatmapProps) {
                      * month while wearing a whole month's name, so the row says
                      * which days it counted. `isClipped` is computed, not
                      * positional — the first month is NOT always clipped. */}
-                    {monthTotal.isClipped ? <> (covers {covered.display})</> : null}
+                    {monthTotal.isClipped ? (
+                      <span className="contrib-heatmap__clipped">covers {covered.display}</span>
+                    ) : null}
                   </th>
                   <td>{formatCount(monthTotal.total)}</td>
                   <td>{formatCount(monthTotal.activeDays)}</td>
