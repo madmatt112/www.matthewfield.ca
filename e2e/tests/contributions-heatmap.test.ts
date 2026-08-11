@@ -8,8 +8,9 @@ import { THEME_STORAGE_KEY } from "../../src/components/layout/theme-provider";
  * Covers Req 3.7 (the section renders as a SIBLING that follows the card grid,
  * not merely somewhere later in the document), Req 3.10 (the SVG
  * never causes horizontal `<body>` overflow), Reqs 5.1/5.2/7.1/7.2 (the visible
- * summary and the `aria-label` publish the SAME period and figures, and neither
- * runs past `anchorDate`), Req 5.3 (the `<details>` text equivalent), and
+ * summary and the `aria-label` publish the SAME period and figures, as a
+ * duration naming no date — Req 7.3's freshness line was withdrawn at v5), Req
+ * 5.3 (the `<details>` text equivalent), and
  * Req 4.12 (print hides the `<svg>` AND the legend, and forces the monthly
  * table open).
  *
@@ -27,7 +28,7 @@ import { THEME_STORAGE_KEY } from "../../src/components/layout/theme-provider";
  *    and the number of month rows all change on every refresh. Every assertion
  *    below is therefore an INVARIANT read off the page — the table sums to the
  *    figures the summary publishes, the copy and the `aria-label` agree with
- *    each other, the period stops at the freshness date — rather than a literal
+ *    each other, the copy names no calendar date at all — rather than a literal
  *    copied out of today's seed. A test that pinned "1,712" would go red on a
  *    healthy refresh, which is how this kind of coverage gets deleted.
  *
@@ -73,8 +74,6 @@ const ARIA_LABEL_PATTERN =
   /^GitHub contributions heatmap: ([\d,]+) contributions? across ([\d,]+) active days?, in the past (?:(\d[\d,]*) )?(months|weeks|month|week)\.$/;
 
 const ARIA_LABEL_PREFIX = "GitHub contributions heatmap: ";
-
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** `textContent` preserves the JSX source's line breaks; `innerText` would hide
  * a missing space. Normalise explicitly so the comparison is about words. */
@@ -249,7 +248,7 @@ test.describe("/contributions — heatmap placement, geometry, disclosure, and p
     }
   });
 
-  test("the published period in the copy matches the aria-label and stops at the freshness date", async ({
+  test("the published period in the copy matches the aria-label and names no date", async ({
     page,
   }) => {
     await page.goto(CONTRIBUTIONS_PATH);
@@ -291,27 +290,24 @@ test.describe("/contributions — heatmap placement, geometry, disclosure, and p
       "the summary must name no calendar date",
     ).not.toMatch(/\b\d{4}\b/);
 
-    // The freshness line is what anchors that duration to a real date, so it
-    // carries the only machine-readable endpoint in the copy and is now doing
-    // more work than before — a duration is relative to when the data was
-    // captured, not to when the page is read.
-    const freshness = section.locator("p", { hasText: /Counts are updated through/ });
-    await expect(freshness, "Req 7.3's freshness disclosure is mandatory").toBeVisible();
-    const anchorDate = await freshness.locator("time").getAttribute("datetime");
-    expect(anchorDate, "anchor date must be an ISO date").toMatch(ISO_DATE);
+    // Req 7.3's freshness line was WITHDRAWN at v5, so there is no rendered
+    // anchorDate left to compare against and "publishedRangeEnd <= anchorDate"
+    // is no longer observable from the DOM at all. It is not unguarded: the
+    // invariant moved down a layer to src/lib/github-activity.test.ts, which
+    // asserts it directly on deriveWindow's output. Asserting its ABSENCE here
+    // is what stops the line reappearing by accident and the two layers
+    // disagreeing about which one owns the check.
+    await expect(
+      section.locator("p", { hasText: /Counts are updated through/ }),
+      "Req 7.3 was withdrawn at v5 — the freshness line must not return",
+    ).toHaveCount(0);
 
-    // The graphic must still never claim a period past the anchor. The table is
-    // where that is now checkable: its last row is the final published month,
-    // and ISO strings sort lexicographically, so string comparison is date
-    // comparison with no timezone of its own.
+    // The only date the section may still carry is the machine-readable month
+    // on each table row, which is not visitor-facing copy.
     const details = section.locator("details.contrib-heatmap__details");
     await details.locator("summary").click();
     const lastMonth = await details.locator("tbody tr th time").last().getAttribute("datetime");
     expect(lastMonth, "the last month row must carry an ISO month").toMatch(/^\d{4}-\d{2}$/);
-    expect(
-      lastMonth!.localeCompare(anchorDate!.slice(0, 7)),
-      "the graphic must never claim a month past the anchor date",
-    ).toBeLessThanOrEqual(0);
   });
 
   test("the monthly totals disclosure opens and its rows sum to the published figures", async ({

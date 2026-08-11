@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
 import {
   formatApproximateSpan,
-  formatContentDate,
   formatCount,
   formatMonthAbbrev,
   formatMonthYear,
@@ -129,7 +128,6 @@ function pluralize(count: number, singular: string): string {
 
 export function ContributionHeatmap({ window }: ContributionHeatmapProps) {
   const headingId = "github-activity-heading";
-  const updated = formatContentDate(window.anchorDate);
   const monthLabels = buildMonthLabels(window);
 
   /* The period is stated as a duration rather than two endpoints, and it is
@@ -186,12 +184,16 @@ export function ContributionHeatmap({ window }: ContributionHeatmapProps) {
        * the graphic (Req 4.12), so this line is the only place a printed or
        * read-aloud page gets the totals. The period is a duration derived from
        * the PUBLISHED range — windowStart/windowEnd are internal geometry and
-       * never visitor-facing (Reqs 2.2, 7.2). */}
+       * never visitor-facing (Reqs 2.2, 7.2).
+       *
+       * It is now the ONLY period statement on the page: Req 7.3's freshness
+       * line was withdrawn at v5. A duration is relative to when the data was
+       * captured, so between reseeds this reads "the past 6 months" for a
+       * window that ended earlier, with nothing on the page to correct it.
+       * `scripts/check-github-activity-freshness.mjs` (45 days) is the only
+       * remaining backstop — see requirements.md Req 7's v5 amendment. */}
       <p className="max-w-measure mt-2 text-muted-foreground">
         {headline}, {period}.
-      </p>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Counts are updated through <time dateTime={window.anchorDate}>{updated.display}</time>.
       </p>
       {/* Same-tab by design, so no NewTabHint — that suffix pairs with
        * target="_blank" (shared/new-tab-hint.tsx).
