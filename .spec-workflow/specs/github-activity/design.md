@@ -954,3 +954,194 @@ levels 0 and 1 shared alpha `0.28`, so their pair measured 1.00:1 against a 1.3:
 reported three of four pairs and marked the failure `—`. Reverted to five fills. Also closed: surface
 ambiguity, `eslint.config.mjs` absence, the chokepoint decision, Req 10/6.5/6.6/7.2 coverage, the
 duplicated window arithmetic, geometry pins, Req 8.3, and four testing inaccuracies.
+
+## Implementation evidence
+
+**This section is evidence, not design.** It is appended after the fact by task 17 to satisfy Req 5.6
+(the forced-colors verification must be recorded in the design document, with a screenshot), Req 5.9
+(SC 1.4.10 and SC 1.4.12 recorded together in one place), Req 5.10 and Req 4.8's branch condition. It
+revises no decision, figure or claim above it, and the v9 version header is unchanged: everything
+above this heading is the approved document, and nothing here amends it. The four checks are the ones
+only a rendered page could settle — §Design System deferred condition 3's spatial half to
+"visual inspection of the rendered grid during implementation", and this is that inspection.
+
+### Render environment common to all four checks
+
+- Real production render, not a dev-server approximation: `pnpm exec velite build` → `pnpm build`
+  (exit 0) → `pnpm start` on port 3013. Route `/contributions`.
+- Playwright 1.59.1, Chromium, **`deviceScaleFactor: 1`**, so a 9px mark is 9 real device pixels.
+  Enlargements are nearest-neighbour (`PIL Image.NEAREST`) resamples of the captured PNGs, never a
+  vector re-render — what is magnified is the shipped pixels, antialiasing included.
+- Grid content at capture time: **1,712 contributions / 107 active days / 2026-02-15 → 2026-08-10**;
+  `data-level` counts `0:70 1:31 2:25 3:24 4:27` (177 of 182 slots), so **all five levels were
+  present in the grid and all five swatches in the legend** — the checks were made against a full
+  ramp, not a partial one.
+- Computed styles confirmed live: cell `fill` resolves to `--brand` (light `lab(41.0104 36.4302
+  41.1254)`, dark `lab(70.451 26.7202 42.1269)`), `fill-opacity` per level `0.28 / 0.48 / 0.66 /
+  0.82 / 1`, surface `--background` (light `lab(100 0 0)`, dark `lab(2.75381 0 0)`). No baked alpha
+  anywhere, exactly as §Accessibility's forced-colors argument requires.
+
+Screenshots live in the spec's `Implementation Logs/` directory. That directory is gitignored
+(`.gitignore:63`), which is **expected and correct**: these are evidence of a one-time human
+judgement, not visual-diff baselines, and `design-baseline/` is the place for baselines. Filenames
+are cited below so the artifacts remain identifiable if they are re-captured or archived.
+
+### What was on screen when checks 1 and 2 were signed off
+
+Recorded in this much detail for one reason: **task 22's ramp-regression canary is expected to fire
+if the alphas ever move**, and whoever retunes the ramp then needs to compare their new ramp against
+exactly what was approved at 9px — not against a remembered impression of it. This is that
+reference point.
+
+- **Ramp under judgement:** `--brand` at `[0.28, 0.48, 0.66, 0.82, 1.0]` over `--background`, i.e.
+  the five-level scheme in §Design System, unmodified.
+- **Composites judged:** light `#e4cbc0 → #d0a593 → #bf846a → #af6646 → #9e441d`; dark
+  `#483222 → #754e33 → #9d6843 → #c07f51 → #e89960`.
+- **Adjacent separations judged:** light `1.42 / 1.41 / 1.39 / 1.45`; dark `1.65 / 1.54 / 1.42 /
+  1.42` (pairs 0→1, 1→2, 2→3, 3→4) — the figures already tabulated in §Design System.
+- **Geometry judged:** 9px mark on an 11px pitch (2px gap), which is the shipped grid geometry; every
+  mark in the comparison strip carried the shipped `.contrib-heatmap__swatch` class over the real
+  `--background` token, so nothing was redrawn, re-alphaed or scaled for the test.
+- **The comparison strip** (a throwaway harness injected into the live page under Playwright,
+  present in no source file) had three parts: (A) the five levels at rendered pitch beside their
+  greyscale-luminance equivalents from §Design System — light `#d0d0d0 → #afafaf → #929292 →
+  #797979 → #5f5f5f`, dark `#373737 → #575757 → #747474 → #8e8e8e → #ababab`; (B) a per-level table
+  of alpha, composite hex, ratio-vs-surface and separation-to-next; (C) **the four adjacent pairs
+  ranked tightest-first**, each shown twice — at the rendered 2px gap and butted with no gap, which
+  is the harder edge comparison — with ranks #1 and #2 flagged in-image.
+- **The "where to look" ranking was baked into the strip rather than left to memory**, so the two
+  tightest pairs could not be signed off by inattention: light ranked **2→3 at 1.39 as #1** and
+  **1→2 at 1.41 as #2**; dark ranked **2→3 at 1.42 as #1** and **3→4 at 1.42 as #2**. Both of the
+  ramp's two tightest pairs overall are in the light theme, which is why check 1 carried the higher
+  risk.
+
+A retuned ramp should be re-judged against a strip built the same way — same class, same surface
+token, same 9px-on-11px geometry, same `deviceScaleFactor: 1`, same tightest-first ranking — before
+anyone concludes it is at least as resolvable as this one.
+
+### Check 1 — 9px spatial resolvability, light theme — **PASS (2026-08-11)**
+
+Verdict given by Matthew Field, by eye, against the purpose-built light ramp strip at 1:1 (true 9px
+marks on an 11px pitch) and its 6× nearest-neighbour enlargement, plus the rendered grid, legend and
+section from the live page. **All four adjacent pairs are resolvable**, including the two tightest
+pairs in the whole ramp — **2→3 at 1.39:1** and **1→2 at 1.41:1**.
+
+This closes the remaining half of the design-system carve-out's condition 3. §Design System settled
+the numeric half in-document and deferred the spatial half to this inspection; both halves are now
+satisfied, and the five-level scheme stands as specified.
+
+Evidence: `task-17-check1-light-ramp-strip-1x.png`,
+`task-17-check1-light-ramp-strip-6x-pixelated.png`, `task-17-check1-light-page-heatmap-1x.png`,
+`task-17-check1-light-page-heatmap-8x-pixelated.png`, `task-17-check1-light-page-legend-1x.png`,
+`task-17-check1-light-page-legend-8x-pixelated.png`, `task-17-check1-light-page-section-1x.png`.
+
+### Check 2 — 9px spatial resolvability, dark theme — **PASS (2026-08-11)**
+
+Verdict given by Matthew Field, by eye, against the dark ramp strip at 1:1 and 6×, plus the rendered
+dark grid, legend and section. **All four adjacent pairs are resolvable**, including the tied
+tightest pairs **2→3 and 3→4, both at 1.42:1**.
+
+Evidence: `task-17-check2-dark-ramp-strip-1x.png`, `task-17-check2-dark-ramp-strip-6x-pixelated.png`,
+`task-17-check2-dark-page-heatmap-1x.png`, `task-17-check2-dark-page-heatmap-8x-pixelated.png`,
+`task-17-check2-dark-page-legend-1x.png`, `task-17-check2-dark-page-legend-8x-pixelated.png`,
+`task-17-check2-dark-page-section-1x.png`.
+
+### Check 3 — `forced-colors: active` — **PASS (2026-08-11)**
+
+**Route used: Playwright `page.emulateMedia({ forcedColors: "active" })` in Chromium — the EMULATED
+fallback, not the real Windows high-contrast theme in Edge on the WSL2 host.** Named explicitly
+because emulation is a *rendering approximation* of the high-contrast theme rather than the theme
+itself, and a reader of this record is entitled to know which one produced the screenshot.
+
+Why the real Edge route was not used: the Windows host is reachable and `msedge.exe` is present, but
+the real route requires Windows High Contrast to be **on**, and it was off
+(`HKCU\Control Panel\Accessibility\HighContrast` Flags = 126, bit 0 `HCF_HIGHCONTRASTON` clear).
+Turning it on would have changed the entire desktop session. Driving that same Edge over CDP would
+still have gone through `Emulation.setEmulatedMedia` — the same approximation in a different binary,
+so no gain.
+
+Measured under emulation: `matchMedia("(forced-colors: active)").matches === true`; cell and legend
+swatch `fill` both resolve to `rgb(0, 0, 0)` (`CanvasText` under the standard black-on-white theme);
+**`fill-opacity` survives unforced at all five levels** (`0.28 / 0.48 / 0.66 / 0.82 / 1`); the
+level-0 zero state carries `outline: rgb(0, 0, 0) solid 1px`. The screenshots show five distinct
+greys and the zero state rendering as an outlined unfilled mark, so the three-state distinction
+(no element / outlined / filled) is visible as §Accessibility specifies.
+
+This is consistent with the analytic figures already recorded in §Accessibility — `CanvasText` at the
+five opacities over `Canvas` giving **1.99 / 3.70 / 7.25 / 13.59 / 21.00**, adjacent separations
+**1.86 / 1.95 / 1.87 / 1.54**. Those figures are the pass criterion; this screenshot is the
+rendering confirmation Req 5.6 mandates. Note that §Accessibility says "the screenshot from Edge on
+the WSL2 Windows host confirms rendering" — the confirmation exists, but it came from the emulated
+route described here, and that sentence above is left as approved rather than edited.
+
+The three-state outline fallback ships unconditionally (task 13); this check is evidence, not a gate
+on shipping it.
+
+Evidence: `task-17-check3-forced-colors-active-EMULATED-chromium-heatmap.png`,
+`task-17-check3-forced-colors-active-EMULATED-chromium-heatmap-8x-pixelated.png`,
+`task-17-check3-forced-colors-active-EMULATED-chromium-legend.png`,
+`task-17-check3-forced-colors-active-EMULATED-chromium-legend-8x-pixelated.png`,
+`task-17-check3-forced-colors-active-EMULATED-chromium-section.png`.
+
+### Check 4 — SC 1.4.10 (Reflow) and SC 1.4.12 (Text Spacing) — **PASS (2026-08-11)**
+
+Recorded together per Req 5.9. Automated under Playwright/Chromium against the same production
+render.
+
+**SC 1.4.10, 320px CSS width / 400% zoom (viewport 320 × 256):**
+
+- Heatmap scroll wrapper: left 16, right 304, **width 288, `scrollWidth` 288 === `clientWidth` 288**
+  — the container never scrolls horizontally.
+- The `<svg>` itself: 288px wide, right edge 304, inside the 320px viewport with the page's 16px
+  margins intact — the `viewBox="-1 -1 288 100"` box fits exactly, as §Accessibility argues.
+- Section: width 288, `scrollWidth` 288 === `clientWidth` 288. Legend: 55px, no overflow.
+  `<details>`: 288px, no overflow.
+- No two-dimensional scrolling is introduced by the heatmap; vertical scrolling only, which 1.4.10
+  permits.
+- Monthly-totals table opened at 320px: **all 7 rows present, unclipped and legible**, table 288px,
+  `scrollWidth` === `clientWidth`.
+
+**SC 1.4.12, text-spacing override** (`line-height: 1.5`, `letter-spacing: 0.12em`,
+`word-spacing: 0.16em`, paragraph `margin-bottom: 2em`, applied via `*`):
+
+- **Nothing is lost or clipped.** The section grows 348px → 478px tall and reflows normally.
+- The scroll wrapper still does not overflow (`scrollWidth` === `clientWidth`); legend and
+  `<details>` are not clipped.
+- **The SVG month labels do take the override** — computed `letter-spacing: 1.44px`,
+  `word-spacing: 1.92px` on the `<text>` nodes, confirming §Accessibility's [v5] correction that
+  these properties reach SVG `<text>`. Measured right edges after the override: Feb 25.33, Apr 90.33,
+  May 137.33, Jun 190.33, Jul 230.33, **Aug 280.33** against the viewBox right edge at **287** — no
+  glyph passes the edge, no wrap, no clip, no vertical displacement. The right-anchor rule absorbs
+  the extra width exactly as argued.
+- Monthly-totals table under the override at 320px: all 7 rows still present and legible; the table
+  measures 289.9px inside its 288px box — a ~2px bleed into the page's own 16px right margin with
+  `overflow: visible`, so nothing is clipped, its right edge (305.9) is still inside the 320px
+  viewport, and it introduces no document horizontal scrollbar of its own.
+
+**Honest nuance — a pre-existing, site-wide footer overflow, judged separately.** At a 320px viewport
+`document.body`/`documentElement` reports `scrollWidth` **342px** (and 396px once the text-spacing
+override is applied). **That is not the heatmap.** Proven rather than assumed, by measuring control
+routes at the same viewport: `/`, `/projects`, `/resources` and `/profile` — none of which contain a
+heatmap — report the identical 342px unstyled and the identical 396px under the override. An
+element-level sweep for anything whose right edge passes 321px returns the same two offenders on
+every route (a footer `<a class="hover:text-foreground">` and its `<span class="sr-only">` at right
+= 395.8), and the count of overflowing elements **inside the heatmap section is zero** on every
+measurement. The verdict above is therefore recorded on the heatmap's own boxes, all of which fit
+320px with room to spare; the page-level 342/396 figure is the pre-existing footer bug tracked as
+deferral **`d-eb289402`** and is out of scope for this spec.
+
+Evidence: `task-17-check4-reflow-320px-400pct-fullpage.png`,
+`task-17-check4-reflow-320px-400pct-section.png`,
+`task-17-check4-reflow-320px-400pct-details-open.png`,
+`task-17-check4-text-spacing-override-320px-fullpage.png`,
+`task-17-check4-text-spacing-override-320px-section.png`,
+`task-17-check4-text-spacing-override-320px-details-open.png`,
+`task-17-check4-text-spacing-override-1280px-section.png`.
+
+### Outcome
+
+Four checks, four dated verdicts, **all PASS**. Req 4.8's fallback — reduce to three levels plus
+zero — is **not triggered**, so the five-level scheme, the ramp table in §Design System, the
+`0|1|2|3|4` level union, the empty-band `{0,1,3,4}` case, the five alphas and the legend's five
+swatches all stand exactly as designed. No escalation was raised and nothing above this section was
+changed.

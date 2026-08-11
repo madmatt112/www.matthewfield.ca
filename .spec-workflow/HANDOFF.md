@@ -4,33 +4,59 @@ Single source of in-flight phase state (per `spec-loop-v3`). The generated roadm
 `.spec-workflow/spec-decomposition/INDEX.md` (never hand-edited); build order lives in
 `decomposition.md`.
 
-## Current state (2026-08-10)
+## Current state (2026-08-11)
 
-- **Active spec:** `github-activity` (spec #11). INDEX `## Next` → `State: active`.
-- **All three documents are approved.** Requirements v4 (2026-08-09), design v9 (2026-08-10),
-  **tasks v9 (2026-08-10 15:28 UTC — `approval_1786345399035_a9cvusyk2`)**.
-- **The document loop is finished for this spec.** `spec-status` reports `implementing`, so the next
-  "continue the SDD process" run routes to the **implementation loop**
-  (`task-implementation-loop-v2.md`), not the document loop.
-- **Nothing is committed.** See §Uncommitted below — this is the first thing to deal with.
+- **`github-activity` (spec #11) is COMPLETE — 25/25 tasks, INDEX regenerated and showing `Complete`.**
+- Shipped on branch **`feat/github-activity`**, pushed, open as **PR #50**. Not merged — Matthew
+  reviews the Vercel preview first.
+- Every gate green at completion: 747 unit tests, `test:tz` in both pinned zones, 203 e2e, lint 0
+  errors, `pnpm build`, and Lighthouse **100/100/100/100** on `/contributions`.
+- **INDEX `## Next` is now `ambiguous`** — see §What the next run does.
+
+## What this spec actually shipped
+
+364 real contribution days (2025-08-12 → 2026-08-10, 2,003 contributions across 129 active days),
+hand-seeded from one authenticated `contributionsCollection` query and verified against an
+independent re-query with **zero mismatches**. The published 26-week window shows 1,712 across 107
+active days. No network call anywhere in the build (Req 1.7 verified by tripwire).
+
+Both human-owned tasks were completed rather than stalled:
+
+- **Task 9** — Matthew authorised running the query in-session; data seeded and API-verified.
+- **Task 17** — Matthew gave the two by-eye verdicts on 2026-08-11: 9px ramp resolvability **PASS in
+  both themes**, including the ramp's two tightest pairs (light 2→3 at 1.39:1, 1→2 at 1.41:1).
+  Checks 3 and 4 passed mechanically; forced-colors used the **emulated** Playwright route (host High
+  Contrast was off), and that is named as emulated in design.md's appended `## Implementation
+  evidence` section, per Req 5.6.
 
 ## What the next run does
 
-Runs `task-implementation-loop-v2.md` against 25 tasks, starting at task 1. Tasks 1–8 and 11–16, 18,
-19, 21, 22 (eighteen of twenty-five) can complete without any human input.
+`spec-status` will report `github-activity` complete, so the router hands the **next** spec to the
+document loop. But **INDEX `## Next` currently reports `ambiguous`**, with one candidate:
+`listening-sockets` (Requirements, no tasks), which is not in `decomposition.md`.
 
-**Two tasks need Matthew and they gate `Complete`:**
+`### 12. github-activity-sync` is named in `decomposition.md` but has **no spec directory yet**
+(specs are created lazily). Per the router's `all-on-disk-complete` rule that is the real next spec —
+it starts at Requirements. Resolve the ambiguity by naming it explicitly, or by sequencing
+`listening-sockets` into `decomposition.md`.
 
-- **Task 9 — seed the real data.** One GitHub GraphQL query, then write ~364 `{date, count}` rows.
-  Six tasks sit behind it (10, 17, 20, 23, 24, 25). **The auth is fully settled** — see below.
-- **Task 17 — visual verification.** Checks 1 and 2 are irreducibly by-eye: whether adjacent ramp
-  steps resolve at a 9px mark. The two tightest pairs are both in the **light** theme (2→3 at 1.39,
-  1→2 at 1.41); dark's 0→1 at 1.65 is the widest of the eight and is *not* where it will fail.
+## Deferrals recorded during implementation
 
-**Stall protocol** (written into tasks.md, applies to any task that cannot run): write nothing to the
-artifact, leave the checkbox `[-]`, append `— BLOCKED (Matthew)` to the task title, record the exact
-command in the implementation log, and continue with everything not downstream. **Never fabricate** —
-task 9's file is published as fact on a public site.
+- **`d-eb289402`** — a link row in `src/components/layout/footer.tsx` overflows `<body>` to 342px at
+  a 320px viewport on **every** site route, heatmap or not. Pre-existing; this spec did not cause it.
+  Req 3.10 only asks that the heatmap not *cause* overflow, so task 23 asserts causation instead and
+  the page bug stays visible rather than masked.
+- **`d-cd92bbdf`** — a future-dated entry is correctly rejected, but with Zod's generic
+  `Invalid input` rather than a message naming the `BUILD_START_UTC` rule. Matches the existing
+  `resources-schema.ts` / `reading-schema.ts` precedent, so fixing one without the other three would
+  be inconsistent. Diagnostic quality, not correctness.
+- `d-db7c55e9` (the data-viz palette deferral) was carried in from the document phase, unchanged.
+
+## Corrected in passing
+
+`docs/profile-resume-lighthouse-runs.md` said "all seven URLs"; task 21 added `/contributions` as the
+eighth and thereby falsified it, so this branch fixed it. Everything else out of scope was recorded
+rather than edited.
 
 ## GitHub token — settled 2026-08-10, verified by query
 
@@ -49,22 +75,14 @@ cannot diverge in what they count.
   auto-injected `GITHUB_TOKEN` is repo-scoped and cannot read the calendar at all). One-year expiry;
   Req 9's 45-day freshness check is the detector when it lapses.
 
-## Uncommitted — deal with this first
+## Committed
 
-Nothing from this spec is in git. Per the project's own rules: **never `git add -A` here**, and site
-changes go on a feature branch rather than straight to `main`. Current branch is `main`.
+Everything from this spec is committed on `feat/github-activity` (17 commits) and pushed. Spec
+documents landed first, then one commit per task or coupled task-group, following the project's rules:
+**never `git add -A`**, and site changes go on a feature branch rather than straight to `main`.
 
-| Path | State |
-|---|---|
-| `.spec-workflow/specs/github-activity/` | untracked — requirements, design, tasks, 9 reviews |
-| `.spec-workflow/deferrals/d-db7c55e9.md` | untracked — the data-viz palette deferral |
-| `.spec-workflow/spec-decomposition/decomposition.md` | modified — spec #11 and new spec #12 blocks |
-| `.spec-workflow/spec-decomposition/INDEX.md` | modified — regenerated |
-| `.spec-workflow/HANDOFF.md` | modified — this file |
-| `.spec-workflow/specs/visual-design/design.md` | modified — non-text-data-marks amendment (a Req 4.1 prerequisite) |
-| `.spec-workflow/steering/design-system.md` | modified — sequential-ramp carve-out (the other Req 4.1 prerequisite) |
-
-These are spec documents only — no application code has been written yet.
+`Implementation Logs/` and the task-17 screenshot evidence are gitignored (`.gitignore:63`) by design —
+they are evidence, not repository artifacts.
 
 ## Roadmap change
 
