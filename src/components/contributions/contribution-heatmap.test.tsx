@@ -102,10 +102,15 @@ function gridSvg(container: HTMLElement): SVGSVGElement {
  */
 function legendSvg(container: HTMLElement): SVGSVGElement {
   const svgs = [...container.querySelectorAll("svg")].filter(
-    (svg) => svg.closest(".contrib-heatmap__scroll") === null,
+    (svg) =>
+      svg.closest(".contrib-heatmap__scroll") === null &&
+      // The GitHub mark on the profile button is also a non-grid <svg>. It is
+      // a single <path>, so "carries rects" separates the two without reaching
+      // for .contrib-heatmap__legend — the class this helper's callers assert.
+      svg.querySelector("rect") !== null,
   );
   if (svgs.length !== 1) {
-    throw new Error(`expected exactly one non-grid <svg>, found ${svgs.length}`);
+    throw new Error(`expected exactly one non-grid <svg> with rects, found ${svgs.length}`);
   }
   return svgs[0];
 }
@@ -209,25 +214,51 @@ describe("ContributionHeatmap", () => {
     });
   });
 
-  it("states the published range and both headline figures", () => {
+  it("states the period as a duration and both headline figures", () => {
     const { container } = render(<ContributionHeatmap window={full.activityWindow} />);
-    const text = container.textContent ?? "";
-    expect(text).toContain("1,234 contributions");
-    expect(text).toContain("152 active days");
-    expect(text).toContain("February 10, 2026");
-    expect(text).toContain("August 8, 2026");
-    // windowStart is internal geometry and never visitor-facing (Reqs 2.2, 7.2),
-    // and no copy asserts a fixed 26-week period.
-    expect(text).not.toContain("February 8, 2026");
-    expect(text).not.toContain("26 weeks");
+    const summary = container.querySelector("p")?.textContent ?? "";
+    expect(summary).toContain("1,234 contributions");
+    expect(summary).toContain("152 active days");
+    // Feb 10 → Aug 8 is 180 days, which rounds to six months.
+    expect(summary).toContain("in the past 6 months");
+    // The summary names no endpoint at all now, which makes leaking
+    // windowStart/windowEnd (Reqs 2.2, 7.2) structurally impossible here rather
+    // than merely unasserted. Scoped to the summary on purpose: the freshness
+    // line below it legitimately states anchorDate.
+    expect(summary).not.toContain("2026");
+    expect(summary).not.toContain("26 weeks");
+    // windowStart is never visitor-facing ANYWHERE in the section.
+    expect(container.textContent).not.toContain("February 8, 2026");
   });
 
-  it("links to the GitHub profile in the same tab", () => {
+  it("derives the period from the published range, not the window frame", () => {
+    // dataStart lands well inside the 26-week frame, so publishedRangeStart is
+    // dataStart rather than windowStart and the published span is ~2 months
+    // against a 6-month frame. A period computed from the frame reads "6" here.
+    const late = buildWindow("2026-06-01", "2026-08-08");
+    const { container } = render(<ContributionHeatmap window={late.activityWindow} />);
+    const text = container.textContent ?? "";
+    expect(text).toContain("in the past 2 months");
+    expect(text).not.toContain("in the past 6 months");
+  });
+
+  it("links to the GitHub profile in the same tab, as a button carrying the mark", () => {
     const { getByRole } = render(<ContributionHeatmap window={full.activityWindow} />);
-    const link = getByRole("link", { name: /GitHub profile/ });
+    // The mark is aria-hidden, so the accessible name comes from the visible
+    // "My profile" plus the sr-only suffix. Asserting the full name is what
+    // stops the suffix being dropped and leaving a bare "My profile" in a
+    // screen reader's link list.
+    const link = getByRole("link", { name: "My profile on GitHub" });
     expect(link.getAttribute("href")).toBe("https://github.com/madmatt112");
     expect(link.getAttribute("rel")).toBe("noopener");
     expect(link.hasAttribute("target")).toBe(false);
+    // Rendered through Button asChild, so the anchor itself carries the button
+    // treatment rather than being wrapped in one.
+    expect(link.getAttribute("data-slot")).toBe("button");
+    // The visible label must remain a prefix of the accessible name (WCAG
+    // 2.5.3), which a sr-only-only label would silently break.
+    expect(link.textContent).toContain("My profile");
+    expect(link.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
   });
 
   it("gives the legend its own svg carrying the shared style handle", () => {
@@ -322,8 +353,8 @@ describe("ContributionHeatmap", () => {
     const label = svg.getAttribute("aria-label") ?? "";
     expect(label).toContain("1,234 contributions");
     expect(label).toContain("152 active days");
-    expect(label).toContain("February 10, 2026");
-    expect(label).toContain("August 5, 2026");
+    // Feb 10 → Aug 5 is 177 days, six months to the nearest month.
+    expect(label).toContain("in the past 6 months");
     // Neither the label nor the visible copy may state windowStart/windowEnd or
     // reach past anchorDate (Reqs 2.2, 5.2, 7.2) — the most-relitigated
     // decision in this spec.
@@ -382,19 +413,20 @@ describe("ContributionHeatmap", () => {
     expect(details.textContent).not.toContain("152");
   });
 
-  it("shows the covered range on clipped month rows only", () => {
+  it("labels month rows with the month alone, clipped or not", () => {
     const { container } = render(<ContributionHeatmap window={full.activityWindow} />);
     const rows = [...detailsElement(container).querySelectorAll("tbody tr")];
 
-    // February is covered from the 10th, August only to the 8th, so both wear a
-    // whole month's name over a partial total and must say which days they
-    // counted. `isClipped` is computed, not positional.
+    // February is covered only from the 10th, so `isClipped` is true — but the
+    // row deliberately does NOT spell out the covered days. The qualifier was
+    // removed as noise; the summary's period and the freshness line carry the
+    // coverage story. `isClipped` stays on the model for the SVG's month
+    // labels, so this asserts the rendering choice, not the data.
     expect(full.activityWindow.monthlyTotals[0].isClipped).toBe(true);
-    expect(rows[0].textContent).toContain("covers");
-    expect(rows[0].textContent).toContain("February 10, 2026");
-    expect(rows[0].textContent).toContain("February 28, 2026");
+    expect(rows[0].textContent).toContain("February 2026");
+    expect(rows[0].textContent).not.toContain("covers");
+    expect(rows[0].textContent).not.toContain("February 10, 2026");
 
-    // March is whole, so it carries no range.
     expect(full.activityWindow.monthlyTotals[1].isClipped).toBe(false);
     expect(rows[1].textContent).not.toContain("covers");
   });

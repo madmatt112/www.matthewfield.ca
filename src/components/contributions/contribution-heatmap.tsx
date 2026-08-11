@@ -1,8 +1,10 @@
+import { GitHubIcon } from "@/components/shared/github-icon";
+import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
 import {
+  formatApproximateSpan,
   formatContentDate,
   formatCount,
-  formatDateRange,
   formatMonthAbbrev,
   formatMonthYear,
 } from "@/lib/format-date";
@@ -127,9 +129,21 @@ function pluralize(count: number, singular: string): string {
 
 export function ContributionHeatmap({ window }: ContributionHeatmapProps) {
   const headingId = "github-activity-heading";
-  const range = formatDateRange(window.publishedRangeStart, window.publishedRangeEnd);
   const updated = formatContentDate(window.anchorDate);
   const monthLabels = buildMonthLabels(window);
+
+  /* The period is stated as a duration rather than two endpoints, and it is
+   * DERIVED from the published range (Req 5.2), not hardcoded:
+   * publishedRangeStart is max(windowStart, dataStart), so a thinly seeded file
+   * publishes a shorter span and a literal "6 months" would be false.
+   *
+   * A duration is relative to when the data was captured, not to when the page
+   * is read, so the freshness line below is what keeps this honest as the seed
+   * ages — it is load-bearing here, not a courtesy. */
+  const period = `in the past ${formatApproximateSpan(
+    window.publishedRangeStart,
+    window.publishedRangeEnd,
+  )}`;
 
   /* The headline figures are built ONCE and spent twice — in the visible
    * summary and in the aria-label — because Req 5.1 makes the label the
@@ -143,7 +157,7 @@ export function ContributionHeatmap({ window }: ContributionHeatmapProps) {
   /* Derived from ActivityWindow, never hand-written prose (Req 5.2), and
    * stating the PUBLISHED range — putting windowStart/windowEnd here is the
    * single most-relitigated regression in this spec (Reqs 2.2, 5.2, 7.2). */
-  const ariaLabel = `GitHub contributions heatmap: ${headline}, from ${range.start.display} to ${range.end.display}.`;
+  const ariaLabel = `GitHub contributions heatmap: ${headline}, ${period}.`;
 
   /* Ascending, and only the levels a covered cell actually reached (Req 4.6):
    * a five-swatch legend over a three-level grid is the exact untruth the
@@ -170,28 +184,34 @@ export function ContributionHeatmap({ window }: ContributionHeatmapProps) {
       {/* The summary carries the headline figures deliberately: the text
        * equivalent is forbidden from restating them (Req 5.3) and print hides
        * the graphic (Req 4.12), so this line is the only place a printed or
-       * read-aloud page gets the totals. It states the PUBLISHED range —
-       * windowStart/windowEnd are internal geometry and never visitor-facing
-       * (Reqs 2.2, 7.2). */}
+       * read-aloud page gets the totals. The period is a duration derived from
+       * the PUBLISHED range — windowStart/windowEnd are internal geometry and
+       * never visitor-facing (Reqs 2.2, 7.2). */}
       <p className="max-w-measure mt-2 text-muted-foreground">
-        {headline}, from <time dateTime={window.publishedRangeStart}>{range.start.display}</time> to{" "}
-        <time dateTime={window.publishedRangeEnd}>{range.end.display}</time>.
+        {headline}, {period}.
       </p>
       <p className="mt-1 text-sm text-muted-foreground">
         Counts are updated through <time dateTime={window.anchorDate}>{updated.display}</time>.
       </p>
-      <p className="mt-4 text-sm">
-        {/* Same-tab by design, so no NewTabHint — that suffix pairs with
-         * target="_blank" (shared/new-tab-hint.tsx). Permanent underline, not
-         * hover-only: --brand against --muted-foreground is ~1.05:1, so colour
-         * alone would fail WCAG 1.4.1 and axe's link-in-text-block. */}
-        <a
-          href={siteConfig.links.github}
-          rel="noopener"
-          className="text-brand underline underline-offset-4"
-        >
-          Matthew&rsquo;s GitHub profile
-        </a>
+      {/* Same-tab by design, so no NewTabHint — that suffix pairs with
+       * target="_blank" (shared/new-tab-hint.tsx).
+       *
+       * The mark is aria-hidden, so the sr-only suffix is what stops the
+       * accessible name being a bare "My profile" in a screen reader's link
+       * list. The visible text stays a prefix of that name, which is what
+       * WCAG 2.5.3 (Label in Name) requires. */}
+      <p className="mt-4">
+        <Button asChild variant="outline" size="sm">
+          {/* aria-label rather than a visually-hidden suffix: the accessible
+           * name is built by concatenating child text with no separator, so
+           * "My profile" + " on GitHub" computes as "My profileon GitHub".
+           * Stating the name once removes the seam. The visible text stays a
+           * contiguous substring of it, which is what WCAG 2.5.3 requires. */}
+          <a href={siteConfig.links.github} rel="noopener" aria-label="My profile on GitHub">
+            <GitHubIcon className="size-4" />
+            My profile
+          </a>
+        </Button>
       </p>
       {/* overflow-x: auto safety net (Req 3.6). The class is the whole
        * contract — contributions.css writes the rule, this element is the only
@@ -330,19 +350,11 @@ export function ContributionHeatmap({ window }: ContributionHeatmapProps) {
           </thead>
           <tbody>
             {window.monthlyTotals.map((monthTotal) => {
-              const covered = formatDateRange(monthTotal.rangeStart, monthTotal.rangeEnd);
               const label = formatMonthYear(monthTotal.month);
               return (
                 <tr key={monthTotal.month}>
                   <th scope="row">
                     <time dateTime={label.datetime}>{label.display}</time>
-                    {/* A partially covered month reports a total for part of a
-                     * month while wearing a whole month's name, so the row says
-                     * which days it counted. `isClipped` is computed, not
-                     * positional — the first month is NOT always clipped. */}
-                    {monthTotal.isClipped ? (
-                      <span className="contrib-heatmap__clipped">covers {covered.display}</span>
-                    ) : null}
                   </th>
                   <td>{formatCount(monthTotal.total)}</td>
                   <td>{formatCount(monthTotal.activeDays)}</td>

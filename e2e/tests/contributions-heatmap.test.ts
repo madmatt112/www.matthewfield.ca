@@ -70,7 +70,7 @@ const VIEWPORT_WIDTHS = [320, 768, 1280] as const;
  * renders "1 contribution across 1 active day".
  */
 const ARIA_LABEL_PATTERN =
-  /^GitHub contributions heatmap: ([\d,]+) contributions? across ([\d,]+) active days?, from (.+) to (.+)\.$/;
+  /^GitHub contributions heatmap: ([\d,]+) contributions? across ([\d,]+) active days?, in the past (?:(\d[\d,]*) )?(months|weeks|month|week)\.$/;
 
 const ARIA_LABEL_PREFIX = "GitHub contributions heatmap: ";
 
@@ -277,36 +277,40 @@ test.describe("/contributions — heatmap placement, geometry, disclosure, and p
       normalisedLabel.slice(ARIA_LABEL_PREFIX.length),
     );
 
-    // ...and the machine-readable endpoints behind that copy. `publishedRangeEnd`
-    // IS `anchorDate` today; the requirement is the weaker `≤`, so assert that
-    // rather than equality and let the graphic legitimately stop short.
-    const summaryTimes = summary.locator("time");
-    await expect(summaryTimes, "the summary publishes two endpoints").toHaveCount(2);
-    const publishedStart = await summaryTimes.nth(0).getAttribute("datetime");
-    const publishedEnd = await summaryTimes.nth(1).getAttribute("datetime");
+    // The summary states a DURATION, not two endpoints, so the old
+    // "publishedEnd <= anchorDate" check has nothing to read. What replaced it:
+    // the summary must name no date at all, which makes leaking windowStart /
+    // windowEnd — the most-relitigated defect in this spec — structurally
+    // impossible rather than merely unasserted.
+    await expect(
+      summary.locator("time"),
+      "the summary states a duration, so it publishes no endpoints",
+    ).toHaveCount(0);
+    expect(
+      squash(await summary.textContent()),
+      "the summary must name no calendar date",
+    ).not.toMatch(/\b\d{4}\b/);
 
+    // The freshness line is what anchors that duration to a real date, so it
+    // carries the only machine-readable endpoint in the copy and is now doing
+    // more work than before — a duration is relative to when the data was
+    // captured, not to when the page is read.
     const freshness = section.locator("p", { hasText: /Counts are updated through/ });
     await expect(freshness, "Req 7.3's freshness disclosure is mandatory").toBeVisible();
     const anchorDate = await freshness.locator("time").getAttribute("datetime");
+    expect(anchorDate, "anchor date must be an ISO date").toMatch(ISO_DATE);
 
-    for (const [name, value] of [
-      ["published range start", publishedStart],
-      ["published range end", publishedEnd],
-      ["anchor date", anchorDate],
-    ] as const) {
-      expect(value, `${name} must be an ISO date`).toMatch(ISO_DATE);
-    }
-
-    // ISO-8601 dates sort lexicographically, so string comparison is date
-    // comparison — and it introduces no timezone of its own, which parsing
-    // would.
+    // The graphic must still never claim a period past the anchor. The table is
+    // where that is now checkable: its last row is the final published month,
+    // and ISO strings sort lexicographically, so string comparison is date
+    // comparison with no timezone of its own.
+    const details = section.locator("details.contrib-heatmap__details");
+    await details.locator("summary").click();
+    const lastMonth = await details.locator("tbody tr th time").last().getAttribute("datetime");
+    expect(lastMonth, "the last month row must carry an ISO month").toMatch(/^\d{4}-\d{2}$/);
     expect(
-      publishedStart!.localeCompare(publishedEnd!),
-      "the published range must not run backwards",
-    ).toBeLessThanOrEqual(0);
-    expect(
-      publishedEnd!.localeCompare(anchorDate!),
-      "the graphic must never claim a period past the anchor date",
+      lastMonth!.localeCompare(anchorDate!.slice(0, 7)),
+      "the graphic must never claim a month past the anchor date",
     ).toBeLessThanOrEqual(0);
   });
 
