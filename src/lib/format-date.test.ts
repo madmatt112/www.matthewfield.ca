@@ -1,6 +1,7 @@
 // Do not call vi.resetModules() in this file — parity assertions depend on shared module instances.
 import { describe, expect, it } from "vitest";
 import {
+  formatApproximateSpan,
   formatContentDate,
   formatCount,
   formatDateRange,
@@ -131,5 +132,51 @@ describe("formatPostDate / formatProjectDate parity", () => {
 
   it("formatPostDate and formatProjectDate share the same function body", () => {
     expect(formatPostDate.toString()).toBe(formatProjectDate.toString());
+  });
+});
+
+describe("formatApproximateSpan", () => {
+  it("reads the 26-week window as six months", () => {
+    // 182 days inclusive — the frame the heatmap publishes at full coverage.
+    expect(formatApproximateSpan("2026-02-15", "2026-08-15")).toBe("6 months");
+  });
+
+  it("is inclusive of both endpoints", () => {
+    // A single day is a span of 1, not 0, so a same-day range is a week rather
+    // than collapsing to something nonsensical.
+    expect(formatApproximateSpan("2026-08-10", "2026-08-10")).toBe("week");
+  });
+
+  it("shortens with the range rather than reporting the frame", () => {
+    // The caller's start is max(windowStart, dataStart), so a thinly seeded
+    // file must report its real, shorter span — this is the case a hardcoded
+    // "6 months" would get wrong.
+    expect(formatApproximateSpan("2026-06-01", "2026-08-08")).toBe("2 months");
+    expect(formatApproximateSpan("2026-07-10", "2026-08-08")).toBe("4 weeks");
+  });
+
+  it("falls back to weeks below two months", () => {
+    expect(formatApproximateSpan("2026-08-01", "2026-08-14")).toBe("2 weeks");
+    expect(formatApproximateSpan("2026-08-04", "2026-08-10")).toBe("week");
+  });
+
+  it("formats large month counts with the shared thousands separator", () => {
+    // Absurd, but it proves the number goes through formatCount rather than
+    // being interpolated raw.
+    expect(formatApproximateSpan("1000-01-01", "2026-08-10")).toContain(",");
+  });
+
+  it("throws on an unparseable endpoint rather than reporting NaN months", () => {
+    expect(() => formatApproximateSpan("not-a-date", "2026-08-10")).toThrow(/unparseable range/);
+    expect(() => formatApproximateSpan("2026-08-10", "nope")).toThrow(/unparseable range/);
+  });
+
+  it("is timezone-independent", () => {
+    // Both endpoints are parsed as UTC midnights, so a non-UTC runner cannot
+    // shift the day count across a boundary.
+    expect(formatApproximateSpan("2026-02-15", "2026-08-15")).toBe(
+      formatApproximateSpan("2026-02-15", "2026-08-15"),
+    );
+    expect(formatApproximateSpan("2026-01-01", "2026-03-01")).toBe("2 months");
   });
 });

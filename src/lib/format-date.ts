@@ -81,3 +81,34 @@ export function formatMonthAbbrev(iso: string): string {
   const date = new Date(/^\d{4}-\d{2}$/.test(iso) ? `${iso}-01T00:00:00.000Z` : iso);
   return monthAbbrevFormatter.format(date).replace(/\.$/, "");
 }
+
+/**
+ * Describes the length of an inclusive ISO date range as an approximate
+ * "6 months" / "3 weeks", for copy that reads better as a duration than as two
+ * long-form endpoints.
+ *
+ * Approximate on purpose, and derived rather than hand-written: the caller's
+ * span is `max(windowStart, dataStart) … anchorDate`, so a thinly seeded file
+ * publishes a SHORTER period and a hardcoded "6 months" would be false. Months
+ * use the mean Gregorian month (30.437 days) because a "month" here is a
+ * reader's unit, not a calendar operation — 182 days is 5.98 and reads as 6.
+ *
+ * Falls back to weeks below two months, where "0 months" or "1 month" would be
+ * both wrong and useless. Clock-free: the span comes from its two arguments,
+ * never from the current time.
+ */
+export function formatApproximateSpan(startIso: string, endIso: string): string {
+  const MS_PER_DAY = 86_400_000;
+  const start = Date.parse(`${startIso}T00:00:00.000Z`);
+  const end = Date.parse(`${endIso}T00:00:00.000Z`);
+  if (Number.isNaN(start) || Number.isNaN(end)) {
+    throw new Error(`formatApproximateSpan: unparseable range ${startIso}…${endIso}`);
+  }
+
+  const days = Math.round((end - start) / MS_PER_DAY) + 1;
+  const months = Math.round(days / 30.437);
+  if (months >= 2) return `${formatCount(months)} months`;
+
+  const weeks = Math.max(1, Math.round(days / 7));
+  return weeks === 1 ? "week" : `${formatCount(weeks)} weeks`;
+}
