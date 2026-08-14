@@ -1,0 +1,253 @@
+# Refreshes content/github-activity.yaml — the data behind the /contributions heatmap.
+#
+# Four non-obvious facts, recorded here because prettier is the only automatic check that reads
+# this file (pnpm lint does not lint workflow YAML, so nothing else proofreads it):
+#
+#   1. ci.yml does not run on this workflow's commits. A push made with the default GITHUB_TOKEN
+#      does not start another workflow run — GitHub suppresses that to prevent recursion — so the
+#      gate below is the only validation this data ever gets (Req 4.10).
+#   2. Vercel deploys those commits anyway, through its own Git integration rather than through
+#      ci.yml. That is an assumption about how this project is wired, not a guarantee this
+#      workflow can make; the deployment check in the commit step is what turns the assumption
+#      into an observation, and a red run is how it reports being wrong.
+#   3. The pre-commit hook reformats staged YAML. package.json's `prepare` sets
+#      core.hooksPath=.githooks on every pnpm install — including the one below — and
+#      .githooks/pre-commit then runs `prettier --write` on staged YAML and re-stages it, after
+#      the gate has passed. G1 inside `pnpm gate:github-activity` runs the same formatter first,
+#      so the hook has nothing left to rewrite and the validated bytes are the committed bytes
+#      (Req 4.7).
+#   4. The repository default workflow permission is `read`. That is why the permissions block
+#      below exists at all — and because declaring a block zeroes every scope it does not list,
+#      both scopes are spelled out even though each is needed by only one later step.
+
+name: Sync GitHub activity
+
+on:
+  schedule:
+    # Weekly, for churn: 52 commits and 52 production deploys a year rather than 365, to move a
+    # graphic no visitor can distinguish from its six-day-old self (Req 1.4). Minute 37 and hour
+    # 09 avoid GitHub's contended marks — scheduled runs are best-effort and the quarter-hour
+    # marks and the top of the day are where they queue longest and get dropped (Req 1.5 excludes
+    # minutes 00/15/30/45 and hour 00). Tuesday keeps it clear of the Monday slot.
+    - cron: "37 9 * * 2"
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: "Create content/github-activity.yaml if it is absent (Req 13.4)"
+        type: boolean
+        default: false
+
+# The repository default workflow permission is `read`, and declaring this block zeroes every
+# scope it does not list. Exactly two, and no others: `contents` for the commit and push (Req 11),
+# `deployments` for the production deployment check (Req 10), which 403s without it.
+permissions:
+  contents: write
+  deployments: read
+
+# Queue rather than cancel: a dispatch arriving mid-run must not kill a run that may already have
+# pushed and be waiting on its deployment check (Req 11.1).
+concurrency:
+  group: sync-github-activity
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Not actions/checkout's default depth of 1 (Req 11.6): velite.config.ts:105-118's
+          # profile transform shells out to `git log -1 --follow` and throws when the output is
+          # empty, naming a shallow clone as the usual cause. Both G2 and G4 run velite.
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        shell: bash
+        run: pnpm install --frozen-lockfile
+
+      # The read token is routed here and nowhere else (Reqs 7.1, 7.2): it is a zero-scope PAT,
+      # and it never reaches the commit, the push or the deployment check. Passed via env: rather
+      # than interpolated into the run: line (Security NFR). On a schedule event `inputs` is not
+      # populated, so `inputs.seed` is null, the && yields "" and no flag is passed; `default:
+      # false` covers a dispatch that leaves the box unticked.
+      - name: Refresh the contribution calendar
+        shell: bash
+        run: node scripts/sync-github-activity.mjs ${{ inputs.seed && '--seed' || '' }}
+        env:
+          GH_CONTRIBUTIONS_TOKEN: ${{ secrets.GH_CONTRIBUTIONS_TOKEN }}
+
+      - name: Validate the refreshed payload
+        shell: bash
+        run: |
+          # `pnpm gate:github-activity` chains four stages — G1 prettier --write, G2 velite build,
+          # G3 the payload check, G4 next build — each preceded by an `echo '[gate] G<n>'` marker,
+          # because a failure at G1, G2 or G4 emits no cause of its own and the exit code does not
+          # say which stage stopped. Combined output is captured so the marker can be read back.
+          gate_status=0
+          gate_output="$(pnpm gate:github-activity 2>&1)" || gate_status=$?
+
+          # Re-emit verbatim. Capturing swallows the step log, and the log is the diagnostic: a
+          # valid but all-zero payload prints ::warning:: lines a run is required to show
+          # (Req 5.6), and G3's report goes to stdout, not stderr, so a stderr tail would miss it.
+          printf '%s\n' "$gate_output"
+
+          if [ "$gate_status" -ne 0 ]; then
+            # Read the LAST marker, not the first. pnpm's banner reprints the whole alias before
+            # anything runs, so all four markers are already in the output and a first-match read
+            # always answers G1. `|| true` is load-bearing: this step runs under `-e -o pipefail`,
+            # where a non-matching grep inside a command substitution would abort the step before
+            # the stage-unknown default could apply.
+            stage="$(printf '%s\n' "$gate_output" | grep -oE '\[gate\] G[0-9]+' | tail -n 1 || true)"
+            stage="${stage##* }"
+
+            # The gate step raises its own cause: the `fail` helper lives in the commit step, and
+            # a cause slug can only be raised by a step that can see the helper that raises it.
+            # On a G3 failure this is legitimately the second ::error:: line with this slug — the
+            # payload check prints its own, carrying the detail, and this one names the stage.
+            printf '::error::[sync] gate-rejected %s\n' "${stage:-stage-unknown}"
+            if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+              printf 'FAILED — gate-rejected\n' >>"$GITHUB_STEP_SUMMARY"
+            fi
+            exit 1
+          fi
+
+      - name: Preserve the validated payload for the retry path
+        shell: bash
+        run: |
+          # After the gate, never before: what the retry path restores must be the
+          # prettier-normalised, gate-validated bytes, which only exist once G1 has run.
+          # $RUNNER_TEMP is a filesystem path that outlives a step, so it is the one artifact that
+          # can cross into the commit step. Same slug as the gate: nothing has been staged and the
+          # outcome is identical — a red run with main untouched.
+          cp content/github-activity.yaml "$RUNNER_TEMP/payload.yaml" || {
+            printf '::error::[sync] gate-rejected could not preserve the validated payload\n'
+            if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+              printf 'FAILED — gate-rejected\n' >>"$GITHUB_STEP_SUMMARY"
+            fi
+            exit 1
+          }
+
+      # ONE step, not several (design §The step boundary). Every primitive below is step-local:
+      # `exit 0` ends only this step, COMMIT_TIP/RETRY_TIP/PUSH_SHA/RACED are shell variables, and
+      # the four helpers are shell functions. Split across steps, a benign no-change run would fall
+      # into the next step and reach `git commit` with nothing staged (red, against Reqs 6.1/6.2),
+      # PUSH_SHA would arrive empty at the deployment check — Req 10.1's query becoming the
+      # unfiltered `?sha=` list — and Req 10.6's skip would be lost on every no-change branch.
+      #
+      # The fences in design §Push and retry are ordered by topic; this is their EXECUTION order:
+      # helpers, the no-change check, the commit block, the R1-R6 retry, then the confirm.
+      #
+      # GH_TOKEN is the default GITHUB_TOKEN and is read by scripts/confirm-production-deployment.mjs
+      # for the deployments API (Req 10). The zero-scope read PAT of step 5 never reaches this step.
+      - name: Commit, push, and confirm the deployment
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # The guard and the trailing `:` are both load-bearing — see below.
+          summary() { [ -n "${GITHUB_STEP_SUMMARY:-}" ] && printf '%s\n' "$*" >> "$GITHUB_STEP_SUMMARY"; : ; }
+          outcome() { printf '[sync] outcome=%s\n' "$1"; summary "outcome: $1"; }
+          fail()    { printf '::error::[sync] %s %s\n' "$1" "${2:-}"; summary "FAILED — $1"; exit 1; }
+          is_race() {
+            case "$1" in
+              *non-fast-forward*|*"fetch first"*|*"cannot lock ref"*) return 0 ;;
+              *) return 1 ;;
+            esac
+          }
+
+          changed=$(git status --porcelain -- content/github-activity.yaml) || fail commit-failed
+          if [ -z "$changed" ]; then
+            outcome unchanged; exit 0
+          fi
+
+          COMMIT_TIP=$(git rev-parse HEAD)                        || fail commit-failed
+          git config user.name  "github-actions[bot]"             || fail commit-failed
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com" || fail commit-failed
+          git add content/github-activity.yaml                    || fail commit-failed
+
+          # A non-zero exit here is a pre-commit hook failure and nothing else: the
+          # "nothing staged" case was already excluded by the no-change check above.
+          git commit -m "chore(content): refresh GitHub activity data" || fail commit-failed
+
+          # MEASURED: git decides there is something to commit BEFORE running the hook and
+          # then builds the commit from the post-hook index — so a hook that renormalises
+          # the payload back to the tip produces an EMPTY commit and exits 0. The witness
+          # is the commit's tree against its parent's, never the worktree.
+          # MEASURED: `git diff --quiet` exits 0 = no difference, 1 = difference, 128 = error.
+          # A bare `if` maps 128 to the push branch, which fails OPEN at the one guard
+          # standing between a renormalising hook and a no-op production deploy — but a
+          # BARE `git diff --quiet …; empty=$?` is worse: under `bash -e` the exit-1 case
+          # kills the step before `empty` is read, so the modal path never pushes at all.
+          # The `if` wrapper is what makes the status readable.
+          if git diff --quiet "$COMMIT_TIP" HEAD -- content/github-activity.yaml; then
+            empty=0
+          else
+            empty=$?
+          fi
+          case "$empty" in
+            0) git reset --hard "$COMMIT_TIP" || fail commit-failed
+               outcome unchanged; exit 0 ;;
+            1) : ;;                       # a real change — fall through to the push
+            *) fail commit-failed ;;      # the witness itself failed; never assume "safe to push"
+          esac
+
+          PUSH_SHA=$(git rev-parse HEAD)                          || fail commit-failed
+          [ "$PUSH_SHA" != "$COMMIT_TIP" ]                        || fail commit-failed
+
+          RACED=0
+          if ! push_err=$(git push origin "$PUSH_SHA:refs/heads/main" 2>&1); then
+            is_race "$push_err" || fail push-failure "$push_err"
+            RACED=1
+          fi
+
+          if [ "$RACED" = 1 ]; then
+            # --- R1 ---
+            git fetch origin main                                         || fail resync-failed
+            # --- R2 ---
+            git reset --hard origin/main                                  || fail resync-failed
+            # --- R3 ---
+            pnpm install --frozen-lockfile                                || fail resync-failed
+            # --- R4 ---
+            cp "$RUNNER_TEMP/payload.yaml" content/github-activity.yaml   || fail resync-failed
+            # --- R5 ---
+            pnpm gate:github-activity                                     || fail gate-rejected
+
+            # --- R6 --- Req 6.1 / 11.4, re-evaluated against the NEW tip; AFTER the gate, because G1 renormalises.
+            changed=$(git status --porcelain -- content/github-activity.yaml) || fail resync-failed
+            if [ -z "$changed" ]; then outcome unchanged; exit 0; fi
+            RETRY_TIP=$(git rev-parse HEAD)                           || fail commit-failed
+            git add content/github-activity.yaml                      || fail commit-failed
+            git commit -m "chore(content): refresh GitHub activity data" || fail commit-failed
+            if git diff --quiet "$RETRY_TIP" HEAD -- content/github-activity.yaml; then
+              empty=0
+            else
+              empty=$?
+            fi
+            case "$empty" in
+              0) git reset --hard "$RETRY_TIP" || fail commit-failed
+                 outcome unchanged; exit 0 ;;   # the hook renormalised it back to the new tip
+              1) : ;;
+              *) fail commit-failed ;;
+            esac
+            PUSH_SHA=$(git rev-parse HEAD)                            || fail commit-failed
+            [ "$PUSH_SHA" != "$RETRY_TIP" ]                           || fail commit-failed
+            if ! push_err=$(git push origin "$PUSH_SHA:refs/heads/main" 2>&1); then
+              is_race "$push_err" && fail push-race-exhausted "$push_err"
+              fail push-failure "$push_err"
+            fi
+          fi
+
+          # reached only when a push succeeded; PUSH_SHA is the commit that became the remote tip.
+          # The script owns its own ::error::, summary line and cause slug — see §Component 3.
+          node scripts/confirm-production-deployment.mjs "$PUSH_SHA"   || exit 1
+          outcome refreshed

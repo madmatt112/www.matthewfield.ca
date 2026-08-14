@@ -308,16 +308,64 @@ per-entry validation (see
 
 ### Generated file — do not hand-edit it row by row
 
-This file is **generated** by running the refresh query below and writing the
-whole file from the response. Do not edit individual rows by hand. A hand-tuned
-count silently stops matching GitHub, and nothing in the build can detect it:
-the schema only checks shape, not truth.
+This file is **machine-written weekly**. A scheduled GitHub Actions workflow
+refreshes it every week and commits the result, rewriting the whole file from
+the API response each time — see
+[The automated refresh](#the-automated-refresh), which is the normal path. Do
+not edit individual rows by hand. A hand-tuned count silently stops matching
+GitHub, and nothing in the build can detect it: the schema only checks shape,
+not truth. The next scheduled run then overwrites the edit anyway, so the only
+thing a hand edit buys is a week of wrong numbers.
 
-The raw API response the current seed was generated from is committed at
-`scripts/__fixtures__/github-activity/seed-52w.json` so any number in the YAML
-can be checked against the payload it came from. That path is listed in
-`.prettierignore` deliberately — the fixture must stay byte-identical to what
-the API returned, so it is never reformatted.
+The raw API response at `scripts/__fixtures__/github-activity/seed-52w.json` is
+the **seed** payload — the response the file was first generated from, and not
+the response behind the file you are reading now. **It stopped corresponding to
+`content/github-activity.yaml` at the first automated sync**: from that run
+onward the YAML carries a different range and different counts, so checking a
+current number against this fixture proves nothing. Keep it as the seed's
+provenance record; to check a live number, re-run the refresh and compare
+against the response that run fetched. That path is listed in `.prettierignore`
+deliberately — the fixture must stay byte-identical to what the API returned,
+so it is never reformatted.
+
+### The automated refresh
+
+**This is the normal path, and it needs no human.**
+`.github/workflows/sync-github-activity.yml` runs on a weekly cron —
+`37 9 * * 2`, Tuesdays at 09:37 UTC — and can also be started from the Actions
+tab (`workflow_dispatch`). Each run:
+
+1. fetches the contribution calendar with `scripts/sync-github-activity.mjs`;
+2. rewrites `content/github-activity.yaml` in full from the response;
+3. runs `pnpm gate:github-activity` over the result, and stops without
+   committing if any stage of it fails;
+4. commits `chore(content): refresh GitHub activity data` and pushes it;
+5. confirms a production deployment for that commit reached `success`.
+
+**Which token commits.** The commit and the push are made with the workflow's
+own default `GITHUB_TOKEN`, authored as `github-actions[bot]`. The zero-scope
+read PAT in `GH_CONTRIBUTIONS_TOKEN` is used for the calendar query in step 1
+and for nothing else — it never reaches the commit, the push, or the deployment
+check. See [Tokens, permissions, and expiry](#tokens-permissions-and-expiry).
+
+**`ci.yml` does not run on the resulting commit.** A push made with the default
+`GITHUB_TOKEN` does not start another workflow run — GitHub suppresses that to
+prevent recursion. So the gate in step 3 is the only validation this data ever
+gets, which is why the workflow refuses to commit a payload that fails it.
+
+**Vercel deploys it anyway — an assumption, not a guarantee.** Deployments are
+created by Vercel's own Git integration rather than by `ci.yml`, so the
+suppressed CI run does not suppress the deploy. That is an assumption about how
+this project is wired and not something the workflow can promise; step 5 is
+what turns the assumption into an observation, and a red run is how it reports
+the assumption being wrong.
+
+**The first automated commit produces a large diff, and that is expected.** The
+committed seed covers `2025-08-12` through `2026-08-10`, while the first real
+run covers a 364-day window ending on its own run date — the two ranges cannot
+coincide, so almost every row changes at once. This is correct behaviour, not
+an anomaly to investigate: the gate is what makes a large diff safe. Do not
+hand-edit the file to make the diff smaller.
 
 ### Entry shape
 
@@ -340,10 +388,19 @@ which makes the guarantee _same file → same grid_.
 
 ### The refresh query
 
-Authenticated GitHub GraphQL API v4, run by hand through the `gh` CLI. This is
-the exact query the current data was seeded with — copy it verbatim rather than
-rewriting it from the GitHub docs, or a refresh can quietly produce a different
-span or a different field selection. Save it as `query.graphql`:
+**This is rung 3 of the ladder in [Refreshing by hand](#refreshing-by-hand)** —
+authenticated GitHub GraphQL API v4, run by hand through the `gh` CLI. It is
+not the normal path and it is not the first thing to try: the automation is the
+normal path (see [The automated refresh](#the-automated-refresh)), and rungs 1
+and 2 come first. Rung 3 is for the case where the script's own _fetch_ is what
+is broken.
+
+The **canonical copy** of this query is `CONTRIBUTION_CALENDAR_QUERY` in
+`scripts/sync-github-activity.mjs`. The block below is a reproduction of it,
+held equal to it by a test in `scripts/sync-github-activity.test.mjs` — so copy
+it verbatim rather than rewriting it from the GitHub docs, or a refresh can
+quietly produce a different span or a different field selection. Save it as
+`query.graphql`:
 
 ```graphql
 query ContributionCalendar($login: String!, $from: DateTime!, $to: DateTime!) {
@@ -363,40 +420,81 @@ query ContributionCalendar($login: String!, $from: DateTime!, $to: DateTime!) {
 }
 ```
 
-Invocation, verbatim:
+Invocation. The bounds are **derived from the day you run it**, never pasted:
+the dates in the trailing comments are illustrative — they are the seed's
+bounds, shown only so the shape is recognisable — and copying them re-fetches
+the frozen year (see
+[Re-derive from and to on every refresh](#re-derive-from-and-to-on-every-refresh)).
+The login is pinned deliberately: the heatmap belongs to a person, not to
+whoever happens to own the repository.
 
 ```bash
+TO_DAY="$(date -u +%F)"                          # the run day, e.g. 2026-08-10
+FROM_DAY="$(date -u -d "$TO_DAY -363 days" +%F)" # 364 days inclusive, e.g. 2025-08-12
+
 gh api graphql \
   -F login=madmatt112 \
-  -F from="2025-08-12T00:00:00Z" \
-  -F to="2026-08-10T23:59:59Z" \
+  -F from="${FROM_DAY}T00:00:00Z" \
+  -F to="${TO_DAY}T23:59:59Z" \
   -F query=@query.graphql
 ```
 
 `from` and `to` are **RFC 3339 `DateTime` values, not bare dates**.
 `contributionsCollection` rejects a bare `YYYY-MM-DD`.
 
-The recorded range is 52 weeks: `2025-08-12` through `2026-08-10`, 364 days
-inclusive, which is under GitHub's one-year cap on `contributionsCollection`.
-It produced 364 records — `dataStart` `2025-08-12`, `anchorDate` `2026-08-10`,
-2003 total contributions, 129 active days. The API returns the calendar as
-Sunday-aligned weeks and the bounds above made its first and last week partial,
-so flatten `weeks[].contributionDays[]` into a single ascending list of
-`{date, count}` and write that. Record every count exactly as returned: the
-anchor day is usually still in progress at query time, so a trailing `count: 0`
-is the honest value, not something to adjust.
+Save the response, hand it to the same transform the workflow uses, and gate
+the result — this path is outside the workflow, so nothing gates it for you:
+
+```bash
+node scripts/sync-github-activity.mjs --input response.json
+pnpm gate:github-activity
+```
+
+**The figures that follow describe the _seed_, not the live file.** They were
+true of the first payload and became false at the first automated sync; only
+the shape rules carry over. The seed's range was 52 weeks — `2025-08-12`
+through `2026-08-10`, 364 days inclusive, which is under GitHub's one-year cap
+on `contributionsCollection` — and it produced 364 records, with `dataStart`
+`2025-08-12`, `anchorDate` `2026-08-10`, 2003 total contributions and 129
+active days. Every one of those numbers moves on each refresh; read the current
+values out of `content/github-activity.yaml` rather than from here.
+
+What does carry over: the span stays 364 days inclusive, and the API returns
+the calendar as Sunday-aligned weeks, so bounds like these make its first and
+last week partial. Flatten `weeks[].contributionDays[]` into a single ascending
+list of `{date, count}` and write that. Record every count exactly as returned:
+the anchor day is usually still in progress at query time, so a trailing
+`count: 0` is the honest value, not something to adjust.
 
 ### Re-derive from and to on every refresh
 
-Re-running the invocation above with its literal dates reproduces the
-_procedure_ but not the _range_ — it would re-fetch the same year and leave the
-data as stale as it was. Both bounds must be re-derived from the new anchor:
+**Rung 3 again**, and the reason it is a rung rather than the normal path: the
+automation derives these bounds itself on every run, so only a hand-run
+`gh api graphql` needs this section at all.
 
-- `to` = the new anchor date at `T23:59:59Z`. Use the most recent day the API
-  actually reports, which also keeps the schema's future-date bound satisfied.
-- `from` = anchor − 363 days at `T00:00:00Z`, which gives 364 days inclusive.
+Re-running the invocation above with literal dates reproduces the _procedure_
+but not the _range_ — it would re-fetch the same year and leave the data as
+stale as it was. Both bounds must be re-derived, and they are derived from the
+**run clock**, not from the file being replaced:
+
+- `to` = the UTC day the refresh runs, at `T23:59:59Z`.
+- `from` = that same day − 363 days, at `T00:00:00Z`, which gives 364 days
+  inclusive.
+
+**The request bounds and the resulting anchor are two different things, and
+this section is about the first.** `from` and `to` are the _request_: what you
+ask GitHub for, computed from the run clock before any response exists.
+`anchorDate` is the _result_: the maximum `date` in the calendar the response
+actually returned, and that is what gets written to the file and disclosed in
+the "as of" line. The two normally coincide at `to`, but the response is the
+authority — never write an anchor you computed rather than one the API
+reported, and never push `to` past the run day to force one, because the schema
+rejects a future date.
 
 Shortening that span is not caught as an error — see the next section.
+
+Whatever bounds you end up with, run `pnpm gate:github-activity` before
+committing: a hand-run refresh gets none of the workflow's validation for free.
 
 ### Every day in the covered range must be present
 
@@ -466,3 +564,177 @@ So a coverage warning on a file that covers the frame is **expected behaviour,
 not a bug**. The check is built to over-warn rather than ever go silent. If you
 see it and the span is at or just below 182, widen the refresh window and it
 goes away.
+
+### Tokens, permissions, and expiry
+
+Two credentials, deliberately different, so that neither can do the other's
+job.
+
+**The read token — `GH_CONTRIBUTIONS_TOKEN`.** A repository secret holding a
+**classic PAT with zero scopes**. The contribution calendar is public data, so
+no scope is needed to read it. The name cannot begin with `GITHUB_` — GitHub
+forbids that prefix for secrets — which is why it reads `GH_CONTRIBUTIONS_TOKEN`
+rather than something tidier.
+
+**Do not "upgrade" it to `read:user`.** Zero scopes is the property being
+protected, not an oversight. A scoped token would silently begin publishing
+private contributions the moment any existed, and the heatmap would stop
+matching the public profile anyone can verify for themselves. Public-only by
+construction is the point.
+
+**Expiry is a foreseen operational event, not an incident.** A classic PAT
+lapses after at most a year, so this token _will_ expire, on a date that can be
+put in a calendar. When it does, the run **fails with an
+authentication-specific message** — `::error::[sync] api-auth …`, naming the
+credential rather than the data — instead of silently producing an empty
+calendar. That red run is the primary expiry detector and it fires within one
+cadence period, so within seven days. The remedy is routine: mint a new
+zero-scope classic PAT, replace the secret, re-run. Nothing else changes, and
+the previously committed data keeps rendering throughout.
+
+**The write credential is the workflow's own `GITHUB_TOKEN`.** The workflow
+declares exactly two permission scopes and no others:
+
+| Scope         | Value   | Why it is needed                                              |
+| ------------- | ------- | ------------------------------------------------------------- |
+| `contents`    | `write` | the commit and the push of the refreshed file                 |
+| `deployments` | `read`  | the production deployment check, which returns 403 without it |
+
+The repository's default workflow permission is `read`, and declaring a
+`permissions:` block zeroes every scope it does not list — which is why both
+are spelled out even though each is used by only one step. Neither token
+appears in a run log, in the committed file, in a build artifact, or in
+anything served to a browser.
+
+### When the sync fails, what tells you
+
+**The delivery channel is the red run in the Actions tab plus GitHub's own
+workflow-failure notification — and nothing else.** No issue is filed, no
+message is sent anywhere, nothing else turns red. Every failing path names a
+cause on an `::error::` line and repeats it in the run summary as
+`FAILED — <cause>`, so the run tells you _what_ broke once you look at it.
+Nothing makes you look.
+
+The causes a run can name:
+
+| Cause                                                                                               | What happened                                                                          |
+| --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `request-failure`                                                                                   | the calendar request threw or timed out, or returned a non-2xx other than 401/403      |
+| `api-auth`                                                                                          | 401 or 403, or `GH_CONTRIBUTIONS_TOKEN` absent on the fetch path — the expiry case     |
+| `api-error`                                                                                         | a 200 carrying `errors`, or a null `data.user` — the rename or account-transfer signal |
+| `degraded-payload`                                                                                  | the response carried zero contribution-day records                                     |
+| `file-absent-no-seed`                                                                               | `content/github-activity.yaml` is missing and no seed was requested                    |
+| `input-unreadable`                                                                                  | an `--input <file>` that cannot be read or parsed, naming the errno                    |
+| `flag-missing-value`                                                                                | `--login` or `--input` passed with no value after it                                   |
+| `internal-error`                                                                                    | anything else that threw, carrying the thrown `name: message`                          |
+| `gate-rejected`                                                                                     | `pnpm gate:github-activity` failed, naming the stage `G1`–`G4` that stopped it         |
+| `commit-failed`, `push-failure`, `push-race-exhausted`, `resync-failed`                             | the commit, the push, or the retry after a racing push                                 |
+| `deploy-api-unavailable`, `deploy-not-success`, `deploy-environment-unrecognised`, `deploy-timeout` | the production deployment check                                                        |
+
+In every one of these the previously committed file is left untouched, so the
+page keeps rendering the last good data.
+
+**This channel is known to be weak, and this repository has direct evidence of
+it.** The since-deleted `.github/workflows/verify-vercel-token.yml` failed on
+eleven or more consecutive scheduled runs from 2026-06-01; it never succeeded
+once in its whole history; and not one of those notifications produced any
+action — the repository has had zero issues filed in it, ever. **That workflow
+no longer exists.** It was removed rather than repaired, because a permanently
+red weekly workflow trains the habit of ignoring red weekly workflows, and that
+habit is the only failure-delivery channel this sync has. The removal commit
+`a6557de` carries the fuller record of that reasoning, but the three facts
+above are the whole of the argument and are written out here so they hold
+whether or not that SHA still resolves. The evidence is historical, and it is
+cited because it is the honest measure of what this channel is worth.
+
+**Escalation beyond the red run is deliberately not built.** An issue-based
+channel — file on failure, reuse rather than duplicate, distinguish causes,
+close on recovery — is deferred as **`d-65ff36e0`**
+(`.spec-workflow/deferrals/d-65ff36e0.md`), with two countable revisit
+triggers: `verify-vercel-token.yml` being rebuilt, or this workflow's own
+history showing two or more consecutive failed scheduled runs. Until then the
+gap is real, and it is recorded rather than papered over.
+
+**A known failure mode with no detector in scope: the 60-day disablement.**
+GitHub disables scheduled workflows in a repository that has seen no activity
+for 60 days. If that happens the sync simply stops — no run, therefore no red
+run, therefore no notification. **Nothing in this project detects it**, and
+that is stated plainly rather than hidden behind a check that does not cover
+it. In particular the 45-day freshness warning **cannot** catch this case: it
+fires only inside a CI run that a human started, and the premise of the 60-day
+mode is precisely that nobody has started anything. What surfaces it is the "as
+of" line on `/contributions` drifting further into the past until someone
+notices. Re-enabling the workflow from the Actions tab is the fix.
+
+**The 45-day check is a backstop, not a notification channel.**
+`scripts/check-github-activity-freshness.mjs` runs in CI before the build and
+warns when `anchorDate` is more than 45 days old — see
+[Staleness is a soft failure and the as-of line is the tell](#staleness-is-a-soft-failure-and-the-as-of-line-is-the-tell).
+It always exits 0, it fires only inside a human-initiated CI run, and the
+automation neither weakens nor re-tunes it: the 45-day threshold is still a
+contract, not a tunable.
+
+### Refreshing by hand
+
+The automation is the normal path. When it cannot run — GitHub Actions is
+unavailable, or the workflow itself is disabled or broken — work down this
+ladder and stop at the first rung that works.
+
+1. **`workflow_dispatch`** — the preferred manual path. Actions tab → _Sync
+   GitHub activity_ → _Run workflow_. It is the same workflow, so the result is
+   gated, committed and deployment-checked exactly as a scheduled run would be,
+   and there is nothing further to do.
+2. **Run the script locally**, with the read token in the environment and no
+   flags:
+
+   ```bash
+   GH_CONTRIBUTIONS_TOKEN=… node scripts/sync-github-activity.mjs
+   ```
+
+   Same login, same bounds, same query, same transform as the workflow — it
+   needs nothing from Actions, which is what makes it cover both of rung 1's
+   failure cases.
+
+3. **`gh api graphql` by hand, then the same transform** — see
+   [The refresh query](#the-refresh-query) for the query, the derived bounds and
+   the invocation. Needed only when the script's own _fetch_ is what is broken.
+   The bounds are hand-supplied on this rung, which is the one thing it does not
+   share with the two above:
+
+   ```bash
+   node scripts/sync-github-activity.mjs --input response.json
+   ```
+
+There is no rung 4: hand-writing the file is not a documented path, and
+[Generated file — do not hand-edit it row by row](#generated-file--do-not-hand-edit-it-row-by-row)
+still stands.
+
+**Gate it before you commit — nothing else will.** Rungs 2 and 3 write the file
+on your machine, outside the workflow, so they get none of its validation for
+free:
+
+```bash
+pnpm gate:github-activity
+```
+
+That alias runs the **four gate checks and, ahead of them, the normalisation**:
+`prettier --write content/github-activity.yaml` (`G1`), then `velite build`
+(`G2`), `node scripts/check-github-activity-payload.mjs` (`G3`) and `next build`
+(`G4`). The `prettier --write` stage is **not** one of the four checks — it is
+there so that the bytes which get validated are the bytes which get committed,
+because `.githooks/pre-commit` reformats staged YAML _after_ the gate has run.
+**It must not be dropped from the alias.** Without it the hook can rewrite a
+payload the gate already approved, and the validated bytes and the committed
+bytes stop being the same thing.
+
+**Recovering an absent file.** If `content/github-activity.yaml` has been
+deleted, an ordinary refresh will not bring it back: the script refuses to
+create the file and aborts with `file-absent-no-seed`. That refusal is
+deliberate — it is what stops a broken run inventing a payload — so recovery is
+an explicit opt-in. Dispatch the workflow with the **`seed`** input ticked
+(Actions tab → _Sync GitHub activity_ → _Run workflow_ → **seed**), or locally
+run `node scripts/sync-github-activity.mjs --seed`. `seed` relaxes the
+file-must-exist precondition **and nothing else**: the seeded payload goes
+through exactly the same gate as any other refresh, skipping no validation, so
+follow the local form with `pnpm gate:github-activity` before committing just
+as you would any other hand refresh.
