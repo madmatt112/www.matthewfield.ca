@@ -17,7 +17,7 @@ export function generateMetadata(): Metadata {
 export default function ContactPage() {
   return (
     <div className="mx-auto w-full px-4 py-12 sm:py-16">
-      <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Get in touch</h1>
+      <h1 className="font-display text-4xl tracking-tight sm:text-5xl">Get in touch</h1>
       <section className="mt-8 flex flex-col gap-4">
         <p className="text-base text-foreground">
           Pick the channel that suits you — socials below, an obfuscated email, or send a note

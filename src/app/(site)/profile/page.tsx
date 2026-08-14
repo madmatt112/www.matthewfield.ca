@@ -77,7 +77,7 @@ export default function ProfilePage() {
         )}
         <div className="flex flex-col gap-3">
           <SectionKicker label="profile" />
-          <h1 className="font-display text-3xl tracking-tight text-balance sm:text-4xl md:text-5xl">
+          <h1 className="font-display text-4xl tracking-tight text-balance sm:text-5xl">
             {profile.headline}
           </h1>
           <p className="text-sm text-muted-foreground">

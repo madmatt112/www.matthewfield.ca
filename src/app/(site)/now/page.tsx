@@ -43,7 +43,7 @@ export default function NowPage() {
   return (
     <article className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
       <SectionKicker label="now" />
-      <h1 className="mt-3 font-display text-3xl tracking-tight sm:text-4xl">{nowPage.title}</h1>
+      <h1 className="mt-3 font-display text-4xl tracking-tight sm:text-5xl">{nowPage.title}</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         Last updated <time dateTime={datetime}>{display}</time>
       </p>
@@ -52,16 +52,13 @@ export default function NowPage() {
       </div>
       {hasReading ? (
         <section className="mt-12" aria-labelledby="reading-heading">
-          <h2 id="reading-heading" className="font-display text-2xl tracking-tight">
+          <h2 id="reading-heading" className="font-display text-3xl tracking-tight">
             Reading
           </h2>
           <div className="mt-6 grid gap-8 sm:grid-cols-2">
             {currentlyReading.length > 0 ? (
               <div aria-labelledby="currently-reading-heading" role="group">
-                <h3
-                  id="currently-reading-heading"
-                  className="text-sm font-medium tracking-wide text-muted-foreground uppercase"
-                >
+                <h3 id="currently-reading-heading" className="text-lg leading-snug font-semibold">
                   Currently Reading
                 </h3>
                 <ReadingList entries={currentlyReading} />
@@ -69,10 +66,7 @@ export default function NowPage() {
             ) : null}
             {recentlyRead.length > 0 ? (
               <div aria-labelledby="recently-read-heading" role="group">
-                <h3
-                  id="recently-read-heading"
-                  className="text-sm font-medium tracking-wide text-muted-foreground uppercase"
-                >
+                <h3 id="recently-read-heading" className="text-lg leading-snug font-semibold">
                   Recently Read
                 </h3>
                 <ReadingList entries={recentlyRead} />

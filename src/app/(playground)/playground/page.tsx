@@ -33,7 +33,7 @@ export default function PlaygroundGallery() {
             <li key={item.slug}>
               <Link
                 href={`/playground/${item.slug}`}
-                className="block rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Card className="h-full transition-colors hover:bg-accent/50">
                   <CardHeader>

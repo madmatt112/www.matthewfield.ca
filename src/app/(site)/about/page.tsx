@@ -31,7 +31,7 @@ export default function AboutPage() {
   return (
     <article className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
       <SectionKicker label="about" />
-      <h1 className="mt-3 font-display text-3xl tracking-tight sm:text-4xl">{aboutPage.title}</h1>
+      <h1 className="mt-3 font-display text-4xl tracking-tight sm:text-5xl">{aboutPage.title}</h1>
       <div className="prose dark:prose-invert max-w-measure mt-6">
         <MDXContent code={aboutPage.body} />
       </div>

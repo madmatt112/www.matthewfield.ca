@@ -154,8 +154,49 @@ body {
   --tw-prose-invert-captions: var(--muted-foreground);
   --tw-prose-invert-borders: var(--border);
 }
-.prose :is(h1, h2, h3, h4, h5, h6) {
+/* Prose heading ramp — the SAME scale the component headings use, so a page
+   that mixes an MDX body with component sections (/now, /profile) reads as one
+   system rather than two.
+ *
+ * `@tailwindcss/typography` sizes headings in `em` off its own defaults (h2
+ * 1.5em/700, h3 1.25em/600). Those are the plugin's numbers, not the design
+ * system's, and they are what made prose h2s land at 24px/700 beside a
+ * component h2 at 30px/400. The rules below re-state each heading at the named
+ * step from the visual-design type scale (design.md §4).
+ *
+ * Specificity note: the plugin wraps its selectors in `:where()` (0,1,0), so
+ * these plain `.prose h2` selectors (0,1,1) win without `!important`.
+ *
+ * Weight is the one thing the type scale never fixed (R4.3 covers steps, ratio
+ * and line-heights only). Settled here: serif headings stay at 400 — the
+ * editorial voice the h1 and the profile section headings already used — and
+ * the sans h3–h6 carry 600, since a sans heading two steps off the body needs
+ * weight rather than size to register. */
+.prose :is(h1, h2) {
   font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+}
+.prose h1 {
+  font-size: 2.25rem; /* text-4xl */
+  line-height: 1.1;
+}
+.prose h2 {
+  font-size: 1.875rem; /* text-3xl */
+  line-height: 1.15;
+}
+.prose :is(h3, h4, h5, h6) {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: normal;
+}
+.prose h3 {
+  font-size: 1.125rem; /* text-lg */
+  line-height: 1.3;
+}
+.prose :is(h4, h5, h6) {
+  font-size: 1rem; /* text-base */
+  line-height: 1.3;
 }
 
 /* Shiki dual-theme cascade (Req 9.2, 9.3, 9.5).

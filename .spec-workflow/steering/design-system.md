@@ -108,14 +108,46 @@ property of the live site (see Scope on the already-built sections).
 
 - **Type roles:** display/headings (`h1`–`h6`, mapped to semantic HTML in order), body,
   secondary/meta, code. Emphasis never substitutes for correct heading structure.
-- **Font families:** Geist Sans (`--font-sans`, UI/headings/body) and Geist Mono (`--font-mono`,
-  code), self-hosted via `next/font` (the content-page CSP forbids external font origins).
+- **Font families:** Fraunces (`--font-display`, `h1`/`h2` and the hero), Geist Sans
+  (`--font-sans`, UI/body/`h3`+) and Geist Mono (`--font-mono`, code and the `/ kicker`), all
+  self-hosted via `next/font` (the content-page CSP forbids external font origins).
 - **Usage rules:** components pick a named scale step; they never set ad-hoc sizes.
 - **Measure:** ~75 characters is a **ceiling on wide viewports**, not a fixed width — on narrow
   viewports the measure is viewport-bound and shrinks below 75ch. The wide-profile layout widens
   *gutters/asides*, not the prose measure.
-- **Exact scale & voice:** `Deferred: design spec` — the precise scale (ratio/steps/line-heights,
-  and whether it is mobile- or desktop-first) and any face/weight personality beyond Geist.
+- **Exact scale & voice:** fixed by the `visual-design` spec (design.md §4). Fraunces
+  (`--font-display`) carries `h1`/`h2`; Geist Sans carries `h3`–`h6` and body; Geist Mono is
+  reserved for code and the `/ kicker` label and is used for nothing else.
+
+### The heading ramp (settled)
+
+| Role | Step | Rendered | Face | Weight |
+|---|---|---|---|---|
+| page `h1` | `text-4xl sm:text-5xl` | 36 → 48 | serif | 400 |
+| section `h2` | `text-3xl` | 30 | serif | 400 |
+| `h3`–`h6` | `text-lg` / `text-base` | 18 / 16 | sans | 600 |
+| item title | `text-lg` | 18 | sans | 600 |
+| kicker | `text-xs` | 12 | mono | uppercase, `tracking-widest` |
+
+**Weight was the gap.** The spec's R4.3 fixes steps, ratio and line-heights but never weight, and
+the two heading systems drifted apart in it: component headings rendered at Fraunces' natural 400
+while `@tailwindcss/typography` styled prose headings at its own 700/600 defaults. On any page
+mixing an MDX body with component sections (`/now`, `/profile`) the two sat side by side and
+disagreed by 6px and 300 weight units. Settled above: **serif headings are 400**, size alone
+carries the ramp, and the sans `h3`+ take 600 because a sans heading close to the body size needs
+weight rather than size to register. The prose scale is re-stated over the plugin's defaults in
+`src/styles/globals.css` — that block is the single source of truth for prose headings.
+
+**Deviation from design.md §4, recorded:** the spec puts `h3` at `text-2xl` (24px). Shipped at
+`text-lg` (18px). At 24px a semibold sans `h3` sits close enough to a 400-weight serif `h2` at 30px
+to compete with it, which was visible on `/now` where the Reading column headings sit directly under
+the section heading. 18px keeps the subordination legible and matches the item titles already
+shipped on the profile, project, and contribution surfaces.
+
+**Item titles are not section headings.** The title of a card or a row (a project, a contribution, a
+post in an index, a book) names one item in a list rather than a level of the page outline. It takes
+the `text-lg`/600 sans treatment regardless of which heading tag the surrounding outline requires —
+the tag follows the document structure, the styling follows the role.
 
 ## Spacing & Layout
 

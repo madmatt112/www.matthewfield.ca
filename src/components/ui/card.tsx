@@ -2,12 +2,19 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * Surfaces are flat (visual-design design.md §2): separation comes from a
+ * hairline border plus the `card` tint, never elevation. shadcn ships this
+ * primitive with `rounded-xl` and `shadow-sm`, which is why the project cards
+ * used to sit on a shadow at a 14px radius while the hand-rolled contribution
+ * cards were flat at the 10px `--radius` token. Both now resolve to the token.
+ */
 function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card"
       className={cn(
-        "flex flex-col gap-6 rounded-xl border bg-card py-6 text-card-foreground shadow-sm",
+        "flex flex-col gap-6 rounded-lg border bg-card py-6 text-card-foreground",
         className,
       )}
       {...props}

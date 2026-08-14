@@ -27,7 +27,7 @@ export default function ResourcesPage() {
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
       <SectionKicker label="resources" />
-      <h1 id="page-heading" className="mt-3 font-display text-3xl tracking-tight sm:text-4xl">
+      <h1 id="page-heading" className="mt-3 font-display text-4xl tracking-tight sm:text-5xl">
         Resources
       </h1>
       {groups.length === 0 ? (

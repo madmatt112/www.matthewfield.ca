@@ -36,7 +36,7 @@ export function EducationList({ entries }: EducationListProps) {
   return (
     <section id="education" aria-labelledby="education-heading" className="mt-16">
       <SectionKicker label="education" />
-      <h2 id="education-heading" className="mt-3 font-display text-2xl tracking-tight sm:text-3xl">
+      <h2 id="education-heading" className="mt-3 font-display text-3xl tracking-tight">
         Education
       </h2>
       <p id="education-order" className="sr-only">
