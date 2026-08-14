@@ -120,6 +120,15 @@ revised.
 Keep `updated` accurate. The page renders it as a visible `<time>` element;
 a stale date misleads readers about how current the content is.
 
+### What `now.mdx` does and does not own
+
+`now.mdx` is the prose only. Two things below it belong to the page component
+(`src/app/(site)/now/page.tsx`) and render after the MDX body, in this order:
+the Reading section, then the "This page follows the /now page convention"
+postscript. The postscript lives there rather than at the end of the MDX so the
+Reading section can sit in front of it — putting it back in `now.mdx` would push
+it above Reading again.
+
 ### Missing `updated` is a build error
 
 `getNowPage()` evaluates at module load during `next build`. If `now.mdx` is
@@ -144,22 +153,49 @@ A minor typo fix does not warrant a bump; a content refresh does.
 
 The **Reading** section on `/now` is rendered from `content/reading.yaml`, not
 from `now.mdx`. It is a separate file so a future sync job can rewrite the whole
-thing without touching your prose.
+thing without touching your prose. The section renders as two columns,
+**Currently Reading** and **Recently Read**, both fed by that one file.
 
 ```yaml
+# Currently Reading — no finished date
 - title: "Do I Stay Christian?: A Guide for the Doubters"
   author: Brian D. McLaren
+  url: https://app.thestorygraph.com/books/e48c35d8-86e2-467e-b427-1faeb13f0923
   started: "2026-07-31"
   cover: ./reading/do-i-stay-christian.jpg
+
+# Recently Read — finished date present
+- title: Nine Goblins
+  author: T. Kingfisher
+  url: https://app.thestorygraph.com/books/de0cb3f4-f872-4d70-b03e-29cc90aab5f9
+  started: "2026-07-04"
+  finished: "2026-07-16"
+  cover: ./reading/nine-goblins.jpg
 ```
 
-To update it: replace the entries, drop the cover image into `content/reading/`,
-and commit. Order in the file is the order rendered. An empty list (`[]`) hides
-the section entirely.
+`finished` is the only thing that decides which column an entry lands in. Add it
+when you finish a book; nothing else moves. The Currently Reading column renders
+in file order and shows the `started` date; the Recently Read column sorts by
+`finished` newest-first, shows that date, and displays at most three books
+(`RECENTLY_READ_LIMIT` in `src/lib/reading.ts`) — older finished entries can stay
+in the file as history without appearing on the page. An empty list (`[]`) hides
+the whole section.
 
-Every field is required and hard-failed at build time by the same authoritative
-YAML loader that guards `contributions.yaml` and `resources.yaml` — a malformed
-date, a future `started`, or an unknown key fails the build with a named error.
+Each card is a single link to `url`, the book's StoryGraph page, opened in a new
+tab like every other outbound link on the site.
+
+To update it: edit the entries, drop the cover image into `content/reading/`, and
+commit. StoryGraph serves both halves of an entry — the cover URL is the `<img>`
+`src` on your currently-reading or read list, and `url` is the `/books/<uuid>`
+link on the same card. Covers download over plain `curl`; convert a PNG to JPEG
+before committing (StoryGraph's PNGs run ~240KB against ~30KB for the same image
+as JPEG).
+
+Every field except `finished` is required and hard-failed at build time by the
+same authoritative YAML loader that guards `contributions.yaml` and
+`resources.yaml` — a malformed date, a future `started` or `finished`, a `url`
+that is not `http:`/`https:`, or an unknown key fails the build with a named
+error.
 
 `cover` is a path relative to `content/`, processed by Velite into a hashed
 asset with width, height, and a blur placeholder. Do NOT point it at a remote

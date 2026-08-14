@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import { NewTabHint } from "@/components/shared/new-tab-hint";
 import { formatContentDate } from "@/lib/format-date";
 import type { ReadingEntry } from "@/lib/reading";
 
@@ -8,37 +9,51 @@ export type ReadingListProps = {
 };
 
 /**
- * Currently-reading cards laid out like StoryGraph's: cover on the left, then
- * title, author, and start date stacked beside it.
+ * Book cards laid out like StoryGraph's: cover on the left, then title, author,
+ * and a date stacked beside it. The date follows the entry — a finished book
+ * reports when it was finished, an in-progress one when it was started — so the
+ * same list renders both the Currently Reading and Recently Read columns.
+ *
+ * The whole card is one link to the book's StoryGraph page. The cover carries an
+ * empty alt because the title sits inside the same anchor: a described cover
+ * would make screen readers announce the title twice per card.
  */
 export function ReadingList({ entries }: ReadingListProps) {
   if (entries.length === 0) return null;
   return (
-    <ul className="mt-6 flex flex-col gap-4">
+    <ul className="mt-4 flex flex-col gap-4">
       {entries.map((entry) => {
-        const { datetime, display } = formatContentDate(entry.started);
+        const { datetime, display } = formatContentDate(entry.finished ?? entry.started);
         return (
-          <li
-            key={`${entry.title}-${entry.started}`}
-            className="flex items-center gap-4 rounded-lg border border-border p-4 sm:gap-6"
-          >
-            <Image
-              src={entry.cover.src}
-              alt={`Cover of ${entry.title}`}
-              width={entry.cover.width}
-              height={entry.cover.height}
-              placeholder="blur"
-              blurDataURL={entry.cover.blurDataURL}
-              sizes="(min-width: 640px) 96px, 80px"
-              className="w-20 shrink-0 rounded-sm shadow-md sm:w-24"
-            />
-            <div className="flex min-w-0 flex-col gap-1">
-              <p className="font-medium text-balance text-foreground">{entry.title}</p>
-              <p className="text-sm text-muted-foreground">{entry.author}</p>
-              <p className="text-sm text-muted-foreground">
-                Started <time dateTime={datetime}>{display}</time>
-              </p>
-            </div>
+          <li key={`${entry.title}-${entry.started}-${entry.finished ?? ""}`}>
+            <a
+              href={entry.url}
+              target="_blank"
+              rel="noopener"
+              className="flex items-center gap-4 rounded-lg border border-border p-4 transition-colors hover:border-foreground/25 hover:bg-muted/40 sm:gap-6"
+            >
+              <Image
+                src={entry.cover.src}
+                alt=""
+                width={entry.cover.width}
+                height={entry.cover.height}
+                placeholder="blur"
+                blurDataURL={entry.cover.blurDataURL}
+                sizes="(min-width: 640px) 96px, 80px"
+                className="w-20 shrink-0 rounded-sm shadow-md sm:w-24"
+              />
+              <div className="flex min-w-0 flex-col gap-1">
+                <p className="font-medium text-balance text-foreground">
+                  {entry.title}
+                  <NewTabHint />
+                </p>
+                <p className="text-sm text-muted-foreground">{entry.author}</p>
+                <p className="text-sm text-muted-foreground">
+                  {entry.finished ? "Finished" : "Started"}{" "}
+                  <time dateTime={datetime}>{display}</time>
+                </p>
+              </div>
+            </a>
           </li>
         );
       })}
