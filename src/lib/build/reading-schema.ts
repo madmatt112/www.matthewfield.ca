@@ -1,24 +1,37 @@
 import { s } from "velite";
 
-import { BUILD_START_UTC, isoDate, trimmed } from "./content-schema-primitives";
+import { BUILD_START_UTC, httpUrl, isoDate, trimmed } from "./content-schema-primitives";
 
 /**
- * Per-entry schema for one currently-reading book, following the contributions
- * and resources pattern.
+ * Per-entry schema for one book on the /now Reading section, following the
+ * contributions and resources pattern.
  *
  * `content/reading.yaml` is written by hand today and is shaped so a future sync
  * job can rewrite the whole file without touching prose or components.
  * StoryGraph sits behind a Cloudflare bot challenge AND an auth wall, so the
  * list cannot be fetched at build or request time — see docs/slash-pages-authoring.md.
  *
- * `started` is upper-bounded by `BUILD_START_UTC`: you cannot have started a
- * book in the future. The `.refine()` only runs on calendar-valid dates because
- * `isoDate()` aborts fatally first, so `Date.parse` never sees a bad string.
+ * `finished` is what splits the two columns: an entry without it is currently
+ * being read, an entry with it is done and sorts into Recently Read. One list,
+ * one optional field, rather than two files that can disagree.
+ *
+ * Both dates are upper-bounded by `BUILD_START_UTC`: you cannot have started or
+ * finished a book in the future. The `.refine()` only runs on calendar-valid
+ * dates because `isoDate()` aborts fatally first, so `Date.parse` never sees a
+ * bad string.
+ *
+ * `url` is the book's StoryGraph page — the card links to it. Required, and
+ * validated by the same `httpUrl()` two-stage check the project links use, so a
+ * typo fails the build rather than shipping a dead card.
  */
 const readingFields = {
   title: trimmed(1, 200),
   author: trimmed(1, 120),
+  url: httpUrl(),
   started: isoDate().refine((d) => Date.parse(d) <= BUILD_START_UTC),
+  finished: isoDate()
+    .refine((d) => Date.parse(d) <= BUILD_START_UTC)
+    .optional(),
 };
 
 /**

@@ -14,9 +14,17 @@ import { readingLoaderSchema } from "./reading-schema";
 const VALID = {
   title: "Do I Stay Christian?",
   author: "Brian D. McLaren",
+  url: "https://app.thestorygraph.com/books/e48c35d8-86e2-467e-b427-1faeb13f0923",
   started: "2026-07-31",
   cover: "./reading/do-i-stay-christian.jpg",
 };
+
+/** VALID minus one required key, for the "this field is not optional" cases. */
+function without(key: keyof typeof VALID): Record<string, unknown> {
+  const entry: Record<string, unknown> = { ...VALID };
+  delete entry[key];
+  return entry;
+}
 
 describe("readingLoaderSchema", () => {
   it("accepts a well-formed entry", () => {
@@ -46,8 +54,43 @@ describe("readingLoaderSchema", () => {
   });
 
   it("requires a cover path", () => {
-    const withoutCover = { title: VALID.title, author: VALID.author, started: VALID.started };
-    expect(readingLoaderSchema.safeParse(withoutCover).success).toBe(false);
+    expect(readingLoaderSchema.safeParse(without("cover")).success).toBe(false);
+  });
+
+  it("requires a url", () => {
+    expect(readingLoaderSchema.safeParse(without("url")).success).toBe(false);
+  });
+
+  it("rejects a non-http url scheme", () => {
+    expect(readingLoaderSchema.safeParse({ ...VALID, url: "javascript:alert(1)" }).success).toBe(
+      false,
+    );
+  });
+
+  it("rejects a malformed url", () => {
+    expect(
+      readingLoaderSchema.safeParse({ ...VALID, url: "app.thestorygraph.com/books/x" }).success,
+    ).toBe(false);
+  });
+
+  it("accepts an entry with a finished date", () => {
+    expect(readingLoaderSchema.safeParse({ ...VALID, finished: "2026-08-01" }).success).toBe(true);
+  });
+
+  it("treats finished as optional — an in-progress book omits it", () => {
+    const result = readingLoaderSchema.safeParse(VALID);
+    expect(result.success).toBe(true);
+    expect(result.data?.finished).toBeUndefined();
+  });
+
+  it("rejects a future finished date", () => {
+    expect(readingLoaderSchema.safeParse({ ...VALID, finished: "2099-01-01" }).success).toBe(false);
+  });
+
+  it("rejects a non-ISO finished date", () => {
+    expect(readingLoaderSchema.safeParse({ ...VALID, finished: "Aug 1, 2026" }).success).toBe(
+      false,
+    );
   });
 
   it("parses cover as a plain string — s.image() would throw on the sync path", () => {

@@ -50,7 +50,7 @@ export default function ContributionsPage() {
       </h1>
       {contributions.length === 0 ? (
         <section aria-labelledby="empty-state-heading" className="mt-3">
-          <h2 id="empty-state-heading" className="font-display text-2xl tracking-tight sm:text-3xl">
+          <h2 id="empty-state-heading" className="font-display text-3xl tracking-tight">
             No contributions yet
           </h2>
           <p className="max-w-measure mt-2 text-muted-foreground">{CONTRIBUTIONS_DESCRIPTION}</p>
@@ -61,10 +61,7 @@ export default function ContributionsPage() {
            * guards (Req 3.7) select `main > ul.contributions-grid`, and a
            * <section> here would make that selector match nothing and pass
            * vacuously. aria-labelledby carries the association instead. */}
-          <h2
-            id="highlighted-heading"
-            className="mt-3 font-display text-2xl tracking-tight sm:text-3xl"
-          >
+          <h2 id="highlighted-heading" className="mt-3 font-display text-3xl tracking-tight">
             Highlighted
           </h2>
           <ul role="list" aria-labelledby="highlighted-heading" className="contributions-grid mt-8">

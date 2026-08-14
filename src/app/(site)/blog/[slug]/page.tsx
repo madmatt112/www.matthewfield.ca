@@ -112,7 +112,7 @@ export default async function BlogPostPage({ params }: { params: Promise<RoutePa
           </div>
         ) : null}
         <header className="flex flex-col gap-4">
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{post.title}</h1>
+          <h1 className="font-display text-4xl tracking-tight sm:text-5xl">{post.title}</h1>
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
             <time dateTime={datetime}>{display}</time>
             {showUpdated && updated ? (

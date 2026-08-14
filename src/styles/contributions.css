@@ -60,13 +60,17 @@
   gap: 0.5rem;
 }
 
+/* Item title, not a section heading: it names one card in a list rather than a
+ * level of the page outline, so it takes the item-title treatment shared with
+ * the project cards, the profile role/school titles, and the blog post rows —
+ * sans at text-lg/600 — not the serif h2/h3 ramp. */
 .contribution-card__title {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  line-height: 1.25;
+  font-family: var(--font-sans);
+  font-size: 1.125rem;
+  line-height: 1.3;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: normal;
   color: var(--card-foreground);
 }
 

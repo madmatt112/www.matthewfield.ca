@@ -40,7 +40,7 @@ export function SkillsList({ groups }: SkillsListProps) {
   return (
     <section id="skills" aria-labelledby="skills-heading" className="mt-16">
       <SectionKicker label="skills" />
-      <h2 id="skills-heading" className="mt-3 font-display text-2xl tracking-tight sm:text-3xl">
+      <h2 id="skills-heading" className="mt-3 font-display text-3xl tracking-tight">
         Skills
       </h2>
       <dl className="mt-8 divide-y divide-border">

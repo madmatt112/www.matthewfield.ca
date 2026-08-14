@@ -23,10 +23,10 @@ export default function SitemapPage() {
   return (
     <article className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
       <SectionKicker label="sitemap" />
-      <h1 className="mt-3 font-display text-3xl tracking-tight sm:text-4xl">Sitemap</h1>
+      <h1 className="mt-3 font-display text-4xl tracking-tight sm:text-5xl">Sitemap</h1>
 
       <section className="mt-10">
-        <h2 className="text-xl font-semibold tracking-tight">Home</h2>
+        <h2 className="font-display text-3xl tracking-tight">Home</h2>
         <ul className="mt-3 space-y-1">
           <li>
             <Link href="/" className="text-base text-brand underline-offset-4 hover:underline">
@@ -37,7 +37,7 @@ export default function SitemapPage() {
       </section>
 
       <section className="mt-10">
-        <h2 className="text-xl font-semibold tracking-tight">Sections</h2>
+        <h2 className="font-display text-3xl tracking-tight">Sections</h2>
         <ul className="mt-3 space-y-1">
           {siteConfig.navItems.map((item) => (
             <li key={item.href}>
@@ -53,7 +53,7 @@ export default function SitemapPage() {
       </section>
 
       <section className="mt-10">
-        <h2 className="text-xl font-semibold tracking-tight">Slash pages</h2>
+        <h2 className="font-display text-3xl tracking-tight">Slash pages</h2>
         <ul className="mt-3 space-y-1">
           {siteConfig.slashPages.map((page) => (
             <li key={page.href}>
@@ -70,7 +70,7 @@ export default function SitemapPage() {
 
       {posts.length > 0 && (
         <section className="mt-10">
-          <h2 className="text-xl font-semibold tracking-tight">Posts</h2>
+          <h2 className="font-display text-3xl tracking-tight">Posts</h2>
           <ul className="mt-3 space-y-1">
             {posts.map((post) => (
               <li key={post.slug}>
@@ -88,7 +88,7 @@ export default function SitemapPage() {
 
       {projects.length > 0 && (
         <section className="mt-10">
-          <h2 className="text-xl font-semibold tracking-tight">Projects</h2>
+          <h2 className="font-display text-3xl tracking-tight">Projects</h2>
           <ul className="mt-3 space-y-1">
             {projects.map((project) => (
               <li key={project.slug}>

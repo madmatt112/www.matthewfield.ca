@@ -55,7 +55,7 @@ export function ProjectCard({ project, eager = false }: ProjectCardProps) {
       <Link
         href={`/projects/${project.slug}`}
         aria-labelledby={titleId}
-        className="absolute inset-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="absolute inset-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       />
     </Card>
   );

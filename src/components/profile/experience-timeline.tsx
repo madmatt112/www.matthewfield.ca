@@ -30,7 +30,7 @@ export function ExperienceTimeline({ roles }: ExperienceTimelineProps) {
   return (
     <section id="experience" aria-labelledby="experience-heading" className="mt-16">
       <SectionKicker label="experience" />
-      <h2 id="experience-heading" className="mt-3 font-display text-2xl tracking-tight sm:text-3xl">
+      <h2 id="experience-heading" className="mt-3 font-display text-3xl tracking-tight">
         Experience
       </h2>
       <p id="experience-order" className="sr-only">

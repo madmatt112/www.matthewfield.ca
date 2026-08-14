@@ -176,7 +176,7 @@ export function ContributionHeatmap({ window }: ContributionHeatmapProps) {
     // its text equivalent exist for visitors and assistive technology, not for
     // search excerpts.
     <section aria-labelledby={headingId} data-pagefind-ignore="all" className="mt-12">
-      <h2 id={headingId} className="font-display text-2xl tracking-tight sm:text-3xl">
+      <h2 id={headingId} className="font-display text-3xl tracking-tight">
         GitHub activity
       </h2>
       {/* The summary carries the headline figures deliberately: the text

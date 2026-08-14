@@ -66,7 +66,7 @@ export default async function ProjectPage({ params }: { params: Promise<RoutePar
     <div className="mx-auto w-full max-w-5xl px-4 py-12 sm:py-16 projects-article">
       <article>
         <header className="mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{project.title}</h1>
+          <h1 className="font-display text-4xl tracking-tight sm:text-5xl">{project.title}</h1>
           <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
             <time dateTime={datetime}>{display}</time>
             {showUpdated && project.updated ? <UpdatedBadge updated={project.updated} /> : null}
