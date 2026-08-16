@@ -1,16 +1,27 @@
 #!/usr/bin/env node
 // Pagefind crawl orchestrator. Spawns `next start`, mirrors the running site
-// with `wget`, runs `pagefind --site ./out` against the mirror, and tears
+// into ./out, runs `pagefind --site ./out` against the mirror, and tears
 // everything down. Designed to be invoked as `pnpm build:search` after a
 // production `next build`.
 //
 // Design ref: .spec-workflow/specs/blog-enhanced/design.md §"Crawl
 // orchestration (v2/v4)" — task blog-enhanced #9.
+//
+// The mirror step used to shell out to `wget --mirror --adjust-extension`.
+// It no longer can: this script runs inside the Vercel build (vercel.json's
+// buildCommand) so the deployed site has a search index, and Vercel's Amazon
+// Linux 2023 build image ships no wget — the deploy died on `spawn wget
+// ENOENT`. Rather than install a system package into the build container, the
+// mirror is now a small breadth-first fetch loop below. It reproduces the two
+// wget behaviours the rest of the pipeline depends on: the `--adjust-extension`
+// file layout (`/blog/foo` → `out/blog/foo.html`), which is what makes Pagefind
+// emit `/blog/foo.html` URLs for `site-search.tsx` to strip back to a route,
+// and tolerance of a single dead URL (a stale hidden-post slug must not fail
+// the whole build).
 
 import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
 import net from "node:net";
-import os from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { setTimeout as sleep } from "node:timers/promises";
@@ -121,8 +132,8 @@ async function waitForReady(port) {
 
 /**
  * Hidden posts (`hiddenFromLists: true`) are deliberately excluded from /blog,
- * sitemap, feed, taxonomy — wget cannot find them via link-walking from /. We
- * enumerate them explicitly via wget's `--input-file`. Draft and
+ * sitemap, feed, taxonomy — no crawl can reach them by link-walking from /, so
+ * they are enumerated here and seeded into the queue directly. Draft and
  * `excludeFromSearch` posts are filtered out (the latter should not be
  * indexed; the former would not exist in a Build 2 anyway but the explicit
  * filter guards local-dev usage).
@@ -140,36 +151,128 @@ async function buildExtraUrls() {
   return unique.map((slug) => `http://localhost:${PORT}/blog/${slug}`);
 }
 
-async function runWget(urlsPath) {
-  return new Promise((resolve, reject) => {
-    const args = [
-      "--quiet",
-      "--mirror",
-      "--adjust-extension",
-      "--no-host-directories",
-      `--directory-prefix=${OUT_DIR}`,
-      `--input-file=${urlsPath}`,
-      "--reject=*.css,*.js,*.png,*.jpg,*.jpeg,*.svg,*.ico,*.webp,*.wasm",
-      "--exclude-directories=/_next,/static",
-      "--timeout=30",
-      "--tries=2",
-      `http://localhost:${PORT}/`,
-    ];
-    const child = spawn("wget", args, { stdio: "inherit", cwd: repoRoot });
-    child.once("error", reject);
-    child.once("exit", (code, signal) => {
-      // wget exits 8 on server-error responses (e.g. 404 on a hidden post URL
-      // we just enumerated). A single stale slug shouldn't fail the whole
-      // pipeline — log a warning and continue so pagefind still indexes the
-      // URLs that did mirror successfully.
-      if (signal) reject(new Error(`wget terminated by signal ${signal}`));
-      else if (code === 0) resolve();
-      else if (code === 8) {
-        errlog("wget exited 8 (one or more URLs returned a server/4xx response); continuing.");
-        resolve();
-      } else reject(new Error(`wget exited with code ${code}`));
-    });
-  });
+/** Assets Pagefind never reads; skipped so the crawl only walks documents. */
+const ASSET_EXTENSION =
+  /\.(css|m?js|png|jpe?g|gif|svg|ico|webp|avif|wasm|xml|txt|json|map|woff2?|ttf|pdf)$/i;
+
+/** wget's `--exclude-directories=/_next,/static`. */
+const EXCLUDED_PATH = /^\/(_next|static)\//;
+
+/** Runaway guard. The site is ~20 routes; 500 is a bug, not a big site. */
+const MAX_PAGES = 500;
+
+/**
+ * wget's `--adjust-extension` naming, which the rest of the pipeline is built
+ * around: a document path gains `.html` unless it already ends in `/`, in which
+ * case it becomes `index.html` inside that directory.
+ *
+ *   /                 → out/index.html
+ *   /blog             → out/blog.html
+ *   /blog/            → out/blog/index.html
+ *   /blog/some-post   → out/blog/some-post.html
+ */
+function outPathForPathname(pathname) {
+  if (pathname.endsWith("/")) return path.join(OUT_DIR, pathname, "index.html");
+  return path.join(OUT_DIR, `${pathname}.html`);
+}
+
+/**
+ * Same-document link extraction. A regex rather than a DOM parser on purpose:
+ * this walks our own statically rendered output, not arbitrary web pages, and
+ * adding a parser dependency to make the deploy work would trade one supply
+ * problem for another.
+ */
+function extractHrefs(html) {
+  const hrefs = [];
+  const anchor = /<a\b[^>]*?\shref=["']([^"']+)["']/gi;
+  let match;
+  while ((match = anchor.exec(html)) !== null) hrefs.push(match[1]);
+  return hrefs;
+}
+
+function shouldVisit(url, origin) {
+  if (url.origin !== origin) return false;
+  if (EXCLUDED_PATH.test(url.pathname)) return false;
+  if (ASSET_EXTENSION.test(url.pathname)) return false;
+  return true;
+}
+
+/**
+ * Breadth-first mirror of the running site into OUT_DIR. Seeded with `/` plus
+ * the explicitly enumerated hidden-post URLs, which are unreachable by
+ * link-walking by design (see buildExtraUrls).
+ */
+async function mirrorSite(extraUrls) {
+  const origin = `http://localhost:${PORT}`;
+  const queue = [`${origin}/`, ...extraUrls];
+  const seen = new Set();
+  let saved = 0;
+  let skipped = 0;
+
+  while (queue.length > 0) {
+    const next = queue.shift();
+    let url;
+    try {
+      url = new URL(next);
+    } catch {
+      continue;
+    }
+    if (seen.has(url.pathname)) continue;
+    seen.add(url.pathname);
+
+    if (seen.size > MAX_PAGES) {
+      throw new Error(`crawl exceeded ${MAX_PAGES} pages — refusing to continue`);
+    }
+
+    let response;
+    try {
+      response = await fetch(url, { redirect: "follow" });
+    } catch (err) {
+      // Mirrors wget's exit-8 tolerance: one unreachable URL is a warning.
+      skipped += 1;
+      errlog(`${url.pathname}: fetch failed (${err instanceof Error ? err.message : err})`);
+      continue;
+    }
+
+    if (!response.ok) {
+      skipped += 1;
+      errlog(`${url.pathname}: HTTP ${response.status}; skipping.`);
+      continue;
+    }
+
+    // A redirect means the document belongs at its final path, not the
+    // requested one — record both so neither is fetched twice.
+    const finalUrl = new URL(response.url);
+    seen.add(finalUrl.pathname);
+
+    const contentType = response.headers.get("content-type") ?? "";
+    if (!contentType.includes("text/html")) continue;
+
+    const html = await response.text();
+    const destination = outPathForPathname(finalUrl.pathname);
+    await fs.mkdir(path.dirname(destination), { recursive: true });
+    await fs.writeFile(destination, html);
+    saved += 1;
+
+    for (const href of extractHrefs(html)) {
+      let candidate;
+      try {
+        candidate = new URL(href, finalUrl);
+      } catch {
+        continue;
+      }
+      candidate.hash = "";
+      candidate.search = "";
+      if (!shouldVisit(candidate, origin)) continue;
+      if (seen.has(candidate.pathname)) continue;
+      queue.push(candidate.href);
+    }
+  }
+
+  if (saved === 0) {
+    throw new Error("mirror produced no pages — pagefind would index nothing");
+  }
+  log(`Mirrored ${saved} page(s)${skipped > 0 ? `, skipped ${skipped}` : ""}.`);
 }
 
 async function runPagefind() {
@@ -231,23 +334,18 @@ async function pipeline() {
   process.on("SIGINT", onSigint);
   process.on("SIGTERM", onSigterm);
 
-  const urlsPath = path.join(os.tmpdir(), `pagefind-urls-${process.pid}.txt`);
-  let urlsFileWritten = false;
-
   try {
     // 4. Readiness poll.
     await waitForReady(PORT);
     log(`next start is ready on port ${PORT}.`);
 
-    // 5a. Build extraSlugs URL list + write tmp urls-extra file.
+    // 5a. Enumerate the hidden posts link-walking cannot reach.
     const extraUrls = await buildExtraUrls();
-    await fs.writeFile(urlsPath, extraUrls.join("\n") + (extraUrls.length ? "\n" : ""));
-    urlsFileWritten = true;
-    log(`Wrote ${extraUrls.length} extra URL(s) to ${urlsPath}.`);
+    log(`Seeding ${extraUrls.length} extra URL(s) alongside /.`);
 
-    // 5b. Mirror with wget.
-    log(`Mirroring http://localhost:${PORT}/ → ${OUT_DIR} via wget…`);
-    await runWget(urlsPath);
+    // 5b. Mirror the running site.
+    log(`Mirroring http://localhost:${PORT}/ → ${OUT_DIR}…`);
+    await mirrorSite(extraUrls);
 
     // 6. Run pagefind against the mirrored directory.
     log(`Running pagefind --site ${OUT_DIR} --output-path ${PAGEFIND_DIR}…`);
@@ -257,11 +355,6 @@ async function pipeline() {
   } finally {
     process.off("SIGINT", onSigint);
     process.off("SIGTERM", onSigterm);
-
-    // Cleanup tmp urls file (success AND failure path).
-    if (urlsFileWritten) {
-      await fs.unlink(urlsPath).catch(() => {});
-    }
 
     // Tear down next start.
     terminateNext();
