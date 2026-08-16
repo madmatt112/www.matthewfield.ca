@@ -15,6 +15,7 @@
     "build:search": "node scripts/run-pagefind-crawl.mjs",
     "check:authoring-docs": "node scripts/check-authoring-docs.mjs",
     "check:playground-css": "node scripts/check-playground-css.mjs",
+    "gate:github-activity": "echo '[gate] G1' && prettier --write content/github-activity.yaml && echo '[gate] G2' && velite build && echo '[gate] G3' && node scripts/check-github-activity-payload.mjs && echo '[gate] G4' && next build",
     "lhci": "node scripts/run-lhci.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

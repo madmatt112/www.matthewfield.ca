@@ -65,6 +65,9 @@ jobs:
       - name: "Self-tests for check-github-activity-freshness"
         run: node --test scripts/check-github-activity-freshness.test.mjs
 
+      - name: "Self-tests for sync-github-activity, check-github-activity-payload, confirm-production-deployment"
+        run: node --test scripts/sync-github-activity.test.mjs scripts/check-github-activity-payload.test.mjs scripts/confirm-production-deployment.test.mjs
+
       - name: Unit tests
         run: pnpm test
 

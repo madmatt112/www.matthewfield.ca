@@ -213,7 +213,7 @@ Personal website rebuild for Matthew Field — replacing WordPress.com with a ma
 
 **Scope**: A scheduled GitHub Actions workflow that refreshes `content/github-activity.yaml` on its own. It queries the contributions calendar with a repo secret, rewrites the file in the same ascending, fully-covered shape spec 11 validates, verifies the payload before committing, and pushes to `main` — which triggers a Vercel deploy. No change to the application: the page stays static, the render path stays network-free, and no credential enters the deployed app or the browser.
 
-**Delivers**: The heatmap stays current without anyone remembering to refresh it, closing the one manual step spec 11 shipped with. Turns spec 11's staleness warning from a routine chore reminder into a genuine alarm.
+**Delivers**: The heatmap stays current without anyone remembering to refresh it, closing the one manual step spec 11 shipped with. It does not add an alarm: a failed sync is delivered by the red workflow run plus GitHub's own workflow-failure notification, and nothing else.
 
 **End-to-end verification**: The workflow runs on schedule and on manual dispatch; a refreshed file passes spec 11's schema, duplicate, and contiguity checks before it is committed; a failed or empty API response leaves the committed file untouched rather than truncating it; a run that produces no change makes no commit; the deployed page reflects the new data after the resulting Vercel build; spec 11's freshness check reports zero warnings on a synced repo.
 
@@ -225,7 +225,7 @@ Personal website rebuild for Matthew Field — replacing WordPress.com with a ma
 - **Validate before committing, not after.** A commit authored by the injected `GITHUB_TOKEN` does not trigger `ci.yml`, so the workflow must run the content validation itself. Vercel's build is a backstop, not the gate — a bad payload there fails the deploy and leaves the previous one live.
 - **Never write a short or empty file.** A truncated payload is exactly the failure spec 11's coverage contract exists to catch; the workflow must abort rather than commit one, since the resulting build error is a worse outcome than a stale graphic.
 - **Seed and sync must agree.** Spec 11's one-time seed uses the same no-scope token, so the initial file and every later refresh cannot diverge in what they count.
-- **Token expiry is a foreseen failure, not an incident.** A one-year expiry lapses silently into "no more updates"; spec 11's 45-day freshness warning is the detector, which is why that check is load-bearing rather than decorative.
+- **Token expiry is a foreseen operational event, not an incident.** The one-year lapse is expected and scheduled, and the run itself catches it: an expired token fails the run with an authentication-specific cause within one cadence period rather than silently producing an empty calendar. Spec 11's 45-day freshness warning does not catch it — it is a backstop that fires only inside a human-initiated CI run, not a notification channel — and GitHub's 60-day inactivity disablement has no detector in scope (deferral `d-65ff36e0`).
 
 ---
 
