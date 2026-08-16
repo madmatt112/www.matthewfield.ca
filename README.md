@@ -40,6 +40,10 @@ These are the bits I'm actually pleased with:
   production. Drop it from the build command and search 404s its index, which the
   UI reports as "Search is temporarily unavailable".
 
+  The build command then runs `verify-pagefind-no-drafts.mjs` against what it
+  just produced, so a draft leaking into the deployed index — or an index that
+  comes out empty — fails the deploy instead of shipping quietly.
+
 - **The specs are in the repo.** `.spec-workflow/` holds the steering docs plus
   the requirements, design, and tasks for each slice of the site. It's the
   thinking behind the code, kept next to the code.
