@@ -18,6 +18,41 @@ type SearchState = "closed" | "opening" | "ready" | "unavailable";
 // static export emits trailing slashes on result URLs.
 const BLOG_POST_URL = /^\/blog\/[^/].*/;
 
+/**
+ * `@pagefind/default-ui` ships its base stylesheet separately from its JS, and
+ * nothing was loading it — which is why the dialog rendered as a bare input, an
+ * unstyled result list, and the browser's default yellow `<mark>`.
+ * `src/styles/blog/pagefind-ui.css` is an override slice: it rebinds the
+ * `--pagefind-ui-*` variables *this* sheet consumes, so it themes the package
+ * rather than replacing it.
+ *
+ * Served from the index directory rather than bundled, for the same reason the
+ * runtime beside it is: a stylesheet for a dialog most visitors never open has
+ * no business in every page's critical CSS. `pagefind` and
+ * `@pagefind/default-ui` are pinned to the same version in package.json, so the
+ * emitted sheet matches the imported JS — bump them together.
+ */
+const PAGEFIND_UI_STYLESHEET = "/pagefind/pagefind-ui.css";
+
+function loadPagefindStylesheet(): Promise<void> {
+  return new Promise((resolve) => {
+    if (document.querySelector("link[data-pagefind-ui-css]")) {
+      resolve();
+      return;
+    }
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = PAGEFIND_UI_STYLESHEET;
+    link.setAttribute("data-pagefind-ui-css", "");
+    // Resolve on error too. An unstyled result list is worse than a styled one
+    // and far better than the "unavailable" surface, so a missing stylesheet
+    // must never be the thing that takes search down.
+    link.addEventListener("load", () => resolve(), { once: true });
+    link.addEventListener("error", () => resolve(), { once: true });
+    document.head.appendChild(link);
+  });
+}
+
 export function SiteSearch() {
   const [open, setOpen] = React.useState(false);
   const [state, setState] = React.useState<SearchState>("closed");
@@ -106,6 +141,9 @@ export function SiteSearch() {
             /* webpackIgnore: true */ /* @vite-ignore */ /* turbopackIgnore: true */ "/pagefind/pagefind.js" as string
           ),
           import("@pagefind/default-ui"),
+          // Awaited with the rest so the dialog paints styled rather than
+          // flashing an unstyled result list first.
+          loadPagefindStylesheet(),
         ]);
 
         if (cancelled) return;
@@ -126,9 +164,15 @@ export function SiteSearch() {
           // Pagefind index URLs with a trailing `.html` (wget mirror shape).
           // Strip the suffix so result links route through Next's clean
           // `/blog/<slug>` routes (which 404 on the literal `.html` path).
-          processResult: (r: { url: string }) => {
+          processResult: (r: { url: string; meta?: Record<string, string> }) => {
             if (!BLOG_POST_URL.test(r.url)) return null;
-            return { ...r, url: r.url.replace(/\.html$/, "") };
+            // The default UI prints every meta key it is handed as its own row.
+            // `description` is the post's own summary, which the excerpt
+            // directly above it already renders — two near-identical paragraphs
+            // per result. Drop it from the render; it stays in the index.
+            const meta = { ...(r.meta ?? {}) };
+            delete meta.description;
+            return { ...r, meta, url: r.url.replace(/\.html$/, "") };
           },
         });
         uiInstanceRef.current = instance as { destroy?: () => void };

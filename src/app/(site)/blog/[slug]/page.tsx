@@ -95,17 +95,31 @@ export default async function BlogPostPage({ params }: { params: Promise<RoutePa
   }
 
   const postUrl = `${siteConfig.url}/blog/${post.slug}`;
-
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-12 sm:py-16">
       <ReadingProgress />
-      <article
-        {...(post.excludeFromSearch ? {} : { "data-pagefind-body": "" })}
-        data-pagefind-meta={`tags:${post.tags.join(",")},categories:${post.categories.join(",")}`}
-      >
-        <span className="sr-only" data-pagefind-meta="description">
-          {post.description}
-        </span>
+      <article {...(post.excludeFromSearch ? {} : { "data-pagefind-body": "" })}>
+        {/* Search metadata. Two rules are load-bearing here, and breaking
+         * either one is visible in the search dialog:
+         *
+         * One key per element. Pagefind does not split a multi-pair
+         * `data-pagefind-meta` attribute, so the previous single attribute
+         * holding `tags:a,b,c,categories:x` rendered as one row reading
+         * "Tags: linux,obsidian,ubuntu,wsl,categories:tooling", with the
+         * categories key swallowed into the tags value.
+         *
+         * Value in the attribute, not the element text. These elements sit
+         * inside `data-pagefind-body`, so any text they contain is indexed as
+         * body copy and surfaces mid-sentence in result excerpts. Empty
+         * elements carrying `key:value` attributes keep the metadata out of
+         * the indexed prose. */}
+        <span data-pagefind-meta={`description:${post.description}`} />
+        {post.tags.length > 0 ? (
+          <span data-pagefind-meta={`tags:${post.tags.join(" · ")}`} />
+        ) : null}
+        {post.categories.length > 0 ? (
+          <span data-pagefind-meta={`categories:${post.categories.join(" · ")}`} />
+        ) : null}
         {post.draft ? (
           <div className="mb-6">
             <DraftBanner />
