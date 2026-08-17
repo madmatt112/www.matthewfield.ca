@@ -85,7 +85,7 @@
 
 ## Outstanding
 
-- [ ] 9. Unit tests for vendor status mapping
+- [x] 9. Unit tests for vendor status mapping
   - File: `src/lib/newsletter.test.ts`
   - Cover the status→error mapping in `subscribeToNewsletter` (2xx/3xx accept, 400, 429, 5xx,
     timeout, opaqueredirect)
@@ -94,13 +94,25 @@
   - _Leverage: existing vitest setup_
   - _Requirements: 3.4, 3.5_
   - _Prompt: Implement the task for spec newsletter-buttondown, first run spec-workflow-guide to get the workflow guide then implement the task: Add vitest coverage for subscribeToNewsletter's status mapping using a stubbed fetch. Assert each documented branch and that the timeout path raises TimeoutError. | Restrictions: Stub fetch — never call Buttondown from a test. Do not assert on the vendor's HTML body; only status handling is the contract. Note that vitest shells a velite build, so do not run the suite from parallel agents. | Success: Every branch of the status mapping is asserted and the suite stays green._
+  - **Found by doing this**: mutation-testing the finished suite showed that
+    `if (response.status === 0 || response.type === "opaqueredirect") return;` was **dead code** —
+    the following `if (response.status < 400) return;` already accepts status 0, so deleting the
+    guard broke no test. Removed, with the reasoning moved into a comment warning against adding a
+    lower bound. 7 of 8 mutation classes were caught before the fix; all 8 after.
 
-- [ ] 10. De-duplicate the origin check
-  - Files: `src/lib/`, `src/app/api/contact/route.ts`, `src/app/api/newsletter/route.ts`
+- [x] 10. De-duplicate the origin check
+  - Files: `src/lib/request-origin.ts`, `src/app/api/contact/route.ts`, `src/app/api/newsletter/route.ts`
   - Extract `isAcceptedHost` / `originAllowed` into one shared module
   - Purpose: two copies will drift, and this is a security control
   - _Requirements: 6.4_
   - _Prompt: Implement the task for spec newsletter-buttondown, first run spec-workflow-guide to get the workflow guide then implement the task: Extract the duplicated same-origin check into a shared module and have both routes consume it. | Restrictions: Check the repo's paired-merge CI guards BEFORE starting — editing api/contact may force coupled files to change together, which is exactly why this was deferred. If the guard makes the change disproportionate, record that and stop rather than expanding the diff. | Success: One implementation, both routes consume it, contact-form tests still pass._
+  - **The stated blocker did not exist.** Checking the guards, as the Restrictions required, showed
+    `verify-paired-merge.mjs` tracks `[next-config-imports.test.ts, next.config.ts,
+    project-errors.ts, blog-errors.ts]` and the two canary guards track chokepoint fixtures plus
+    `projects.test.ts` — **none names `api/contact/route.ts`.** The deferral generalized from the
+    guards existing rather than reading their file list. Extracted to `src/lib/request-origin.ts`;
+    contact's 26 pre-existing tests passed unchanged, which is the behaviour-preservation proof.
+    Deferral `d-528554d8` resolved.
 
 - [ ] 11. On-site archive of past issues
   - Purpose: Requirement 7

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { siteConfig } from "@/config/site";
 import { ResendError, TimeoutError, sendContactEmail, testIdForwardingAllowed } from "@/lib/mail";
+import { originAllowed } from "@/lib/request-origin";
 
 const MAX_BODY_BYTES = 32 * 1024;
 const VENDOR_ERROR_MESSAGE =
@@ -16,68 +16,6 @@ const bodySchema = z
   .strip();
 
 const sourceSchema = z.enum(["profile", "contact"]).optional().catch(undefined);
-
-function isAcceptedHost(host: string, selfHost?: string | null): boolean {
-  // Same-origin: a request whose Origin/Referer host equals the host it was
-  // actually sent to (its own Host header) is trusted. This is the canonical
-  // CSRF check — a cross-origin attacker's browser still sends the target's
-  // Host (which it cannot override), so its foreign Origin won't match. It is
-  // robust to apex/www/preview/custom domains without requiring
-  // NEXT_PUBLIC_SITE_URL to be set to the exact serving host.
-  if (selfHost && host === selfHost) return true;
-
-  // Committed source of truth for the production origin — does not depend on a
-  // runtime env var being present in the deploy.
-  try {
-    if (new URL(siteConfig.url).host === host) return true;
-  } catch {
-    // ignore malformed config
-  }
-
-  // Optional per-environment override (e.g. a non-default preview host).
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-  if (siteUrl) {
-    try {
-      if (new URL(siteUrl).host === host) return true;
-    } catch {
-      // ignore malformed env
-    }
-  }
-  const vercelUrl = process.env.VERCEL_URL;
-  if (vercelUrl && host === vercelUrl) return true;
-  if (host.endsWith(".vercel.app")) return true;
-  try {
-    const url = new URL(`http://${host}`);
-    if (url.hostname === "localhost") return true;
-  } catch {
-    // ignore
-  }
-  return false;
-}
-
-function originAllowed(req: Request): boolean {
-  const rawOrigin = req.headers.get("origin")?.trim();
-  // Treat `null`, empty/whitespace, and unparseable Origin values as absent.
-  // Lockdown Mode, privacy browsers, and sandboxed iframes send `Origin: null`.
-  const origin = rawOrigin && rawOrigin !== "null" ? rawOrigin : null;
-  const referer = req.headers.get("referer");
-  const selfHost = req.headers.get("host");
-  if (origin) {
-    try {
-      return isAcceptedHost(new URL(origin).host, selfHost);
-    } catch {
-      return true;
-    }
-  }
-  if (referer) {
-    try {
-      return isAcceptedHost(new URL(referer).host, selfHost);
-    } catch {
-      return false;
-    }
-  }
-  return true;
-}
 
 function firstFieldErrors(error: z.ZodError): Record<string, string> {
   const out: Record<string, string> = {};

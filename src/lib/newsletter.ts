@@ -85,9 +85,11 @@ export async function subscribeToNewsletter(email: string): Promise<void> {
       throw err;
     }
 
-    // `redirect: "manual"` surfaces 3xx as an opaqueredirect (status 0) in some
-    // runtimes and as the real status in others. Both mean accepted.
-    if (response.status === 0 || response.type === "opaqueredirect") return;
+    // Anything below 400 is accepted, which deliberately covers two cases that
+    // look different but mean the same thing. `redirect: "manual"` surfaces a
+    // 3xx as the real status in some runtimes and as an opaqueredirect with
+    // status 0 in others — and 0 is below the threshold, so both land here
+    // without a special case. Do not add a lower bound to this check.
     if (response.status < 400) return;
     if (response.status === 400) throw new InvalidEmailError();
     throw new ButtondownError(response.status);

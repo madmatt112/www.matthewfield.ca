@@ -17,7 +17,7 @@ longer reports `all-on-disk-complete` — it routes to **`newsletter-buttondown`
 this is net-new scope added on top of the roadmap rather than derived from it. Anyone reading INDEX
 will see it under "Other specs (not in decomposition.md)" — that is correct, not a bug.
 
-### `newsletter-buttondown` — in flight, 8/14
+### `newsletter-buttondown` — in flight, 10/14
 
 - **Spec captured retroactively** (`4539884`): the code shipped first on branch
   `feat/buttondown-email-template`, then requirements/design/tasks were written against it. Tasks
@@ -29,9 +29,10 @@ will see it under "Other specs (not in decomposition.md)" — that is correct, n
   blocks Buttondown's own embed snippet outright — both the cross-origin form POST and any client
   fetch. Proven in-browser, not reasoned about. Any future vendor widget on this site hits the same
   wall; the answer is a same-origin proxy route, not a CSP relaxation.
-- **Remaining**: tasks 9–10 are code (unit tests for the vendor status mapping; de-duplicating the
-  origin check). Tasks 11–12 are gated on decisions/writing. Tasks 13–14 are Matthew's — installing
-  the CSS in Buttondown and running one live subscribe to close the one untested path.
+- **Tasks 9 and 10 are now done** (see below). **Remaining**: task 11 (archive) is gated on a
+  decision, not effort — see `d-f61320d2`. Task 12 is the welcome-email copy. Tasks 13–14 are
+  Matthew's: installing the CSS in Buttondown and running one live subscribe to close the one
+  untested path.
 
 ### The sync is live and proven
 
@@ -99,7 +100,7 @@ re-reading the spec should not expect a large diff to be a correctness signal.
 
 ## Deferrals — the debt this spec created
 
-**`github-activity-sync` implementation added 1; `newsletter-buttondown` added 3. Total open queue: 24.**
+**`github-activity-sync` implementation added 1; `newsletter-buttondown` added 3, then resolved 1. Total open queue: 23.**
 
 Newsletter deferrals (all `originSpec: newsletter-buttondown`):
 
@@ -107,10 +108,14 @@ Newsletter deferrals (all `originSpec: newsletter-buttondown`):
   Buttondown documents every other variable used but never names the one that injects the email body
   into a custom template; `{{ body }}` is a stand-in. Blocks nothing — the CSS path works on the
   Basic plan. Readable from Buttondown's template editor once a Professional plan exists.
-- **`d-528554d8`** — the same-origin CSRF check is **copied**, not shared, between `/api/contact`
-  and `/api/newsletter`. Extracting it means editing a file under the paired-merge CI guards, which
-  would have widened a newsletter feature into unrelated territory. This is a security control, so
-  two copies drifting is a real risk — fix it next time `api/contact` is open for its own reasons.
+- **`d-528554d8` — RESOLVED same day, and worth reading as a caution.** It claimed the shared
+  origin check could not be extracted because editing `api/contact` would trip the paired-merge CI
+  guard. **That was never true.** `verify-paired-merge.mjs` tracks
+  `[next-config-imports.test.ts, next.config.ts, project-errors.ts, blog-errors.ts]`; the two canary
+  guards track chokepoint fixtures plus `projects.test.ts`. None names `api/contact/route.ts`. The
+  deferral was written from the guards' *existence*, not their file list. **Before deferring on a
+  guard in this repo, read its `TRACKED_SET`** — it is four lines and settles the question.
+  Now extracted to `src/lib/request-origin.ts`, consumed by both routes.
 - **`d-f61320d2`** — whether an on-site newsletter archive is additive at all. Essays are already
   canonical as blog posts, so an archive may just duplicate `/blog`. Settle before building.
 

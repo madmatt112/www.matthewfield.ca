@@ -211,9 +211,19 @@ Buttondown answers with **HTML, not JSON**, so only the status is meaningful:
 
 ### Unit Testing
 
-No new unit tests. The logic worth unit-testing is status-code mapping in `lib/newsletter.ts`,
-which is currently covered only indirectly. **This is a known gap, recorded in tasks.md task 9.**
-The existing 770-test suite passes unchanged.
+`src/lib/newsletter.test.ts` — 21 tests over the vendor module's request shape, status mapping, and
+timeout, against a stubbed `fetch`. No test may reach buttondown.com: a real call on a valid address
+creates a subscriber and mails a stranger.
+
+The suite was **mutation-tested** rather than assumed to have teeth. Eight mutations of
+`lib/newsletter.ts` were applied and reverted one at a time; seven were caught. The survivor was
+load-bearing: it showed the `status === 0 || type === "opaqueredirect"` guard was **dead code**,
+because the following `status < 400` check already accepts status 0. The guard was removed and the
+reasoning moved into a comment; the equivalent mutation is now caught.
+
+The origin check is covered by `/api/contact`'s 26 pre-existing tests, which exercise it through
+`POST` and therefore continued to cover it after task 10 moved it to `src/lib/request-origin.ts`.
+Suite total: 791 passing.
 
 ### Integration Testing
 
@@ -242,11 +252,15 @@ this.
 
 ## Known Compromises
 
-- **The origin check is duplicated, not shared.** `isAcceptedHost` / `originAllowed` are copied from
-  `/api/contact` rather than extracted to a shared module. Extracting them would edit a file
-  governed by the repo's paired-merge CI guards, widening the change well beyond this feature.
-  Recorded as task 10; the duplication is real and should be resolved when that module is next
-  touched for its own reasons.
+- ~~**The origin check is duplicated, not shared.**~~ **RESOLVED in task 10, and the reason given
+  here was wrong.** The claim was that extracting `isAcceptedHost` / `originAllowed` would edit a
+  file governed by the repo's paired-merge CI guards. It would not: `verify-paired-merge.mjs`
+  tracks `[src/__tests__/next-config-imports.test.ts, next.config.ts, src/lib/project-errors.ts,
+  src/lib/blog-errors.ts]`, and the two canary guards track chokepoint fixtures plus
+  `projects.test.ts`. **None names `api/contact/route.ts`.** The compromise was accepted on a
+  premise nobody had checked — generalizing from the guards existing rather than reading their file
+  list. Now extracted to `src/lib/request-origin.ts`, consumed by both routes, with contact's 26
+  pre-existing tests passing unchanged as the behaviour-preservation proof.
 - **Two signup forms render on a blog post** (post CTA + footer). Common practice, and the footer
   variant is visually quiet, but it is redundant. Suppressing the footer instance on pages that
   already carry a block CTA needs route-aware logic in site chrome, which was judged not worth the

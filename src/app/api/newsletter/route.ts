@@ -1,12 +1,12 @@
 import { z } from "zod";
 
-import { siteConfig } from "@/config/site";
 import {
   ButtondownError,
   InvalidEmailError,
   TimeoutError,
   subscribeToNewsletter,
 } from "@/lib/newsletter";
+import { originAllowed } from "@/lib/request-origin";
 
 const MAX_BODY_BYTES = 4 * 1024;
 const VENDOR_ERROR_MESSAGE = "Unable to subscribe right now. Please try again in a moment.";
@@ -17,59 +17,6 @@ const bodySchema = z
     email: z.string().trim().email().max(254),
   })
   .strip();
-
-/**
- * Same-origin check, matching /api/contact. A cross-origin attacker's browser
- * still sends this host in the Host header (which it cannot override), so a
- * foreign Origin will not match.
- */
-function isAcceptedHost(host: string, selfHost?: string | null): boolean {
-  if (selfHost && host === selfHost) return true;
-  try {
-    if (new URL(siteConfig.url).host === host) return true;
-  } catch {
-    // ignore malformed config
-  }
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-  if (siteUrl) {
-    try {
-      if (new URL(siteUrl).host === host) return true;
-    } catch {
-      // ignore malformed env
-    }
-  }
-  const vercelUrl = process.env.VERCEL_URL;
-  if (vercelUrl && host === vercelUrl) return true;
-  if (host.endsWith(".vercel.app")) return true;
-  try {
-    if (new URL(`http://${host}`).hostname === "localhost") return true;
-  } catch {
-    // ignore
-  }
-  return false;
-}
-
-function originAllowed(req: Request): boolean {
-  const rawOrigin = req.headers.get("origin")?.trim();
-  const origin = rawOrigin && rawOrigin !== "null" ? rawOrigin : null;
-  const referer = req.headers.get("referer");
-  const selfHost = req.headers.get("host");
-  if (origin) {
-    try {
-      return isAcceptedHost(new URL(origin).host, selfHost);
-    } catch {
-      return true;
-    }
-  }
-  if (referer) {
-    try {
-      return isAcceptedHost(new URL(referer).host, selfHost);
-    } catch {
-      return false;
-    }
-  }
-  return true;
-}
 
 export async function POST(req: Request): Promise<Response> {
   const raw = await req.arrayBuffer();
