@@ -142,20 +142,29 @@ list grows with real readers.
 6. WHEN a request body exceeds a fixed size cap THEN the endpoint SHALL reject it before parsing.
 7. The endpoint SHALL validate the address server-side regardless of client-side validation.
 
-### Requirement 7 — On-site archive (NOT IMPLEMENTED)
+### Requirement 7 — Past issues are findable on the site
 
-**User Story:** As a visitor, I want to read past issues without leaving the site, so the site
+**User Story:** As a visitor, I want to find the issues that went out as a newsletter, so the site
 stays the canonical home for the writing.
 
 #### Acceptance Criteria
 
-1. WHEN a visitor opens the archive THEN past issues SHALL be listed on matthewfield.ca.
-2. IF an issue is also published as a blog post THEN the archive SHALL NOT duplicate it.
-3. The archive SHALL degrade gracefully when the Buttondown API is unavailable.
+1. WHEN a post has been sent as a newsletter issue THEN it SHALL carry the tag `newsletter` in its
+   frontmatter.
+2. WHEN at least one post carries that tag THEN `/blog/tags/newsletter` SHALL list every such post.
+3. That route and its sitemap entry SHALL be generated from existing content, with no code specific
+   to the newsletter.
 
-**Status:** Not started. The brief poses on-site archive vs. Buttondown-hosted; on-site fits the
-front-door decision, but the duplication question in criterion 2 is unresolved — essays are already
-canonical as blog posts, so an archive may be redundant rather than additive.
+**Status:** Satisfied by the existing tag system — **no build required.** Decided 2026-08-17.
+
+The original wording asked for an archive fed by the Buttondown API, and its own criterion 2 ("SHALL
+NOT duplicate" a post) was the tell that the requirement was wrong: essays are canonical as blog
+posts here, so an archive would have listed exactly what `/blog` already lists. Tagging gives the
+same browsable index with zero new code, and the tag doubles as the marker of which posts went out.
+
+Verified end to end: tagging a published post and rebuilding generates
+`.next/server/app/blog/tags/newsletter.html`, and `getAllTags()` feeds the sitemap automatically.
+Nothing carries the tag yet, because no issue has been sent.
 
 ### Requirement 8 — Welcome email copy (NOT IMPLEMENTED)
 

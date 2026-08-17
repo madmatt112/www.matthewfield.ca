@@ -17,7 +17,7 @@ longer reports `all-on-disk-complete` — it routes to **`newsletter-buttondown`
 this is net-new scope added on top of the roadmap rather than derived from it. Anyone reading INDEX
 will see it under "Other specs (not in decomposition.md)" — that is correct, not a bug.
 
-### `newsletter-buttondown` — in flight, 11/14
+### `newsletter-buttondown` — in flight, 12/14
 
 - **Spec captured retroactively** (`4539884`): the code shipped first on branch
   `feat/buttondown-email-template`, then requirements/design/tasks were written against it. Tasks
@@ -29,11 +29,11 @@ will see it under "Other specs (not in decomposition.md)" — that is correct, n
   blocks Buttondown's own embed snippet outright — both the cross-origin form POST and any client
   fetch. Proven in-browser, not reasoned about. Any future vendor widget on this site hits the same
   wall; the answer is a same-origin proxy route, not a CSP relaxation.
-- **Tasks 9, 10 and 12 are now done.** **Remaining**: task 11 (the archive) is gated on a decision,
-  not effort — see `d-f61320d2`, which asks whether an archive is additive at all when essays are
-  already canonical as blog posts. Tasks 13–14 are Matthew's: pasting the CSS and welcome copy into
-  Buttondown, running the client test matrix, and doing one live subscribe to close the single
-  untested path.
+- **Tasks 9, 10, 11 and 12 are done.** Task 11 closed with NO code: Matthew decided against an
+  archive. Posts sent as issues get the tag `newsletter`, and `/blog/tags/newsletter` is the
+  archive via the tag system that already existed. **Only tasks 13–14 remain, and both are
+  Matthew's**: paste the CSS and welcome copy into Buttondown, run the client test matrix, and do
+  one live subscribe to close the single untested path.
 
 ### The sync is live and proven
 
@@ -101,7 +101,7 @@ re-reading the spec should not expect a large diff to be a correctness signal.
 
 ## Deferrals — the debt this spec created
 
-**`github-activity-sync` implementation added 1; `newsletter-buttondown` added 3, then resolved 1. Total open queue: 23.**
+**`github-activity-sync` implementation added 1; `newsletter-buttondown` added 3, then resolved 2. Total open queue: 22.**
 
 Newsletter deferrals (all `originSpec: newsletter-buttondown`):
 
@@ -117,8 +117,13 @@ Newsletter deferrals (all `originSpec: newsletter-buttondown`):
   deferral was written from the guards' *existence*, not their file list. **Before deferring on a
   guard in this repo, read its `TRACKED_SET`** — it is four lines and settles the question.
   Now extracted to `src/lib/request-origin.ts`, consumed by both routes.
-- **`d-f61320d2`** — whether an on-site newsletter archive is additive at all. Essays are already
-  canonical as blog posts, so an archive may just duplicate `/blog`. Settle before building.
+- **`d-f61320d2` — RESOLVED, and it deleted a feature rather than shaping one.** The question was
+  whether an on-site archive is additive when essays are already canonical as blog posts. Answer:
+  no. Posts sent as issues carry the tag `newsletter`, and `/blog/tags/newsletter` is the archive,
+  produced by the tag system that already existed. Zero newsletter-specific code, no build-time API
+  call, nothing to degrade when Buttondown is down. The original Req 7.2 contained its own
+  refutation: it demanded the archive not duplicate posts that are also blog posts, which here is
+  all of them.
 
 - **`d-5abe889e`** (new) — `docs/…:565` still offers "widen the refresh window" as a staleness remedy
   the automation makes impossible: the span is fixed at `PULL_RANGE_DAYS = 364` and Component 2's

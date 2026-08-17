@@ -56,6 +56,31 @@ overrides have to beat. Toggle your OS to dark mode to check that block.
 What the preview cannot tell you: how Gmail, Outlook, or Apple Mail actually
 render it. A browser supports far more CSS than any inbox.
 
+## Publishing an issue
+
+**Add `"newsletter"` to the post's `tags` in its frontmatter.** That is the whole archive
+mechanism, decided 2026-08-17 in place of building one.
+
+```yaml
+tags: ["kubernetes", "platform", "newsletter"]
+```
+
+`/blog/tags/newsletter` then lists every issue, and the tag page and its sitemap entry are
+generated automatically from `getAllTags()`. Verified end to end: tagging a published post and
+rebuilding produces `.next/server/app/blog/tags/newsletter.html`. No code was written for this.
+
+An on-site archive fed by the Buttondown API was the original plan. It was dropped because essays
+are already canonical as blog posts here, so an archive would have listed the same posts `/blog`
+already lists. The tag gives the same browsable index for free.
+
+**Two traps when you verify this yourself:**
+
+- `pnpm build` does **not** re-run velite, so a frontmatter edit will not reach the build. Run
+  `npx velite build` first, or the tag silently will not appear. (Recorded as `d-a31e2253` and
+  `d-096a531a` — this bit during implementation.)
+- `fixture-*` posts are excluded from `getVisiblePublishedPosts()`, so tagging one proves nothing.
+  Use a real published post.
+
 ## The port
 
 Email clients do not support `oklch()`, so every value is a literal hex derived

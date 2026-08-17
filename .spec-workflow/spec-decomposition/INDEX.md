@@ -8,7 +8,7 @@
 
 - **State:** active
 - **Spec:** newsletter-buttondown
-- **Why:** Only started spec not in decomposition.md (11/14). Finishing started work beats beginning unsequenced work.
+- **Why:** Only started spec not in decomposition.md (12/14). Finishing started work beats beginning unsequenced work.
 
 ## Active
 
@@ -31,4 +31,4 @@
 
 | Spec | Status | Progress |
 | --- | --- | --- |
-| newsletter-buttondown | Implementing | 11/14 |
+| newsletter-buttondown | Implementing | 12/14 |

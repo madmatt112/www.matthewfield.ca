@@ -279,3 +279,15 @@ this.
   "Matthew Field" in the masthead.
 - **Whether the full HTML template is worth the Professional plan at all.** The CSS path reaches
   most of the design on Basic. The template only buys masthead and footer layout.
+
+## Settled after the fact
+
+- **No archive is being built** (2026-08-17). Requirement 7 originally asked for an on-site archive
+  fed by the Buttondown API. Posts that go out as issues get the tag `newsletter` instead, and
+  `/blog/tags/newsletter` is the archive — produced by the tag system that already exists, with no
+  newsletter-specific code, no API call at build time, and nothing to degrade when the vendor is
+  down. Deferral `d-f61320d2` resolved.
+
+  Worth noting how this resolved: the original requirement contained its own refutation. Criterion
+  7.2 said the archive "SHALL NOT duplicate" a post that is also a blog post — but every issue is
+  also a blog post here, so the criterion excluded the entire contents of the feature.
