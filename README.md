@@ -32,6 +32,18 @@ These are the bits I'm actually pleased with:
   client-side framework. See `scripts/run-pagefind-crawl.mjs`. Another verifier
   makes sure no draft ever lands in the index.
 
+  The index is **generated during the deploy**, not committed: `public/pagefind/`
+  is gitignored, and `vercel.json`'s `buildCommand` runs `pnpm build:search`
+  after `pnpm build` so the deploying machine builds its own index. Anything that
+  builds the site for real use has to run that second command — CI runs it too,
+  but CI's copy is only ever a verification artifact and never reaches
+  production. Drop it from the build command and search 404s its index, which the
+  UI reports as "Search is temporarily unavailable".
+
+  The build command then runs `verify-pagefind-no-drafts.mjs` against what it
+  just produced, so a draft leaking into the deployed index — or an index that
+  comes out empty — fails the deploy instead of shipping quietly.
+
 - **The specs are in the repo.** `.spec-workflow/` holds the steering docs plus
   the requirements, design, and tasks for each slice of the site. It's the
   thinking behind the code, kept next to the code.
