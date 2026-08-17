@@ -142,6 +142,25 @@
     would be worse than no detail. Check any copy that cites his posts against the post.
   - **Note on Success criterion**: the copy is drafted and committed. *Installing* it in Buttondown
     is Matthew's, and is folded into task 13.
+  - **Rewritten 2026-08-17** alongside every other signup surface, once the Field Notes positioning
+    became available from Eden. The first version described a platform-engineering newsletter,
+    which was narrower than the thing being sold. See task 15.
+
+- [x] 15. Rewrite every signup surface for the Field Notes positioning
+  - Files: `src/app/(site)/newsletter/page.tsx`, `src/components/shared/newsletter-signup.tsx`,
+    `src/components/layout/footer.tsx`, `src/app/(site)/blog/[slug]/page.tsx`,
+    `email/buttondown/welcome-email.md`
+  - Source the positioning from the Eden North star doc; rewrite through `/human-prose`
+  - Purpose: the shipped copy sold a narrower newsletter than Field Notes is
+  - _Requirements: 8.2, 8.3, 8.4_
+  - _Prompt: Implement the task for spec newsletter-buttondown, first run spec-workflow-guide to get the workflow guide then implement the task: Read the Eden "North star" note on the Brand HQ board for the positioning and voice reference, then rewrite /newsletter and every other signup surface through the /human-prose skill. | Restrictions: The /human-prose skill is mandatory. Keep the hand-written tagline verbatim — it is the author's own words. Do not leave any surface describing the old platform-engineering framing, or the page and the footer will contradict each other on the same screen. | Success: All surfaces agree, 0 axe violations, suite and build green._
+  - **Eden read path**: `eden_get_note_markdown` takes the **note document id from the item's
+    `storagePath`**, not the item id that `eden_list_workspace_items` / `eden_read_board` return.
+    Passing the item id returns a `not-found` 404 that looks like a permissions or auth problem and
+    is neither. For "North star" the item id is `e68af86d-…` and the working id is `b78f9e33-…`.
+  - Verified: 0 axe violations across `/`, `/blog/[slug]`, `/newsletter` in both themes; 791 tests;
+    build clean. Copy self-checked for banned vocabulary, negative parallelism, and em dashes —
+    the sweep caught one em dash in the success message that the rewrite had not touched.
 
 ## Owner actions (not code)
 

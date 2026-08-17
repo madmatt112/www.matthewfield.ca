@@ -20,9 +20,9 @@ export function Footer() {
       <div className="mx-auto max-w-6xl px-4 pt-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
           <div className="max-w-md">
-            <p className="text-sm font-medium text-foreground">Get new essays by email</p>
+            <p className="text-sm font-medium text-foreground">Field Notes, by email</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Occasional writing on platform engineering and infrastructure.{" "}
+              Essays on building software and working for myself.{" "}
               <Link href="/newsletter" className="underline underline-offset-4">
                 More about it
               </Link>

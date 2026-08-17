@@ -12,10 +12,27 @@
 
 ## Introduction
 
-A newsletter, delivered by Buttondown, that reads as part of matthewfield.ca rather than as a
-third-party bolt-on. Two surfaces: the **email itself**, styled from this site's design tokens,
-and the **signup path on the site**, which must work under the site's existing Content Security
-Policy without weakening it.
+**The newsletter is called Field Notes.** Its own one-line description, written by hand:
+
+> A former tech 9-to-5-er's journey through the dark teatime of the soul to the sustainable future
+> of work.
+
+Delivered by Buttondown, and built to read as part of matthewfield.ca rather than as a third-party
+bolt-on. Two surfaces: the **email itself**, styled from this site's design tokens, and the
+**signup path on the site**, which must work under the site's existing Content Security Policy
+without weakening it.
+
+**Scope correction (2026-08-17, after the code shipped.)** The first pass of every signup surface
+described a platform-engineering newsletter — Kubernetes, infrastructure, developer tooling. That
+was wrong, and narrower than the thing being sold. Field Notes is a career-transition story told
+while it is happening: laid off in January 2026, a stated goal of sustainable self-employment by
+February 2027, and a deliberately wide range (small software, consulting, classical music,
+production, options trading) held together by an interest in connecting things. The positioning
+rests on that range being the point rather than a distraction from it.
+
+The authority for this is the **Eden "North star" doc** on the Brand HQ board, which pins Matthew's
+hand-written Buttondown vetting answers as the reference every bio, about page, and positioning
+line should sound like.
 
 Context and the decisions that precede this spec live in
 `research/newsletter-buttondown-brief.md`. The ones that matter here:
@@ -166,17 +183,22 @@ Verified end to end: tagging a published post and rebuilding generates
 `.next/server/app/blog/tags/newsletter.html`, and `getAllTags()` feeds the sitemap automatically.
 Nothing carries the tag yet, because no issue has been sent.
 
-### Requirement 8 — Welcome email copy (NOT IMPLEMENTED)
+### Requirement 8 — Copy states what Field Notes actually is
 
-**User Story:** As a new subscriber, I want a welcome email that sets expectations, so I know what
-I signed up for.
+**User Story:** As a new subscriber, I want to know what I signed up for, so I can leave now if it
+isn't for me.
 
 #### Acceptance Criteria
 
 1. The welcome email SHALL state cadence, subject matter, and how to unsubscribe.
-2. The copy SHALL be drafted with the `/human-prose` skill, per the brief's drafting rule.
+2. All human-facing copy SHALL be drafted with the `/human-prose` skill, per the brief's drafting
+   rule. Code, CSS, and templates are exempt.
+3. Every signup surface SHALL describe the newsletter's real range rather than the
+   platform-engineering subset, and SHALL agree with the others.
+4. Copy SHALL match the voice reference in the Eden North star doc.
 
-**Status:** Not started. Blocked on nothing technical — it is a writing task.
+**Status:** Satisfied. `/newsletter`, the footer, the end-of-post CTA, the component defaults, and
+the welcome email were all rewritten on 2026-08-17 once the Field Notes positioning was available.
 
 ## Non-Functional Requirements
 

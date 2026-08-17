@@ -18,10 +18,15 @@ sounding generated.
 Thanks for subscribing. Here's what this actually is, so you can bail now if it isn't what you
 wanted.
 
-I write about platform and infrastructure engineering. Mostly Kubernetes and whatever developers end
-up building on top of it. Some of it is war stories, like the Azure VM that refused to boot because
-Packer captured a Gen 2 build and `New-AzImageConfig` quietly defaults to Gen 1 when you don't pass
-`-HyperVGeneration`. Some of it is opinions about how platform teams should work.
+I was laid off in January, after a decade as an infrastructure engineer. Since then I've been
+building software, helping local non-profits and small businesses untangle their technology,
+day-trading options, and writing about all of it. I've given myself until February to make
+self-employment actually pay. Field Notes is that attempt, sent while the ending is still in doubt.
+
+So you'll get essays about building and selling small software, and about what a decade of platform
+engineering turns out to be good for once you leave the job. You'll also get the other interests,
+because they're the same interest. I'm a classical musician and a producer. What connects all of it
+is connecting: people to ideas, systems to systems.
 
 The cadence is irregular on purpose. You might get two in a month, then nothing for six weeks. I'd
 rather skip than pad.

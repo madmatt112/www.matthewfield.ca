@@ -46,8 +46,8 @@ function errorMessageFrom(body: unknown, fallback: string): string {
 export function NewsletterSignup({
   variant = "block",
   id = "newsletter",
-  heading = "Get new essays by email",
-  blurb = "Occasional writing on platform engineering, infrastructure, and the work of building developer tooling. No spam, and one click unsubscribes.",
+  heading = "Field Notes, by email",
+  blurb = "Essays on building software, working for myself, and the rest of it. One click unsubscribes.",
 }: {
   variant?: Variant;
   id?: string;
@@ -128,7 +128,7 @@ export function NewsletterSignup({
         ref={statusRef}
         className={compact ? "text-sm" : undefined}
       >
-        <p className="font-medium">Almost there — check your inbox.</p>
+        <p className="font-medium">Almost there. Check your inbox.</p>
         <p className="mt-1 text-sm">
           Buttondown sent a confirmation link. Click it and you&rsquo;re subscribed.
         </p>

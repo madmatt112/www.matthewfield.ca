@@ -17,23 +17,34 @@ longer reports `all-on-disk-complete` — it routes to **`newsletter-buttondown`
 this is net-new scope added on top of the roadmap rather than derived from it. Anyone reading INDEX
 will see it under "Other specs (not in decomposition.md)" — that is correct, not a bug.
 
-### `newsletter-buttondown` — in flight, 12/14
+### `newsletter-buttondown` — in flight, 13/15
 
 - **Spec captured retroactively** (`4539884`): the code shipped first on branch
-  `feat/buttondown-email-template`, then requirements/design/tasks were written against it. Tasks
-  1–8 are `[x]` and all eight carry implementation logs; **review coverage is 0/8** — no dashboard
+  `feat/buttondown-email-template`, then requirements/design/tasks were written against it. Every
+  completed task carries an implementation log, but **review coverage is 0/13** — no dashboard
   review has run against this spec, and the tasks header says so rather than letting `[x]` imply one.
-- **Two commits of code**: `e3f29b3` (email template ported from tokens) and `8151529` (signup via
-  same-origin proxy). Branch pushed, not merged, no PR opened yet.
+- **Open as [PR #55](https://github.com/madmatt112/www.matthewfield.ca/pull/55)** off
+  `feat/buttondown-email-template`. Not merged.
 - **The finding worth carrying forward**: the site CSP (`connect-src 'self'`, `form-action 'self'`)
   blocks Buttondown's own embed snippet outright — both the cross-origin form POST and any client
   fetch. Proven in-browser, not reasoned about. Any future vendor widget on this site hits the same
   wall; the answer is a same-origin proxy route, not a CSP relaxation.
-- **Tasks 9, 10, 11 and 12 are done.** Task 11 closed with NO code: Matthew decided against an
+- **Tasks 9, 10, 11, 12 and 15 are done.** Task 11 closed with NO code: Matthew decided against an
   archive. Posts sent as issues get the tag `newsletter`, and `/blog/tags/newsletter` is the
-  archive via the tag system that already existed. **Only tasks 13–14 remain, and both are
-  Matthew's**: paste the CSS and welcome copy into Buttondown, run the client test matrix, and do
-  one live subscribe to close the single untested path.
+  archive via the tag system that already existed.
+- **The newsletter is called Field Notes, and task 15 rewrote every surface to say so.** The first
+  pass sold a platform-engineering newsletter; the real thing is a career-transition story told
+  while it happens, with a deliberately wide range (small software, consulting, classical music,
+  production, options trading). **The positioning and voice authority is the Eden "North star" note
+  on the Brand HQ board** — it pins Matthew's hand-written Buttondown vetting answers as what bios
+  and positioning copy should sound like. Read it before writing any copy for this site.
+- **Eden MCP gotcha, cost several turns**: `eden_get_note_markdown` wants the note document id from
+  the item's `storagePath`, **not** the item id that `eden_list_workspace_items` / `eden_read_board`
+  return. The item id 404s with `status: "not-found"`, which looks like auth or a deleted note and
+  is neither. `previewText` on list results also truncates at 1200 chars.
+- **Only tasks 13–14 remain, and both are Matthew's**: paste the CSS and welcome copy into
+  Buttondown, run the client test matrix, and do one live subscribe to close the single untested
+  path.
 
 ### The sync is live and proven
 

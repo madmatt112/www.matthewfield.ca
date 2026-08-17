@@ -151,7 +151,7 @@ export default async function BlogPostPage({ params }: { params: Promise<RoutePa
           <NewsletterSignup
             id="post-newsletter"
             heading="Liked this? Get the next one by email."
-            blurb="Occasional essays on platform engineering and infrastructure. One click unsubscribes."
+            blurb="Field Notes: essays on building software, working for myself, and the rest of it. One click unsubscribes."
           />
         </div>
         <footer className="mt-12">
