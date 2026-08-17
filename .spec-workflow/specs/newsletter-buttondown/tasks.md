@@ -162,14 +162,44 @@
     build clean. Copy self-checked for banned vocabulary, negative parallelism, and em dashes —
     the sweep caught one em dash in the success message that the rewrite had not touched.
 
+- [x] 16. `/newsletter/welcome` for the "After confirming" redirect
+  - Files: `src/app/(site)/newsletter/welcome/page.tsx`,
+    `src/components/layout/footer-newsletter.tsx`, `src/components/layout/footer.tsx`,
+    `email/buttondown/welcome-email.md`, `email/buttondown/README.md`
+  - A confirmed-subscriber landing page, since the welcome *email* is gated behind a plan
+  - Purpose: deliver the welcome on the free plan, using the site rather than the vendor
+  - _Requirements: 8.1, 8.3_
+  - _Prompt: Implement the task for spec newsletter-buttondown, first run spec-workflow-guide to get the workflow guide then implement the task: Build /newsletter/welcome as the target for Buttondown's Settings → Subscribing → Redirects → "After confirming" field. Adapt the welcome-email copy through /human-prose: the reader has just clicked a confirmation link and wants confirmation, not a re-sell, so it should be shorter than the email. | Restrictions: noindex and keep it out of sitemap.ts — it is a post-conversion destination and a dead end in search results. Do NOT render a signup form anywhere on it, including the sitewide footer one. | Success: renders, carries noindex, no email input in the SERVER html (not just after hydration), footer signup still present on every other route, 0 axe violations._
+  - **Why it exists**: the welcome email is a *transactional* email in Buttondown's model and editing
+    it needs the **Standard** plan — a higher tier than the **Basic** plan custom CSS needs. On the
+    free plan the "After confirming" redirect is the only lever, so the site does the job. The email
+    copy stays in `welcome-email.md` for whenever the plan allows it.
+  - **This is the one route where the footer signup is suppressed**, via
+    `footer-newsletter.tsx` reading `usePathname`. Asking someone to subscribe seconds after they
+    confirmed is a real defect, unlike the ordinary redundancy of a footer form beside a post CTA
+    (which is left alone deliberately — see design.md § Known Compromises). The client boundary is
+    close to free: `NewsletterSignup` was already a client component rendered in the footer on every
+    page.
+  - Verified: `noindex, follow` on the page and `index` still on `/newsletter`; **0 email inputs in
+    the server HTML** for `/newsletter/welcome` (checked in the raw response, not the hydrated DOM,
+    so there is no flash of a form that then disappears); 2 on `/newsletter`; 1 on `/blog` and
+    `/about`. 0 axe violations across 4 routes x 2 themes. 791 tests, build clean.
+
 ## Owner actions (not code)
 
-- [ ] 13. Install the Buttondown settings and run the client test matrix
-  - Set the template to **Modern**, paste `custom-css.css` into the CSS box, and paste
-    `welcome-email.md` (plus its subject line) into the welcome-email setting
-  - Then per `email/buttondown/README.md` § Testing: Gmail web + Android (check the auto-inverted
-    rendering specifically), Outlook Windows, Apple Mail macOS + iOS dark, a forwarded copy, and a
-    long issue against Gmail's ~102KB clipping threshold
+- [ ] 13. Point Buttondown's "After confirming" redirect at `/newsletter/welcome`
+  - Settings → Subscribing → Redirects → After confirming. This is free and is the only part of the
+    email work that can ship on the current plan. One field, and the welcome experience is live.
+
+- [ ] 14. **BLOCKED on a paid plan** — install the email design and run the client test matrix
+  - Nothing in `email/buttondown/` is installable on the free plan: custom CSS needs **Basic**, the
+    welcome email needs **Standard**, the full HTML template needs **Professional**. Confirmed in
+    the account 2026-08-17; Matthew is not ready to pay.
+  - When a plan is taken: set the template to **Modern**, paste `custom-css.css` into the CSS box,
+    paste `welcome-email.md` and its subject into transactional-email customization, then run
+    `email/buttondown/README.md` § Testing — Gmail web + Android (check the auto-inverted rendering
+    specifically), Outlook Windows, Apple Mail macOS + iOS dark, a forwarded copy, and a long issue
+    against Gmail's ~102KB clipping threshold.
 
 - [ ] 14. Perform one live subscribe to close the untested success path
   - The failure paths are verified; the accepted path is inferred from the vendor's 302. One real

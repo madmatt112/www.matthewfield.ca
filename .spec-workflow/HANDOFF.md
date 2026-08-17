@@ -17,7 +17,7 @@ longer reports `all-on-disk-complete` — it routes to **`newsletter-buttondown`
 this is net-new scope added on top of the roadmap rather than derived from it. Anyone reading INDEX
 will see it under "Other specs (not in decomposition.md)" — that is correct, not a bug.
 
-### `newsletter-buttondown` — in flight, 13/15
+### `newsletter-buttondown` — in flight, 14/16
 
 - **Spec captured retroactively** (`4539884`): the code shipped first on branch
   `feat/buttondown-email-template`, then requirements/design/tasks were written against it. Every
@@ -42,9 +42,13 @@ will see it under "Other specs (not in decomposition.md)" — that is correct, n
   the item's `storagePath`, **not** the item id that `eden_list_workspace_items` / `eden_read_board`
   return. The item id 404s with `status: "not-found"`, which looks like auth or a deleted note and
   is neither. `previewText` on list results also truncates at 1200 chars.
-- **Only tasks 13–14 remain, and both are Matthew's**: paste the CSS and welcome copy into
-  Buttondown, run the client test matrix, and do one live subscribe to close the single untested
-  path.
+- **The email work is PARKED on plan cost.** Nothing in `email/buttondown/` installs on the free
+  plan: custom CSS needs Basic, the welcome email needs Standard (Buttondown treats it as a
+  transactional email), the full HTML template needs Professional. Matthew is not ready to pay.
+  Task 16 routed around it: `/newsletter/welcome` is a confirmed-subscriber landing page, wired
+  from the free "After confirming" redirect, so the site delivers the welcome the email cannot.
+- **Remaining**: task 13 is one free field (point "After confirming" at /newsletter/welcome);
+  task 14 is blocked on a plan; and one live subscribe still closes the single untested path.
 
 ### The sync is live and proven
 
