@@ -119,15 +119,24 @@
   - _Requirements: 7.1, 7.2, 7.3_
   - _Prompt: Implement the task for spec newsletter-buttondown, first run spec-workflow-guide to get the workflow guide then implement the task: Resolve whether an on-site archive is additive before building it. Essays are already canonical as blog posts, so an archive may duplicate the blog index rather than add anything — settle Req 7.2 with the owner first. If it proceeds, fetch issues from the Buttondown API at build time and degrade gracefully when unavailable. | Restrictions: Do not build this before the duplication question is answered. Do not weaken the CSP. | Success: Either a working archive, or a recorded decision not to build one._
 
-- [ ] 12. Welcome email copy
+- [x] 12. Welcome email copy
+  - File: `email/buttondown/welcome-email.md`
   - Purpose: Requirement 8
   - _Requirements: 8.1, 8.2_
   - _Prompt: Implement the task for spec newsletter-buttondown, first run spec-workflow-guide to get the workflow guide then implement the task: Draft the welcome email using the /human-prose skill, per the brief's drafting rule. State cadence, subject matter, and how to unsubscribe. | Restrictions: The /human-prose skill is mandatory here — the brief requires it for all human-facing copy. Do not write it inline without invoking the skill. | Success: Copy drafted with the skill and installed in Buttondown's welcome-email setting._
+  - **Found by doing this**: the draft cited Matthew's own Azure post and credited the
+    `-HyperVGeneration` default to `New-AzImage`. Checking the post showed the flag is on
+    `New-AzImageConfig`. Corrected before commit — a wrong detail in the author's own war story
+    would be worse than no detail. Check any copy that cites his posts against the post.
+  - **Note on Success criterion**: the copy is drafted and committed. *Installing* it in Buttondown
+    is Matthew's, and is folded into task 13.
 
 ## Owner actions (not code)
 
-- [ ] 13. Install the custom CSS in Buttondown and run the client test matrix
-  - Per `email/buttondown/README.md` § Testing: Gmail web + Android (check the auto-inverted
+- [ ] 13. Install the Buttondown settings and run the client test matrix
+  - Set the template to **Modern**, paste `custom-css.css` into the CSS box, and paste
+    `welcome-email.md` (plus its subject line) into the welcome-email setting
+  - Then per `email/buttondown/README.md` § Testing: Gmail web + Android (check the auto-inverted
     rendering specifically), Outlook Windows, Apple Mail macOS + iOS dark, a forwarded copy, and a
     long issue against Gmail's ~102KB clipping threshold
 

@@ -4,11 +4,12 @@ Ports this site's design tokens to email-safe CSS, so the newsletter and
 matthewfield.ca read as one system. Background and decisions:
 `research/newsletter-buttondown-brief.md`.
 
-| File             | What it is                                                           |
-| ---------------- | -------------------------------------------------------------------- |
-| `custom-css.css` | Custom CSS over Buttondown's **Modern** template. The ship-now path. |
-| `template.html`  | Full HTML email template. Needs the Professional plan.               |
-| `preview.html`   | Local preview of `custom-css.css`. Open in a browser.                |
+| File               | What it is                                                           |
+| ------------------ | -------------------------------------------------------------------- |
+| `custom-css.css`   | Custom CSS over Buttondown's **Modern** template. The ship-now path. |
+| `template.html`    | Full HTML email template. Needs the Professional plan.               |
+| `preview.html`     | Local preview of `custom-css.css`. Open in a browser.                |
+| `welcome-email.md` | Copy for the one-time welcome email. Paste into Buttondown.          |
 
 The converter that produced the hex values is `scripts/oklch-to-hex.mjs`.
 
@@ -97,8 +98,8 @@ Verified so far (browser only, via `preview.html`):
 - All 36 text elements clear WCAG AA in both light and dark. Lowest passing
   pair is the kicker at 6.01:1 light / 8.62:1 dark.
 
-Not yet verified, because no Buttondown account exists yet — do this before the
-first real send:
+The account exists (`matthewfield`) but the CSS has not been installed in it,
+so none of the below is done. Do all of it before the first real send:
 
 - [ ] Gmail web and Gmail Android. Gmail ignores `prefers-color-scheme` and
       runs its own inversion; check the auto-inverted rendering specifically.

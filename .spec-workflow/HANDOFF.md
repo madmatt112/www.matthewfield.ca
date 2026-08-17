@@ -17,7 +17,7 @@ longer reports `all-on-disk-complete` — it routes to **`newsletter-buttondown`
 this is net-new scope added on top of the roadmap rather than derived from it. Anyone reading INDEX
 will see it under "Other specs (not in decomposition.md)" — that is correct, not a bug.
 
-### `newsletter-buttondown` — in flight, 10/14
+### `newsletter-buttondown` — in flight, 11/14
 
 - **Spec captured retroactively** (`4539884`): the code shipped first on branch
   `feat/buttondown-email-template`, then requirements/design/tasks were written against it. Tasks
@@ -29,9 +29,10 @@ will see it under "Other specs (not in decomposition.md)" — that is correct, n
   blocks Buttondown's own embed snippet outright — both the cross-origin form POST and any client
   fetch. Proven in-browser, not reasoned about. Any future vendor widget on this site hits the same
   wall; the answer is a same-origin proxy route, not a CSP relaxation.
-- **Tasks 9 and 10 are now done** (see below). **Remaining**: task 11 (archive) is gated on a
-  decision, not effort — see `d-f61320d2`. Task 12 is the welcome-email copy. Tasks 13–14 are
-  Matthew's: installing the CSS in Buttondown and running one live subscribe to close the one
+- **Tasks 9, 10 and 12 are now done.** **Remaining**: task 11 (the archive) is gated on a decision,
+  not effort — see `d-f61320d2`, which asks whether an archive is additive at all when essays are
+  already canonical as blog posts. Tasks 13–14 are Matthew's: pasting the CSS and welcome copy into
+  Buttondown, running the client test matrix, and doing one live subscribe to close the single
   untested path.
 
 ### The sync is live and proven
