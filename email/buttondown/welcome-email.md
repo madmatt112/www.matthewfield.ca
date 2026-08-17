@@ -1,10 +1,24 @@
 # Welcome email
 
-Paste the body below into Buttondown → Settings → Emails → Welcome email. It sends once, after a
-subscriber clicks the double opt-in confirmation link, so it is talking to someone already confirmed.
-Do not repeat the confirmation instruction here.
+**This cannot be installed on the free plan.** Buttondown classes the welcome email as a
+_transactional_ email, and Settings → Subscribing → Transactional email customization reads
+"Custom transactional emails are only available for accounts on the Standard plan or higher."
+Verified in the account on 2026-08-17. Note that is a **higher tier than the Basic plan** that
+custom CSS needs, so the two paid features unlock at different points.
 
-The subject line is set in the same screen.
+What the free plan does give you:
+
+- The **Welcome email toggle** (Settings → Subscribing) still works. Leaving it on sends
+  Buttondown's own default welcome text, which you cannot edit.
+- **"After confirming"** on the same screen redirects confirmed subscribers to any URL. That is the
+  free route to a welcome experience: point it at a page on matthewfield.ca carrying this copy, and
+  the site does the job the email can't. It also fits the front-door decision better than an email
+  does.
+
+When the plan does allow it, this goes in Settings → Subscribing → Transactional email
+customization, with the subject set on the same screen. It sends once, after a subscriber clicks
+the double opt-in confirmation link, so it addresses someone already confirmed. Do not add a
+confirmation instruction.
 
 Drafted with the `/human-prose` skill, per the drafting rule in
 `research/newsletter-buttondown-brief.md`: all human-facing copy goes through it, code and templates

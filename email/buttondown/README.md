@@ -9,20 +9,27 @@ matthewfield.ca read as one system. Background and decisions:
 | `custom-css.css`   | Custom CSS over Buttondown's **Modern** template. The ship-now path. |
 | `template.html`    | Full HTML email template. Needs the Professional plan.               |
 | `preview.html`     | Local preview of `custom-css.css`. Open in a browser.                |
-| `welcome-email.md` | Copy for the one-time welcome email. Paste into Buttondown.          |
+| `welcome-email.md` | Welcome copy. Needs the **Standard** plan, or reuse it on a page.    |
 
 The converter that produced the hex values is `scripts/oklch-to-hex.mjs`.
 
 ## Which one to use
 
-Two corrections to the assumptions in the brief, both checked against
-Buttondown's docs on 2026-08-17:
+Three things checked against Buttondown's docs and the live account on
+2026-08-17, two of them corrections to the brief:
 
 - **Custom CSS is on the Basic plan**, not Professional. Only the _full HTML
-  template_ needs Professional. So `custom-css.css` is usable as soon as an
-  account exists on any paid tier.
+  template_ needs Professional. So `custom-css.css` is usable as soon as the
+  account is on any paid tier.
 - **Buttondown templating is Django**, not Liquid — `{% if %}`, `{% for %}`,
   `{{ var|filter }}`, `{# comment #}`.
+- **The welcome email needs the Standard plan**, which is a higher tier than
+  custom CSS needs. Buttondown treats it as a transactional email, and the free
+  plan can only toggle it on and off, not edit it.
+
+**Nothing in this directory is installable on the free plan.** As of 2026-08-17
+the account is free, so the email work is parked. The signup on the site is
+unaffected and works today — it does not depend on any of this.
 
 Start with `custom-css.css`. It gets ~90% of the design at a fraction of the
 risk, because Buttondown's own template keeps handling the parts of email that
