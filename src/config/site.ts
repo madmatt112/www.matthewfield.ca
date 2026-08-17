@@ -83,6 +83,11 @@ export const siteConfig: SiteConfig = {
       label: "resources",
       description: "References and links worth sharing.",
     },
+    {
+      href: "/newsletter",
+      label: "newsletter",
+      description: "Essays by email, when there's something worth sending.",
+    },
     // Playground intentionally omitted — see the note on navItems above.
   ],
   slashPages: [

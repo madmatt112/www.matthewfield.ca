@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { NewTabHint } from "@/components/shared/new-tab-hint";
+import { NewsletterSignup } from "@/components/shared/newsletter-signup";
 import { siteConfig } from "@/config/site";
 import { getBuildInfo } from "@/lib/build-info";
 
@@ -14,7 +15,26 @@ export function Footer() {
   const build = getBuildInfo();
   return (
     <footer className="site-footer border-t border-border">
-      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+      {/* Sitewide, low-intent capture. Compact and inline — it never covers
+          content, and it sits in its own row so it doesn't crowd the nav. */}
+      <div className="mx-auto max-w-6xl px-4 pt-8">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
+          <div className="max-w-md">
+            <p className="text-sm font-medium text-foreground">Get new essays by email</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Occasional writing on platform engineering and infrastructure.{" "}
+              <Link href="/newsletter" className="underline underline-offset-4">
+                More about it
+              </Link>
+              .
+            </p>
+          </div>
+          <div className="w-full sm:max-w-sm">
+            <NewsletterSignup variant="compact" id="footer-newsletter" />
+          </div>
+        </div>
+      </div>
+      <div className="mx-auto mt-8 flex max-w-6xl flex-col gap-4 border-t border-border px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <p>&copy; {new Date().getFullYear()} Matthew Field</p>
           {build && (

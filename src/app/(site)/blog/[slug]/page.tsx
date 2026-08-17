@@ -10,6 +10,7 @@ import { ShareBar } from "@/components/blog/share-bar";
 import { TableOfContents } from "@/components/blog/table-of-contents";
 import { TagChip } from "@/components/blog/tag-chip";
 import { MDXContent } from "@/components/shared/mdx-content";
+import { NewsletterSignup } from "@/components/shared/newsletter-signup";
 import { siteConfig } from "@/config/site";
 import {
   extractToc,
@@ -144,6 +145,15 @@ export default async function BlogPostPage({ params }: { params: Promise<RoutePa
           <MDXContent code={post.body} />
         </div>
         <ShareBar title={post.title} description={post.description} url={postUrl} />
+        {/* Highest-intent placement on the site: the reader just finished the
+            essay. Sits after the share bar and before navigation away. */}
+        <div className="mt-12" data-pagefind-ignore="all">
+          <NewsletterSignup
+            id="post-newsletter"
+            heading="Liked this? Get the next one by email."
+            blurb="Occasional essays on platform engineering and infrastructure. One click unsubscribes."
+          />
+        </div>
         <footer className="mt-12">
           <PrevNextNav previous={previous} next={next} />
         </footer>
