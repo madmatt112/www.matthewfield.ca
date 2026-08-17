@@ -11,6 +11,10 @@
    the build's CSS parser rejects. Path is relative to this file. */
 @source not "../../.spec-workflow";
 @source not "../../e2e";
+/* email/ holds Buttondown template assets — hand-authored email-safe CSS and
+   HTML for a third-party platform, not site source. Nothing there consumes
+   Tailwind utilities. */
+@source not "../../email";
 
 /* Long-form prose styling. The plugin's layered rules are themed via the
    --tw-prose-* custom properties (NOT competing layered rules) below. */
