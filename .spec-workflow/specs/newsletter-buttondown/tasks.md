@@ -3,7 +3,9 @@
 > **Retroactive capture.** Tasks 1–8 were implemented on branch `feat/buttondown-email-template`
 > (commits `e3f29b3`, `8151529`, 2026-08-17) and are marked `[x]` because the work exists and was
 > verified, not because a task-by-task review ran — no dashboard review has been triggered for this
-> spec. Tasks 9–12 are genuinely outstanding.
+> spec. **Spec closed 2026-08-18 at 17/17.** Tasks 11 and 14 were closed by decision rather than by
+> code, each labelled as such on its own line. No dashboard review ran against any task, and tasks 13,
+> 14 and 17 carry no implementation log.
 >
 > The `_Prompt` fields on completed tasks are written as they would have been had the spec preceded
 > the code, so a future agent re-running any task has the same brief.
@@ -191,10 +193,16 @@
   - Settings → Subscribing → Redirects → After confirming. This is free and is the only part of the
     email work that can ship on the current plan. One field, and the welcome experience is live.
 
-- [ ] 14. **BLOCKED on a paid plan** — install the email design and run the client test matrix
-  - Nothing in `email/buttondown/` is installable on the free plan: custom CSS needs **Basic**, the
-    welcome email needs **Standard**, the full HTML template needs **Professional**. Confirmed in
-    the account 2026-08-17; Matthew is not ready to pay.
+- [x] 14. Install the email design and run the client test matrix — **closed by decision, free tier kept**
+  - **Closed 2026-08-18: Matthew is staying on the free tier.** Nothing in `email/buttondown/` is
+    installable there — custom CSS needs **Basic**, the welcome email needs **Standard**, the full
+    HTML template needs **Professional**. So the assets stay authored and uninstalled, and issues
+    go out with Buttondown's stock design. The client test matrix has never run against a real send.
+  - Two of the three had already lost their purpose. `welcome-email.md` was superseded by task 16:
+    `/newsletter/welcome` is a real page and task 13 wired the free "After confirming" redirect to
+    it. `template.html` carries the unverified body placeholder tracked as `d-e77bd089`.
+    `custom-css.css` on **Basic** is the only item with standing value, and the one to buy first if
+    this is ever reopened.
   - When a plan is taken: set the template to **Modern**, paste `custom-css.css` into the CSS box,
     paste `welcome-email.md` and its subject into transactional-email customization, then run
     `email/buttondown/README.md` § Testing — Gmail web + Android (check the auto-inverted rendering

@@ -9,8 +9,8 @@ Single source of in-flight phase state (per `spec-loop-v3`). The generated roadm
 **`github-activity-sync` (#12) is Complete — 17/17, merged and live.** Its spec documents were
 untracked until 2026-08-17 and are now committed.
 
-**The `decomposition.md` roadmap is finished. A thirteenth spec now exists outside it, and it is
-now merged.**
+**The `decomposition.md` roadmap is finished. A thirteenth spec exists outside it, and it is now
+merged and Complete. Nothing is in flight.**
 
 All twelve specs named in `decomposition.md` exist on disk and are Complete. But `spec-index` no
 longer reports `all-on-disk-complete` — it routes to **`newsletter-buttondown`**, a spec that is
@@ -18,7 +18,7 @@ longer reports `all-on-disk-complete` — it routes to **`newsletter-buttondown`
 this is net-new scope added on top of the roadmap rather than derived from it. Anyone reading INDEX
 will see it under "Other specs (not in decomposition.md)" — that is correct, not a bug.
 
-### `newsletter-buttondown` — MERGED, 16 of 17. One task left, and it is a purchase decision
+### `newsletter-buttondown` — COMPLETE, 17/17, merged
 
 - **Merged 2026-08-18**: [PR #55](https://github.com/madmatt112/www.matthewfield.ca/pull/55) →
   `9d2cb3c` on `main`. 25 commits, 59 files, +7896/-311.
@@ -29,10 +29,9 @@ will see it under "Other specs (not in decomposition.md)" — that is correct, n
 - **`tasks.md` used to number two different tasks `14`**, which is why every earlier reading said
   14/16 while `grep -c '^- \[[ x]\]'` reported 17. The live-subscribe task has been renumbered **17**
   (the only free number) and the duplicate is gone. Count checkboxes, not numbers.
-- **Task 14 is the only one open, and no amount of engineering will close it.** It bundles three
-  installs at three different price tiers, and should probably be split if it is ever revisited:
-  `custom-css.css` needs **Basic**, `welcome-email.md` needs **Standard**, `template.html` needs
-  **Professional**. See the plan note below — two of the three have lost their reason to exist.
+- **Task 14 closed by decision on 2026-08-18: the free tier stays.** It was the last open task and
+  it was a purchase, not work. Two tasks here are closed by decision rather than by code (11 and 14)
+  and both say so on their own line in `tasks.md`.
 - **Spec captured retroactively** (`4539884`): the code shipped first on branch
   `feat/buttondown-email-template`, then requirements/design/tasks were written against it. Every
   completed task carries an implementation log, but **review coverage is still 0** — no dashboard
@@ -60,19 +59,18 @@ will see it under "Other specs (not in decomposition.md)" — that is correct, n
   the item's `storagePath`, **not** the item id that `eden_list_workspace_items` / `eden_read_board`
   return. The item id 404s with `status: "not-found"`, which looks like auth or a deleted note and
   is neither. `previewText` on list results also truncates at 1200 chars.
-- **The email work is PARKED on plan cost.** Nothing in `email/buttondown/` installs on the free
-  plan: custom CSS needs Basic, the welcome email needs Standard (Buttondown treats it as a
-  transactional email), the full HTML template needs Professional. Matthew is not ready to pay.
-  Task 16 routed around it: `/newsletter/welcome` is a confirmed-subscriber landing page, wired
+- **The plan gates, for the record**: custom CSS needs Basic, the welcome email needs Standard
+  (Buttondown treats it as a transactional email), the full HTML template needs Professional. Task 16
+  routed around the middle one: `/newsletter/welcome` is a confirmed-subscriber landing page wired
   from the free "After confirming" redirect, so the site delivers the welcome the email cannot.
-- **The case for paying has narrowed to one item.** Of the three things task 14 gates:
-  - **`custom-css.css` (Basic) is the only one still worth buying.** It is what makes a sent issue
-    look like the site instead of like Buttondown's default.
-  - **`welcome-email.md` (Standard) is now redundant.** Task 16 built `/newsletter/welcome` and task
-    13 wired the free redirect to it, so the welcome is already delivered. The markdown stays in
-    `email/buttondown/` for whoever wants it, but it is no longer a reason to reach a higher tier.
-  - **`template.html` (Professional) carries known risk.** Its body placeholder is unverified —
-    see `d-e77bd089`. Do not buy Professional expecting the file to work unedited.
+- **`email/buttondown/` is authored, verified and uninstalled, and that is the end state.** Issues go
+  out with Buttondown's stock design. The client test matrix in that README has never run against a
+  real send, so treat every claim in it as untested in the wild. If this is ever reopened,
+  `custom-css.css` on **Basic** is the only item worth buying: `welcome-email.md` was superseded by
+  `/newsletter/welcome`, and `template.html` carries the unverified body placeholder (`d-e77bd089`).
+- **What the closure does not include**, recorded so nobody mistakes a ticked box for a verified one:
+  no dashboard review ran against any of the 17 tasks, and tasks 13, 14 and 17 carry no
+  implementation log. The `tasks.md` header says the same.
 
 ### Findings from the merge-day work that outlive the spec
 
