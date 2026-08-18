@@ -1,0 +1,386 @@
+/* matthewfield.ca — Buttondown custom email CSS (Modern template)
+ * ----------------------------------------------------------------
+ * Paste into Buttondown → Settings → Design → CSS.
+ *
+ * Ported from src/styles/tokens.css. Two constraints drive every choice here:
+ *
+ *   1. NO CSS CUSTOM PROPERTIES. Fastmail does not support them, so every
+ *      value below is a literal hex. The token each hex came from is named in
+ *      a comment so this file can be re-derived when tokens.css changes.
+ *      Regenerate with: node scripts/oklch-to-hex.mjs
+ *
+ *   2. THIS CSS IS APPENDED AFTER BUTTONDOWN'S OWN. Their Modern stylesheet
+ *      (docs.buttondown.com/subscriber_facing_styles/email-modern.css) sets
+ *      `* { color: #000 }` and marks p/ul/li font-size, line-height, and every
+ *      blockquote color `!important`. Selectors below carry `!important` only
+ *      where they must beat one of those — not as a blanket habit. The `*`
+ *      rule has specificity 0, so any element selector already outranks it.
+ *
+ * Design system: .spec-workflow/steering/design-system.md is the source of
+ * truth for the heading ramp and token roles. Deviations are noted inline.
+ */
+
+/* Tell the client we have a real dark treatment so Gmail/Outlook are less
+   likely to run their own inversion heuristics over the palette. */
+:root {
+  color-scheme: light dark;
+}
+
+/* ---------------------------------------------------------------- Body ---
+ * Buttondown forces `body { background-color: #fafafa !important }` in BOTH
+ * schemes. We override to the site's --background (oklch(1 0 0)) so the mail
+ * and the site are the same white.
+ */
+body {
+  background-color: #ffffff !important; /* --background */
+  color: #0a0a0a; /* --foreground */
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Geist is a webfont; Gmail and Outlook strip @font-face, so body text uses
+   the system sans stack above rather than pretending Geist will arrive. */
+p,
+ul,
+ol,
+li {
+  color: #0a0a0a !important; /* --foreground */
+  font-size: 16px !important;
+  /* Buttondown ships 24px (1.5). Bumped to 26px (1.625) for the design
+     system's "wide & spacious" principle — the site's prose measure runs
+     looser than the default email leading. */
+  line-height: 26px !important;
+}
+
+/* ------------------------------------------------------------ Headings ---
+ * The site ramp (design-system.md § "The heading ramp (settled)"):
+ *   h1 36px serif 400 · h2 30px serif 400 · h3 18px sans 600 · h4+ 16px sans 600
+ *
+ * Fraunces is a webfont. Apple Mail renders it; Gmail and Outlook strip
+ * @font-face and fall through to Georgia, which is the closest widely
+ * installed high-contrast serif. Both are acceptable renderings of the same
+ * intent — do not swap Georgia for a sans "safe" fallback.
+ */
+h1,
+h2,
+.subject {
+  font-family: Fraunces, Georgia, "Times New Roman", serif !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.025em;
+  color: #0a0a0a !important; /* --foreground */
+}
+
+h1,
+.subject {
+  font-size: 36px !important;
+  line-height: 1.1 !important;
+}
+
+h2 {
+  font-size: 30px !important;
+  line-height: 1.15 !important;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  font-weight: 600 !important;
+  letter-spacing: normal;
+  color: #0a0a0a !important; /* --foreground */
+}
+
+h3 {
+  font-size: 18px !important;
+  line-height: 1.3 !important;
+}
+
+h4,
+h5,
+h6 {
+  font-size: 16px !important;
+  line-height: 1.3 !important;
+}
+
+/* --------------------------------------------------------------- Links ---
+ * --brand oklch(0.5 0.13 42) → #9e441d. 6.37:1 on #ffffff, 5.84:1 on the
+ * muted surface — clears WCAG AA on both. Underlined because color alone
+ * must not carry meaning (WCAG 1.4.1), and because email clients strip
+ * hover states entirely.
+ */
+a,
+a:link,
+a:visited {
+  color: #9e441d !important; /* --brand */
+  text-decoration: underline;
+}
+
+/* ---------------------------------------------------------- Masthead -----
+ * The Modern template's top block: newsletter name, icon, subject, date.
+ */
+.newsletter-masthead {
+  border-bottom: 1px solid #e5e5e5; /* --border */
+  padding-bottom: 16px;
+  margin-bottom: 32px;
+}
+
+/* The site's kicker role: 12px mono, uppercase, widest tracking. Reserved on
+   the site for the `/ kicker` label; used here for the newsletter name and
+   date line, which is the same job — a small label above the title. */
+.colophon,
+.newsletter-masthead .colophon {
+  font-family:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #636363 !important; /* --muted-foreground, 6.01:1 on white */
+}
+
+.description {
+  color: #636363 !important; /* --muted-foreground */
+  font-size: 16px !important;
+}
+
+.newsletter-icon {
+  border-radius: 10px; /* --radius 0.625rem */
+}
+
+/* ------------------------------------------------------ Preamble/footer ---
+ * "Did someone forward you this?" plus the end-matter CTAs and unsubscribe.
+ */
+.email-preamble,
+.newsletter-header,
+.newsletter-footer,
+.email-actions--unsubscribe,
+.email-actions--upsell,
+.email-actions--premium-paid,
+.powered-by {
+  color: #636363 !important; /* --muted-foreground */
+  font-size: 13px !important;
+  line-height: 20px !important;
+}
+
+.email-preamble a,
+.newsletter-footer a,
+.powered-by-link {
+  color: #9e441d !important; /* --brand */
+}
+
+/* ---------------------------------------------------------- Blockquote ---
+ * Buttondown themes blockquotes as a grey card with muted text `!important`.
+ * The site treats a quote as full-strength foreground with a brand rule on
+ * the left — the emphasis belongs to the quote, not to a container.
+ */
+blockquote {
+  background-color: #f5f5f5 !important; /* --muted */
+  color: #0a0a0a !important; /* --foreground, 18.16:1 on --muted */
+  border-left: 3px solid #9e441d !important; /* --brand */
+  border-radius: 0 10px 10px 0 !important; /* --radius */
+  padding: 16px 20px !important;
+  margin: 32px 0 !important;
+}
+
+blockquote p,
+blockquote li {
+  color: #0a0a0a !important; /* --foreground */
+}
+
+blockquote.pullquote {
+  font-family: Fraunces, Georgia, "Times New Roman", serif !important;
+  font-size: 20px !important;
+  line-height: 1.4 !important;
+  background-color: transparent !important;
+  border-left: none !important;
+}
+
+/* ---------------------------------------------------------------- Rule ---
+ * Buttondown centres a 300px double rule. The site uses a full-width hairline
+ * on --border.
+ */
+hr {
+  border: none;
+  border-top: 1px solid #e5e5e5; /* --border */
+  border-width: 1px;
+  width: 100%;
+  max-width: 600px;
+  margin: 40px auto;
+}
+
+/* ---------------------------------------------------------------- Code ---
+ * The site renders code through Shiki with a dual light/dark theme. That
+ * cascade cannot survive an inbox, so email code blocks collapse to one flat
+ * neutral pair: --muted surface, --foreground text.
+ */
+pre {
+  background-color: #f5f5f5 !important; /* --muted */
+  color: #0a0a0a !important; /* --foreground */
+  border: 1px solid #e5e5e5; /* --border */
+  border-radius: 10px !important; /* --radius */
+  padding: 16px !important;
+  font-size: 14px !important;
+  line-height: 20px !important;
+  /* Outlook strips overflow-wrap and word-break, so long lines will still
+     run wide there. Keep code samples in the newsletter short. */
+  overflow-x: auto;
+}
+
+pre code {
+  color: #0a0a0a !important; /* --foreground */
+  background: transparent !important;
+  font-size: 14px !important;
+}
+
+p code,
+li code,
+h1 code,
+h2 code,
+h3 code,
+h4 code {
+  color: #0a0a0a !important; /* --foreground */
+  background: #f5f5f5 !important; /* --muted */
+  border-radius: 4px;
+  padding: 1px 4px;
+  font-size: 14px !important;
+}
+
+/* -------------------------------------------------------------- Images ---
+ * Every image needs an explicit alt (design-system.md, WCAG 1.1.1) — that is
+ * authored per-email in the Markdown, not enforceable here.
+ */
+img,
+video {
+  max-width: 100% !important;
+  border-radius: 10px; /* --radius */
+}
+
+figcaption {
+  color: #636363 !important; /* --muted-foreground */
+  font-size: 14px !important;
+  line-height: 18px !important;
+}
+
+/* --------------------------------------------------------------- Table ---
+ * `td` needs an explicit color in BOTH themes. Buttondown's `* { color: #000 }`
+ * catches table cells, which passes unnoticed in light mode (black on white)
+ * and renders them invisible on the dark background.
+ */
+table.buttondown-block-styled td,
+table.buttondown-block-styled th {
+  border: 1px solid #e5e5e5 !important; /* --border */
+  color: #0a0a0a !important; /* --foreground */
+}
+
+table.buttondown-block-styled th {
+  background-color: #f5f5f5 !important; /* --muted */
+}
+
+/* ----------------------------------------------------------- Dark mode ---
+ * Honoured by Apple Mail and iOS Mail. Gmail (web and app) and Outlook ignore
+ * prefers-color-scheme and run their own inversion instead, so this block is
+ * a bonus for the clients that respect it, never the thing correctness rests
+ * on — check both light rendering and Gmail's inverted rendering before ship.
+ *
+ * Values come from tokens.css `.dark`. Note the accent shifts hue: light
+ * --brand is oklch(0.5 0.13 42) → #9e441d, dark --brand is
+ * oklch(0.75 0.12 55) → #e89960 (8.63:1 on the dark background). The two are
+ * deliberately chosen, not auto-derived (design principle 4).
+ */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #0a0a0a !important; /* .dark --background */
+    color: #fafafa !important; /* .dark --foreground */
+  }
+
+  p,
+  ul,
+  ol,
+  li,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .subject {
+    color: #fafafa !important; /* .dark --foreground */
+  }
+
+  a,
+  a:link,
+  a:visited,
+  .email-preamble a,
+  .newsletter-footer a,
+  .powered-by-link {
+    color: #e89960 !important; /* .dark --brand */
+  }
+
+  /* `.newsletter-masthead .colophon` is repeated from the light block above.
+     Both rules are `!important`, so specificity decides between them and the
+     two-class light selector would otherwise win here — leaving the kicker at
+     #636363 on the dark background, which is 3.29:1 and fails AA. */
+  .colophon,
+  .newsletter-masthead .colophon,
+  .description,
+  .email-preamble,
+  .newsletter-header,
+  .newsletter-footer,
+  .email-actions--unsubscribe,
+  .email-actions--upsell,
+  .email-actions--premium-paid,
+  .powered-by,
+  figcaption {
+    color: #ababab !important; /* .dark --muted-foreground, 8.62:1 */
+  }
+
+  .newsletter-masthead,
+  hr {
+    border-color: #232323 !important; /* .dark --border, 10% white flattened over bg */
+  }
+
+  blockquote {
+    background-color: #262626 !important; /* .dark --muted */
+    color: #fafafa !important; /* .dark --foreground */
+    border-left-color: #e89960 !important; /* .dark --brand */
+  }
+
+  blockquote p,
+  blockquote li,
+  blockquote * {
+    color: #fafafa !important; /* .dark --foreground */
+  }
+
+  pre,
+  pre code {
+    background-color: #262626 !important; /* .dark --muted */
+    color: #fafafa !important; /* .dark --foreground */
+  }
+
+  pre {
+    border-color: #232323 !important; /* .dark --border, 10% white flattened over bg */
+  }
+
+  p code,
+  li code,
+  h1 code,
+  h2 code,
+  h3 code,
+  h4 code {
+    background: #262626 !important; /* .dark --muted */
+    color: #fafafa !important; /* .dark --foreground */
+  }
+
+  table.buttondown-block-styled td,
+  table.buttondown-block-styled th {
+    border-color: #232323 !important; /* .dark --border, 10% white flattened over bg */
+    color: #fafafa !important; /* .dark --foreground */
+  }
+
+  table.buttondown-block-styled th {
+    background-color: #262626 !important; /* .dark --muted */
+  }
+}

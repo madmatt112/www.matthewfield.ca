@@ -3,7 +3,7 @@ import path from "node:path";
 import { describe, it, expect } from "vitest";
 import { siteConfig } from "./site";
 
-const EXPECTED_HREFS = ["/about", "/now", "/colophon", "/contact", "/sitemap", "/slashes"];
+const EXPECTED_HREFS = ["/now", "/colophon", "/contact", "/sitemap", "/slashes"];
 
 describe("siteConfig.slashPages", () => {
   it("contains exactly the six expected slash pages", () => {

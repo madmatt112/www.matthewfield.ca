@@ -1,0 +1,336 @@
+{# matthewfield.ca — Buttondown full HTML email template ===================
+
+   Requires the Buttondown PROFESSIONAL plan (Settings → Design → Email
+   template). On Basic, use custom-css.css against the Modern template instead.
+
+   ⚠ UNVERIFIED PLACEHOLDER: `{{ body }}` below is the one thing in this file
+   not confirmed against Buttondown's docs — they document every other variable
+   used here but never name the body variable for custom templates. Before
+   trusting this template, open Buttondown's template editor: it seeds the box
+   with your current theme's HTML, so read the body placeholder out of THAT and
+   swap it in here if it differs. See README.md § "Open questions".
+
+   Templating is DJANGO, not Liquid or Handlebars — `{% if %}` / `{% for %}` /
+   `{{ var|filter }}`. Comments use `{# #}` and are stripped on send.
+
+   Structure notes:
+   - Table-based layout with role="presentation". Outlook's Word rendering
+     engine ignores div-based layout; tables are the only reliable container.
+   - Colors are literal hex ported from src/styles/tokens.css. No CSS custom
+     properties — Fastmail does not support them.
+   - Critical styles are inlined on the elements as well as declared in <head>,
+     because Gmail strips <style> in some forwarding and clipping paths.
+#}
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="x-apple-disable-message-reformatting" />
+    {# Declares real light+dark support so Gmail/Outlook are less likely to run
+       their own inversion heuristics across the palette. #}
+    <meta name="color-scheme" content="light dark" />
+    <meta name="supported-color-schemes" content="light dark" />
+    <title>{{ email.subject }}</title>
+    <style>
+      /* Media queries and pseudo-classes cannot be inlined, so they live here
+         and are treated as progressive enhancement. */
+      :root {
+        color-scheme: light dark;
+      }
+
+      body {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        background-color: #ffffff;
+      }
+
+      a {
+        color: #9e441d; /* --brand, 6.37:1 on white */
+        text-decoration: underline;
+      }
+
+      /* Prose rhythm inside the body slot. 16px/26px is the site's spacious
+         leading rather than the 24px email default. */
+      .bd-body p,
+      .bd-body ul,
+      .bd-body ol,
+      .bd-body li {
+        color: #0a0a0a; /* --foreground */
+        font-size: 16px;
+        line-height: 26px;
+        margin: 16px 0;
+      }
+
+      /* Heading ramp per .spec-workflow/steering/design-system.md.
+         Fraunces is a webfont: Apple Mail renders it, Gmail and Outlook strip
+         @font-face and fall through to Georgia. Both are valid renderings. */
+      .bd-body h1,
+      .bd-body h2 {
+        font-family: Fraunces, Georgia, "Times New Roman", serif;
+        font-weight: 400;
+        letter-spacing: -0.025em;
+        color: #0a0a0a;
+        margin: 32px 0 16px;
+      }
+      .bd-body h1 {
+        font-size: 36px;
+        line-height: 1.1;
+      }
+      .bd-body h2 {
+        font-size: 30px;
+        line-height: 1.15;
+      }
+      .bd-body h3,
+      .bd-body h4,
+      .bd-body h5,
+      .bd-body h6 {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        font-weight: 600;
+        color: #0a0a0a;
+        margin: 32px 0 8px;
+      }
+      .bd-body h3 {
+        font-size: 18px;
+        line-height: 1.3;
+      }
+      .bd-body h4,
+      .bd-body h5,
+      .bd-body h6 {
+        font-size: 16px;
+        line-height: 1.3;
+      }
+
+      .bd-body blockquote {
+        background-color: #f5f5f5; /* --muted */
+        color: #0a0a0a; /* --foreground, 18.16:1 on --muted */
+        border-left: 3px solid #9e441d; /* --brand */
+        border-radius: 0 10px 10px 0; /* --radius 0.625rem */
+        margin: 32px 0;
+        padding: 16px 20px;
+      }
+
+      .bd-body pre {
+        background-color: #f5f5f5; /* --muted */
+        color: #0a0a0a; /* --foreground */
+        border: 1px solid #e5e5e5; /* --border */
+        border-radius: 10px;
+        padding: 16px;
+        font-size: 14px;
+        line-height: 20px;
+        /* Outlook strips overflow-wrap/word-break — keep code samples short. */
+        overflow-x: auto;
+      }
+
+      .bd-body code {
+        background: #f5f5f5;
+        color: #0a0a0a;
+        border-radius: 4px;
+        padding: 1px 4px;
+        font-size: 14px;
+      }
+
+      .bd-body pre code {
+        background: transparent;
+        padding: 0;
+      }
+
+      .bd-body img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 10px;
+      }
+
+      .bd-body hr {
+        border: none;
+        border-top: 1px solid #e5e5e5; /* --border */
+        margin: 40px 0;
+      }
+
+      @media screen and (max-width: 620px) {
+        .bd-shell {
+          width: 100% !important;
+        }
+        .bd-gutter {
+          padding-left: 20px !important;
+          padding-right: 20px !important;
+        }
+        .bd-body h1 {
+          font-size: 30px !important;
+        }
+        .bd-body h2 {
+          font-size: 24px !important;
+        }
+      }
+
+      /* Honoured by Apple Mail and iOS Mail. Gmail and Outlook ignore
+         prefers-color-scheme and apply their own inversion, so this is a
+         bonus, never the thing correctness rests on. Values from tokens.css
+         `.dark` — note --brand shifts hue between themes by design. */
+      @media (prefers-color-scheme: dark) {
+        body,
+        .bd-canvas,
+        .bd-shell {
+          background-color: #0a0a0a !important; /* .dark --background */
+        }
+        .bd-body p,
+        .bd-body ul,
+        .bd-body ol,
+        .bd-body li,
+        .bd-body h1,
+        .bd-body h2,
+        .bd-body h3,
+        .bd-body h4,
+        .bd-body h5,
+        .bd-body h6,
+        .bd-subject {
+          color: #fafafa !important; /* .dark --foreground */
+        }
+        a,
+        .bd-body a {
+          color: #e89960 !important; /* .dark --brand, 8.63:1 */
+        }
+        .bd-kicker,
+        .bd-meta,
+        .bd-colophon,
+        .bd-colophon a {
+          color: #ababab !important; /* .dark --muted-foreground */
+        }
+        .bd-rule,
+        .bd-masthead {
+          border-color: #232323 !important; /* .dark --border */
+        }
+        .bd-body blockquote,
+        .bd-body pre,
+        .bd-body code {
+          background-color: #262626 !important; /* .dark --muted */
+          color: #fafafa !important;
+        }
+        .bd-body pre {
+          border-color: #232323 !important;
+        }
+        .bd-body blockquote {
+          border-left-color: #e89960 !important; /* .dark --brand */
+        }
+      }
+    </style>
+  </head>
+
+  <body
+    style="margin: 0; padding: 0; background-color: #ffffff; -webkit-font-smoothing: antialiased;"
+  >
+    {# Preheader: the grey preview line beside the subject in the inbox list.
+       Hidden in the rendered mail; the trailing entities stop the client from
+       pulling body copy in after it. #}
+    <div
+      style="display: none; max-height: 0; overflow: hidden; mso-hide: all; font-size: 1px; line-height: 1px; color: #ffffff;"
+    >
+      {{ email.subject }}&#8203;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;
+    </div>
+
+    <table
+      role="presentation"
+      class="bd-canvas"
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      border="0"
+      style="background-color: #ffffff; width: 100%;"
+    >
+      <tr>
+        <td align="center" style="padding: 32px 0;">
+          <!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+          <table
+            role="presentation"
+            class="bd-shell"
+            width="600"
+            cellpadding="0"
+            cellspacing="0"
+            border="0"
+            style="width: 600px; max-width: 600px; background-color: #ffffff;"
+          >
+            {# ---------------------------------------------------- masthead #}
+            <tr>
+              <td
+                class="bd-gutter bd-masthead"
+                style="padding: 0 32px 20px; border-bottom: 1px solid #e5e5e5;"
+              >
+                {# Kicker: the site's 12px mono uppercase label role. #}
+                <p
+                  class="bd-kicker"
+                  style="margin: 0 0 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; line-height: 1.4; letter-spacing: 0.1em; text-transform: uppercase; color: #636363;"
+                >
+                  Matthew Field{% if email.secondary_id %} &middot; No.
+                  {{ email.secondary_id }}{% endif %}
+                </p>
+                <h1
+                  class="bd-subject"
+                  style="margin: 0; font-family: Fraunces, Georgia, 'Times New Roman', serif; font-size: 36px; line-height: 1.1; font-weight: 400; letter-spacing: -0.025em; color: #0a0a0a;"
+                >
+                  {{ email.subject }}
+                </h1>
+                <p
+                  class="bd-meta"
+                  style="margin: 12px 0 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; font-size: 13px; line-height: 20px; color: #636363;"
+                >
+                  {{ email.publish_date|date:"j F Y" }}
+                </p>
+              </td>
+            </tr>
+
+            {# -------------------------------------------------- body slot #}
+            <tr>
+              <td
+                class="bd-gutter bd-body"
+                style="padding: 8px 32px 32px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 16px; line-height: 26px; color: #0a0a0a;"
+              >
+                {{ body }} {# ⚠ see the UNVERIFIED note at the top of this file #}
+              </td>
+            </tr>
+
+            {# ---------------------------------------------------- colophon #}
+            <tr>
+              <td class="bd-gutter" style="padding: 0 32px;">
+                <div
+                  class="bd-rule"
+                  style="border-top: 1px solid #e5e5e5; font-size: 0; line-height: 0;"
+                >
+                  &nbsp;
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td
+                class="bd-gutter bd-colophon"
+                style="padding: 24px 32px 32px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; font-size: 13px; line-height: 20px; color: #636363;"
+              >
+                <p style="margin: 0 0 12px; color: #636363; font-size: 13px; line-height: 20px;">
+                  Written by Matthew Field. Essays live at
+                  <a href="https://www.matthewfield.ca" style="color: #9e441d;"
+                    >matthewfield.ca</a
+                  >{% if email.absolute_url %} — this one is
+                  <a href="{{ email.absolute_url }}" style="color: #9e441d;"
+                    >on the web</a
+                  >{% endif %}.
+                </p>
+                <p style="margin: 0; color: #636363; font-size: 13px; line-height: 20px;">
+                  You are subscribed as {{ subscriber.email }}.
+                  <a href="{{ manage_subscription_url }}" style="color: #9e441d;"
+                    >Manage your subscription</a
+                  >
+                  or
+                  <a href="{{ unsubscribe_url }}" style="color: #9e441d;"
+                    >unsubscribe</a
+                  >.
+                </p>
+              </td>
+            </tr>
+          </table>
+          <!--[if mso]></td></tr></table><![endif]-->
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

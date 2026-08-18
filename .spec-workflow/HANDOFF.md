@@ -4,150 +4,176 @@ Single source of in-flight phase state (per `spec-loop-v3`). The generated roadm
 `.spec-workflow/spec-decomposition/INDEX.md` (never hand-edited); build order lives in
 `decomposition.md`.
 
-## Current state (2026-08-11)
+## Current state (2026-08-17)
 
-- **`github-activity` (spec #11) is COMPLETE — 25/25 tasks, INDEX regenerated and showing `Complete`.**
-- Shipped on branch **`feat/github-activity`**, pushed, open as **PR #50**. Not merged — Matthew
-  reviews the Vercel preview first.
-- Every gate green at completion: 747 unit tests, `test:tz` in both pinned zones, 203 e2e, lint 0
-  errors, `pnpm build`, and Lighthouse **100/100/100/100** on `/contributions`.
-- **INDEX `## Next` is now `ambiguous`** — see §What the next run does.
+**`github-activity-sync` (#12) is Complete — 17/17, merged and live.** Its spec documents were
+untracked until 2026-08-17 and are now committed.
 
-## What this spec actually shipped
+**The `decomposition.md` roadmap is finished. A thirteenth spec now exists outside it.**
 
-364 real contribution days (2025-08-12 → 2026-08-10, 2,003 contributions across 129 active days),
-hand-seeded from one authenticated `contributionsCollection` query and verified against an
-independent re-query with **zero mismatches**. The published 26-week window shows 1,712 across 107
-active days. No network call anywhere in the build (Req 1.7 verified by tripwire).
+All twelve specs named in `decomposition.md` exist on disk and are Complete. But `spec-index` no
+longer reports `all-on-disk-complete` — it routes to **`newsletter-buttondown`**, a spec that is
+**not in `decomposition.md`** and never was. The decomposition predates the newsletter decision;
+this is net-new scope added on top of the roadmap rather than derived from it. Anyone reading INDEX
+will see it under "Other specs (not in decomposition.md)" — that is correct, not a bug.
 
-Both human-owned tasks were completed rather than stalled:
+### `newsletter-buttondown` — in flight, 14/16
 
-- **Task 9** — Matthew authorised running the query in-session; data seeded and API-verified.
-- **Task 17** — Matthew gave the two by-eye verdicts on 2026-08-11: 9px ramp resolvability **PASS in
-  both themes**, including the ramp's two tightest pairs (light 2→3 at 1.39:1, 1→2 at 1.41:1).
-  Checks 3 and 4 passed mechanically; forced-colors used the **emulated** Playwright route (host High
-  Contrast was off), and that is named as emulated in design.md's appended `## Implementation
-  evidence` section, per Req 5.6.
+- **Spec captured retroactively** (`4539884`): the code shipped first on branch
+  `feat/buttondown-email-template`, then requirements/design/tasks were written against it. Every
+  completed task carries an implementation log, but **review coverage is 0/13** — no dashboard
+  review has run against this spec, and the tasks header says so rather than letting `[x]` imply one.
+- **Open as [PR #55](https://github.com/madmatt112/www.matthewfield.ca/pull/55)** off
+  `feat/buttondown-email-template`. Not merged.
+- **The finding worth carrying forward**: the site CSP (`connect-src 'self'`, `form-action 'self'`)
+  blocks Buttondown's own embed snippet outright — both the cross-origin form POST and any client
+  fetch. Proven in-browser, not reasoned about. Any future vendor widget on this site hits the same
+  wall; the answer is a same-origin proxy route, not a CSP relaxation.
+- **Tasks 9, 10, 11, 12 and 15 are done.** Task 11 closed with NO code: Matthew decided against an
+  archive. Posts sent as issues get the tag `newsletter`, and `/blog/tags/newsletter` is the
+  archive via the tag system that already existed.
+- **The newsletter is called Field Notes, and task 15 rewrote every surface to say so.** The first
+  pass sold a platform-engineering newsletter; the real thing is a career-transition story told
+  while it happens, with a deliberately wide range (small software, consulting, classical music,
+  production, options trading). **The positioning and voice authority is the Eden "North star" note
+  on the Brand HQ board** — it pins Matthew's hand-written Buttondown vetting answers as what bios
+  and positioning copy should sound like. Read it before writing any copy for this site.
+- **Eden MCP gotcha, cost several turns**: `eden_get_note_markdown` wants the note document id from
+  the item's `storagePath`, **not** the item id that `eden_list_workspace_items` / `eden_read_board`
+  return. The item id 404s with `status: "not-found"`, which looks like auth or a deleted note and
+  is neither. `previewText` on list results also truncates at 1200 chars.
+- **The email work is PARKED on plan cost.** Nothing in `email/buttondown/` installs on the free
+  plan: custom CSS needs Basic, the welcome email needs Standard (Buttondown treats it as a
+  transactional email), the full HTML template needs Professional. Matthew is not ready to pay.
+  Task 16 routed around it: `/newsletter/welcome` is a confirmed-subscriber landing page, wired
+  from the free "After confirming" redirect, so the site delivers the welcome the email cannot.
+- **Remaining**: task 13 is one free field (point "After confirming" at /newsletter/welcome);
+  task 14 is blocked on a plan; and one live subscribe still closes the single untested path.
 
-## What the next run does
+### The sync is live and proven
 
-**Routes to `github-activity-sync`, at Requirements, in the document loop.** Deterministic — no
-choice to make:
+- **Merged:** PR #54 → `aee92ee` on `main`, after the new `ci.yml` self-test step ran green on the
+  branch (task 17's stated precondition).
+- **First run:** [31924207106](https://github.com/madmatt112/www.matthewfield.ca/actions/runs/31924207106),
+  manual dispatch, 1m58s, `[sync] outcome=refreshed`.
+- **Bot commit `8d03139`** — authored `github-actions[bot]`, message
+  `chore(content): refresh GitHub activity data`, 16 insertions / 16 deletions.
+- **Production deployment `5927200751` reported `success`**; `https://www.matthewfield.ca/contributions`
+  returns HTTP 200 carrying the new `2026-08-16` anchor.
+- **Fact 7 is cleared.** `pnpm gate:github-activity` now exits 0 through all four stages
+  (G1→G2→G3→G4) on the refreshed payload. It stays passing while the weekly cadence holds.
+- Next scheduled run: the `37 9 * * 2` cron — Tuesdays.
 
-- INDEX `## Next` is `all-on-disk-complete` (every spec on disk is Complete). Per the router's own
-  rule that is *not* roadmap completion: it means read `decomposition.md` for a spec named there with
-  no `.spec-workflow/specs/<name>/` directory.
-- Exactly one qualifies: **`github-activity-sync`** (`decomposition.md:212`, spec #12). Specs are
-  created lazily, so its absence from disk is expected. Its auth, commit path and validation posture
-  are already pinned in the decomposition block.
+## What the live run proved that no local test could
 
-**Merge PR #50 first, then branch off a fresh `main`.** `github-activity-sync` gets its own branch
-and PR — it is deliberately *not* folded into #50, which stays reviewable as the heatmap on its own.
+- **The `seed` expression works on a real dispatch.** `${{ inputs.seed && '--seed' || '' }}` resolved
+  to the empty string; the Refresh step invoked the script with no flag. Task 12 explicitly deferred
+  this to task 17 as unverifiable locally.
+- **The gate reached G4.** Every local run since 2026-08-13 stopped at G3 on the stale seed, so
+  `next build` had only ever been exercised under the temporary-substitution licence.
+- **The empty-list poll path ran for real.** Five consecutive
+  `poll: pending — 0 record(s) for the SHA` lines before the production record appeared. Req 10.2's
+  fail-fast correctly did **not** fire while zero records existed — the behaviour the design specified
+  for the first 53–81 seconds, previously only driven through injected stubs.
+- **CI does not run on the bot commit**, confirmed empirically (`gh run list` for that SHA is empty) —
+  the documented assumption the workflow's comments record.
 
-## Roadmap hygiene — resolved 2026-08-11
+## One prediction that was wrong, recorded rather than glossed
 
-`.spec-workflow/specs/listening-sockets/` was a **stray empty directory** (an empty `reviews/`, no
-documents, no approvals, untracked in git) created against the wrong project. It was outside
-`decomposition.md`, so it made INDEX `## Next` report `ambiguous` and would have stopped the router.
+Task 17 predicted a **large** first diff, reasoning that the seeded range `2025-08-12 → 2026-08-10`
+cannot equal a range ending at the run date. **The actual diff was 16 insertions / 16 deletions.**
+The reasoning was sound; the magnitude assumed a long staleness gap. The seed was only six days stale
+at dispatch, so only the rolled-off and rolled-on days plus a few changed counts differ. Anyone
+re-reading the spec should not expect a large diff to be a correctness signal.
 
-**Deleted** (via `rmdir`, so it could not have removed anything non-empty). The real
-`listening-sockets` spec lives in **`~/repo/devtop/`** — 162k design, 128k requirements, 260k tasks,
-full reviews and implementation logs — and is untouched.
+## Gotchas that outlive this spec
 
-## Deferrals recorded during implementation
+1. **Three commands do less than their names suggest.** `pnpm typecheck` cannot see anything under
+   `scripts/`; `pnpm lint` does not lint workflow YAML and exits 0 on warnings; `pnpm test` (vitest)
+   includes only `src/**`. **The three sync suites run only via `node --test`** — which is why
+   `ci.yml` carries a dedicated step. Do not credit any of the three with covering them.
+2. **Prettier does not cover `.spec-workflow/`** — `.prettierignore` contains `/.spec-workflow`, so a
+   `--check` there matches zero files and passes vacuously.
+3. **Read the LAST `[gate] G<n>` marker, never the first.** pnpm's banner reprints the script text, so
+   all four markers appear before anything runs: `grep -c` returns 4 every time and a first-match read
+   reports `G1` even when the chain stopped at G2 or G3.
+4. **The cause vocabulary grew during implementation, by design.** Component 1 ships nine condition
+   rows over eight slugs, not the six the frozen documents describe — `input-unreadable`,
+   `flag-missing-value` and `internal-error` were added in task 3 after review found a local file error
+   misreported as a GitHub API error and unhandled throws escaping with no cause (Req 9.2). Design
+   §Cause vocabulary licenses this: "a floor, not a cap". 13 slugs documented, 13 shipped.
+5. **`design.md:1071` is stale** — it shows the gate alias without the `[gate]` echoes that tasks.md
+   v5's F6 added and task 12 depends on. tasks.md is the implementation authority; the shipped alias
+   is correct.
+6. **`tasks.md` cites `30f46b2` in eight places.** That commit was cherry-picked as `a6557de`, which
+   is what is reachable from `main`. The authoring doc was corrected and its evidence inlined so the
+   argument survives regardless; the frozen tasks document was not rewritten mid-implementation.
+7. **Rows 4 and 8's `::error::` detail is multi-line**, so GitHub's annotation surfaces only the first
+   line and the 40-hex SHA lands in the step log. Verbatim design-fence behaviour.
+8. **Reference block hash `fc442f0c…a211a9`** (97 lines, comment-free) — step 8's extracted `run:`
+   scalar matches it. The harness's scratch `block.sh` adds five navigation headers excluded from that
+   comparison; with them re-inserted it hashes `998e831b…5939`.
 
-- **`d-eb289402`** — a link row in `src/components/layout/footer.tsx` overflows `<body>` to 342px at
-  a 320px viewport on **every** site route, heatmap or not. Pre-existing; this spec did not cause it.
-  Req 3.10 only asks that the heatmap not *cause* overflow, so task 23 asserts causation instead and
-  the page bug stays visible rather than masked.
-- **`d-cd92bbdf`** — a future-dated entry is correctly rejected, but with Zod's generic
-  `Invalid input` rather than a message naming the `BUILD_START_UTC` rule. Matches the existing
-  `resources-schema.ts` / `reading-schema.ts` precedent, so fixing one without the other three would
-  be inconsistent. Diagnostic quality, not correctness.
-- `d-db7c55e9` (the data-viz palette deferral) was carried in from the document phase, unchanged.
+## Deferrals — the debt this spec created
 
-## Corrected in passing
+**`github-activity-sync` implementation added 1; `newsletter-buttondown` added 3, then resolved 2. Total open queue: 22.**
 
-`docs/profile-resume-lighthouse-runs.md` said "all seven URLs"; task 21 added `/contributions` as the
-eighth and thereby falsified it, so this branch fixed it. Everything else out of scope was recorded
-rather than edited.
+Newsletter deferrals (all `originSpec: newsletter-buttondown`):
 
-## GitHub token — settled 2026-08-10, verified by query
+- **`d-e77bd089`** — the body placeholder in `email/buttondown/template.html` is unverified.
+  Buttondown documents every other variable used but never names the one that injects the email body
+  into a custom template; `{{ body }}` is a stand-in. Blocks nothing — the CSS path works on the
+  Basic plan. Readable from Buttondown's template editor once a Professional plan exists.
+- **`d-528554d8` — RESOLVED same day, and worth reading as a caution.** It claimed the shared
+  origin check could not be extracted because editing `api/contact` would trip the paired-merge CI
+  guard. **That was never true.** `verify-paired-merge.mjs` tracks
+  `[next-config-imports.test.ts, next.config.ts, project-errors.ts, blog-errors.ts]`; the two canary
+  guards track chokepoint fixtures plus `projects.test.ts`. None names `api/contact/route.ts`. The
+  deferral was written from the guards' *existence*, not their file list. **Before deferring on a
+  guard in this repo, read its `TRACKED_SET`** — it is four lines and settles the question.
+  Now extracted to `src/lib/request-origin.ts`, consumed by both routes.
+- **`d-f61320d2` — RESOLVED, and it deleted a feature rather than shaping one.** The question was
+  whether an on-site archive is additive when essays are already canonical as blog posts. Answer:
+  no. Posts sent as issues carry the tag `newsletter`, and `/blog/tags/newsletter` is the archive,
+  produced by the tag system that already existed. Zero newsletter-specific code, no build-time API
+  call, nothing to degrade when Buttondown is down. The original Req 7.2 contained its own
+  refutation: it demanded the archive not duplicate posts that are also blog posts, which here is
+  all of them.
 
-Task 9 and the follow-on sync spec both use the same credential, so the seed and every later refresh
-cannot diverge in what they count.
+- **`d-5abe889e`** (new) — `docs/…:565` still offers "widen the refresh window" as a staleness remedy
+  the automation makes impossible: the span is fixed at `PULL_RANGE_DAYS = 364` and Component 2's
+  record-count check rejects any other length. Left unfixed because task 15's Success clauses are a
+  closed criterion-keyed checklist this line is not on, and all 20 criteria had just been
+  independently verified. One-sentence fix next time that file is open.
+- **`d-3079c159`**, **`d-ae7216b4`** — predate implementation; both are known false-positive risks in
+  Req 10's deployment reads, implemented verbatim on purpose by task 9. **Both now have live data
+  against them:** the first run's poll saw zero Preview records before the Production one, and no
+  `inactive` status. Keep parked until a real occurrence.
+- **`d-65ff36e0`** — the issue-based escalation channel, documented by task 15.
 
-- **Classic PAT with zero scopes ticked.** Verified working against
-  `user(login: "madmatt112").contributionsCollection.contributionCalendar` → 2004 contributions in
-  the trailing 52 weeks. Fine-grained PATs are not used (GraphQL support for `contributionsCollection`
-  is undocumented); there is no unauthenticated route.
-- **No-scope over `read:user`, deliberately.** `restrictedContributionsCount` is 0, so both return
-  the same figure today — but a scoped token would silently begin inflating the published graph above
-  the verifiable public profile if private work ever appeared. No-scope makes the number
-  **public-only by construction**.
-- Secret name **`GH_CONTRIBUTIONS_TOKEN`** (GitHub forbids `GITHUB_`-prefixed secrets, and the
-  auto-injected `GITHUB_TOKEN` is repo-scoped and cannot read the calendar at all). One-year expiry;
-  Req 9's 45-day freshness check is the detector when it lapses.
-
-## Committed
-
-Everything from this spec is committed on `feat/github-activity` (17 commits) and pushed. Spec
-documents landed first, then one commit per task or coupled task-group, following the project's rules:
-**never `git add -A`**, and site changes go on a feature branch rather than straight to `main`.
-
-`Implementation Logs/` and the task-17 screenshot evidence are gitignored (`.gitignore:63`) by design —
-they are evidence, not repository artifacts.
-
-## Roadmap change
-
-**`### 12. github-activity-sync` added to `decomposition.md`** and INDEX regenerated. It has no spec
-directory yet (specs are created lazily), so it will not appear in the roadmap table until
-`github-activity` is Complete — at which point it becomes the active spec. Its auth, commit path and
-validation posture are already pinned in the decomposition block.
-
-## Recorded, not resolved
-
-**Design §Components' `TZ` premise is false.** It justifies the `test:tz` split-run with *"Vitest
-reads `process.env.TZ` at worker start, so a single run cannot hold two zones."* Assigning
-`process.env.TZ` mid-process switches both `Date` and `Intl` under Node 24, and
-`src/lib/format-date-tz.test.ts:4` — the precedent the design itself cites — is the counterexample. A
-single-run `beforeAll` form would give both zones inside the existing `Unit tests` step and delete a
-`package.json` script, a CI step and two full Velite builds per CI run. **The approved mechanism is
-implemented as specified**; tasks v9 corrects only its rationale. Matthew's call whether to amend the
-design later. Decided 2026-08-10: leave it.
-
-## Tasks-phase convergence record
-
-Nine versions, nine adversarial rounds. **Finding curve 25 → 15 → 11 → 7 → 5 → 4 → 6 → 5 → 2**,
-`DESIGN_READY: yes` from r4 onward, zero MUST_FIX in four of the last five rounds. Capped at v9; r9's
-two remaining items were closed in place (v10 is forbidden) and that closure is the one edit no review
-has seen. From r6 onward every round's findings were defects introduced by the previous round's own
-repair, all circling one ~20-line neighbourhood — the print block and its single gate — while the
-other twenty-four tasks went untouched from r4 on.
-
-Verified mechanically after every version: 25 tasks; **32 DAG edges from the `_Depends on:_` footers,
-32 from the mermaid graph, identical in both directions**, acyclic, valid topological order; **all 99
-acceptance criteria covered**, coverage table and footers agreeing both ways, all 25 embedded
-`_Prompt:` strings matching their footers; **zero citation drift across six consecutive versions**.
+**Worth working next:** `d-65ff36e0`. It is the only one closing a real observability gap — GitHub's
+60-day inactivity disablement has no detector in scope, and the sync now depends on the workflow
+staying enabled. Then `d-5abe889e`, a one-line fix that stops a reader following bad advice.
 
 ## Approval records (resume contract)
 
-- Requirements v4 — approved 2026-08-09, record deleted after approval.
-- Design v9 — `approval_1786330529757_4d3qmr95l`, approved 2026-08-10.
-- Tasks v1–v9 — nine coexisting records, none deleted (the loop never deletes approvals). **v9 is the
-  live one: `approval_1786345399035_a9cvusyk2`, approved.** v7 was also approved by mistake — ignore
-  it; v9 supersedes.
+- **Requirements: `approval_1786485295072_1uyqe11cx` — approved.**
+- **Design: `approval_1786558366724_66mkjbiur` — approved.**
+- **Tasks: `approval_1786576914975_v86lwjthf` (v9) is the live one.** v1–v8 coexist, superseded.
 
-## Workspace contract
+## Workspace notes
 
-- Main checkout **is** the cwd: `/home/mcf/repo/matthew-field.ca`. `git rev-parse --git-common-dir`
-  and `--git-dir` agree — no worktree/spec-state split for this spec.
+- The worktree at `/home/mcf/repo/matthew-field.ca-github-activity-sync` (created mid-run when a
+  concurrent session took the main checkout's HEAD) has been **removed** — merged and redundant.
+- Branch `chore/remove-verify-vercel-token` has been **deleted**; its content reached `main` as the
+  cherry-pick `a6557de`, so `30f46b2` is now unreachable. Nothing depends on it — the authoring doc's
+  evidence was inlined precisely so no SHA is load-bearing.
+- `feat/github-activity-sync` survives, local and remote, fully merged — deletable at will.
 - **Never pass `projectPath` to an MCP call.**
-- Per `spec-loop-v3`, commits land on whatever branch HEAD is on and the loop never switches branches.
 
 ## Not started
 
-- Implementation of all 25 tasks.
-- Content PR (four external contributions to `contributions.yaml`) — independent of this spec, ship
-  any time.
-- Spec #12 `github-activity-sync` — after this spec completes.
+- Content PR (four external contributions to `contributions.yaml`) — independent of any spec.
+- **`content/posts/increasing-my-luck-surface-area.mdx` is untracked and fails velite** with three
+  required-field errors (`date`, `description`, `title`). Noisy on every `vitest` and `dev` run.
+  Pre-existing, unrelated to any spec — a draft that needs frontmatter or removal.

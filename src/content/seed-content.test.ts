@@ -10,7 +10,7 @@ import { describe, expect, test } from "vitest";
  * sentinel string that would indicate the content was never authored.
  */
 
-const PAGES = ["about", "now", "colophon"] as const;
+const PAGES = ["now", "colophon"] as const;
 
 const SENTINELS = ["Placeholder content.", "Replaced in a downstream spec."] as const;
 

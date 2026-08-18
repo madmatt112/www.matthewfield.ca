@@ -267,7 +267,6 @@ that. The rules below target duplication only.
 experience, skills, and education files SHALL NOT carry a second one. When the
 resume has interests the narrative lacks, **merge** them into the existing
 sentence rather than adding a list beside it. Two lists drift out of step.
-`/about` may treat the same material at greater length.
 
 **One statement per subject (R9.3).** Where the narrative and the structured
 data both touch a subject (documentation practice is the standing example),

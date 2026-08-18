@@ -9,7 +9,13 @@
 # An entry with a `finished` date is Recently Read, sorted newest-first and
 # capped at three on the page.
 #
-# `url` is the book's StoryGraph page — each card links to it.
+# `url` is the book's StoryGraph page — each card links to it. It is optional:
+# a self-published book with no StoryGraph page renders as a plain card.
+- title: "Project 369 - The Soul Work Journal"
+  author: David Kasneci
+  started: "2026-08-18"
+  cover: ./reading/project-369-the-soul-work-journal.jpg
+
 - title: Hogfather
   author: Terry Pratchett
   url: https://app.thestorygraph.com/books/f95ff69c-db40-4572-a584-8f2236fce8f1
@@ -21,12 +27,6 @@
   url: https://app.thestorygraph.com/books/4f61003e-da45-4de4-9a19-be1a198ac704
   started: "2026-08-14"
   cover: ./reading/house-of-sky-and-breath.jpg
-
-- title: "Do I Stay Christian?: A Guide for the Doubters, the Disappointed, and the Disillusioned"
-  author: Brian D. McLaren
-  url: https://app.thestorygraph.com/books/e48c35d8-86e2-467e-b427-1faeb13f0923
-  started: "2026-07-31"
-  cover: ./reading/do-i-stay-christian.jpg
 
 - title: Scott Pilgrim Color Collection Vol. 3
   author: Bryan Lee O'Malley

@@ -25,3 +25,9 @@
 # so the seed in content/github-activity.yaml stays checkable against it.
 # Reformatting it destroys the only thing it is for.
 /scripts/__fixtures__/github-activity/
+
+# Buttondown email template — a DJANGO template, not HTML. Prettier's HTML
+# parser fails on the `{# #}` and `{% if %}` tags, and reflowing the
+# table-based email layout would break the inline styles Outlook depends on.
+# The sibling .css/.md files in that directory ARE formatted normally.
+/email/buttondown/template.html

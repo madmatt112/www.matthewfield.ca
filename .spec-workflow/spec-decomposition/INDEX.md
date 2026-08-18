@@ -6,8 +6,9 @@
 
 ## Next
 
-- **State:** all-on-disk-complete
-- **Why:** Every spec on disk is Complete. This is NOT necessarily roadmap completion — check decomposition.md for a spec named there with no .spec-workflow/specs/<name>/ directory. Such a spec has not been created yet and is invisible here; it is the next spec, starting at Requirements.
+- **State:** active
+- **Spec:** newsletter-buttondown
+- **Why:** Only started spec not in decomposition.md (12/14). Finishing started work beats beginning unsequenced work.
 
 ## Active
 
@@ -24,3 +25,10 @@
 | 9 | slash-pages | Complete | 16/16 |
 | 10 | profile-resume | Complete | 24/24 |
 | 11 | github-activity | Complete | 25/25 |
+| 12 | github-activity-sync | Complete | 17/17 |
+
+## Other specs (not in decomposition.md)
+
+| Spec | Status | Progress |
+| --- | --- | --- |
+| newsletter-buttondown | Implementing | 12/14 |

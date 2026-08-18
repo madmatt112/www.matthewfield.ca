@@ -30,6 +30,7 @@ type SiteConfig = {
     linkedin: string;
     github: string;
     email: string;
+    storygraph: string;
   };
 };
 
@@ -83,10 +84,14 @@ export const siteConfig: SiteConfig = {
       label: "resources",
       description: "References and links worth sharing.",
     },
+    {
+      href: "/newsletter",
+      label: "newsletter",
+      description: "Essays by email, when there's something worth sending.",
+    },
     // Playground intentionally omitted — see the note on navItems above.
   ],
   slashPages: [
-    { href: "/about", title: "/about", description: "Who I am beyond the resume." },
     { href: "/now", title: "/now", description: "What I'm focused on right now." },
     { href: "/colophon", title: "/colophon", description: "How this site is built." },
     { href: "/contact", title: "/contact", description: "Get in touch." },
@@ -97,5 +102,6 @@ export const siteConfig: SiteConfig = {
     linkedin: "https://www.linkedin.com/in/matthewcfield",
     github: "https://github.com/madmatt112",
     email: "hello@matthewfield.ca",
+    storygraph: "https://app.thestorygraph.com/profile/madmatt112",
   },
 };

@@ -57,8 +57,8 @@ describe("readingLoaderSchema", () => {
     expect(readingLoaderSchema.safeParse(without("cover")).success).toBe(false);
   });
 
-  it("requires a url", () => {
-    expect(readingLoaderSchema.safeParse(without("url")).success).toBe(false);
+  it("treats url as optional — a self-published book has no StoryGraph page", () => {
+    expect(readingLoaderSchema.safeParse(without("url")).success).toBe(true);
   });
 
   it("rejects a non-http url scheme", () => {

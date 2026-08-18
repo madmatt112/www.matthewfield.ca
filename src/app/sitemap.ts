@@ -6,7 +6,16 @@ import { getPublishedProjects } from "@/lib/projects";
 import { getAllContributions } from "@/lib/contributions";
 import { getAllResources } from "@/lib/resources";
 
-const routes = ["/", "/profile", "/projects", "/blog", "/about", "/contact", "/colophon", "/now"];
+const routes = [
+  "/",
+  "/profile",
+  "/projects",
+  "/blog",
+  "/contact",
+  "/colophon",
+  "/now",
+  "/newsletter",
+];
 
 // Latest date in `dates`, or `fallback` when empty. The empty-array guard is
 // load-bearing: the launch state of both collections is `[]`, and a bare

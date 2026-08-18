@@ -1,40 +1,27 @@
 import { z } from "zod";
 
-import { ResendError, TimeoutError, sendContactEmail, testIdForwardingAllowed } from "@/lib/mail";
+import {
+  ButtondownError,
+  InvalidEmailError,
+  TimeoutError,
+  subscribeToNewsletter,
+} from "@/lib/newsletter";
 import { originAllowed } from "@/lib/request-origin";
 
-const MAX_BODY_BYTES = 32 * 1024;
-const VENDOR_ERROR_MESSAGE =
-  "Unable to send message. Please try again or use an alternative method.";
+const MAX_BODY_BYTES = 4 * 1024;
+const VENDOR_ERROR_MESSAGE = "Unable to subscribe right now. Please try again in a moment.";
+const INVALID_EMAIL_MESSAGE = "That email address doesn't look right.";
 
 const bodySchema = z
   .object({
-    name: z.string().trim().min(1).max(100),
-    email: z.string().email().max(254),
-    message: z.string().trim().min(10).max(5000),
+    email: z.string().trim().email().max(254),
   })
   .strip();
-
-const sourceSchema = z.enum(["profile", "contact"]).optional().catch(undefined);
-
-function firstFieldErrors(error: z.ZodError): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const issue of error.issues) {
-    const field = issue.path[0];
-    if (typeof field === "string" && !(field in out)) {
-      out[field] = issue.message;
-    }
-  }
-  return out;
-}
 
 export async function POST(req: Request): Promise<Response> {
   const raw = await req.arrayBuffer();
   if (raw.byteLength > MAX_BODY_BYTES) {
-    return Response.json(
-      { error: "Message is too long. Please shorten and try again." },
-      { status: 413 },
-    );
+    return Response.json({ error: "Request too large." }, { status: 413 });
   }
 
   if (!originAllowed(req)) {
@@ -54,36 +41,41 @@ export async function POST(req: Request): Promise<Response> {
 
   const parsedRecord = parsed as Record<string, unknown>;
 
+  // Honeypot, same convention as /api/contact: a bot that fills every field
+  // gets a 200 and no subscription, so it has no signal to adapt to.
   if (typeof parsedRecord.url_secondary === "string" && parsedRecord.url_secondary.length > 0) {
     return Response.json({ ok: true }, { status: 200 });
   }
 
   const result = bodySchema.safeParse(parsedRecord);
   if (!result.success) {
-    return Response.json({ errors: firstFieldErrors(result.error) }, { status: 400 });
+    return Response.json({ error: INVALID_EMAIL_MESSAGE }, { status: 400 });
   }
 
-  const source = sourceSchema.parse(parsedRecord.source);
-  const testId =
-    testIdForwardingAllowed() && typeof parsedRecord.testId === "string"
-      ? parsedRecord.testId
-      : undefined;
-
   try {
-    await sendContactEmail({ ...result.data, source, testId });
+    await subscribeToNewsletter(result.data.email);
   } catch (err) {
+    if (err instanceof InvalidEmailError) {
+      return Response.json({ error: INVALID_EMAIL_MESSAGE }, { status: 400 });
+    }
     if (err instanceof TimeoutError) {
-      console.warn("resend_timeout");
+      console.warn("buttondown_timeout");
       return Response.json(
         { error: VENDOR_ERROR_MESSAGE },
         { status: 503, headers: { "Retry-After": "60" } },
       );
     }
-    if (err instanceof ResendError) {
-      console.warn("resend_4xx_5xx");
+    if (err instanceof ButtondownError) {
+      console.warn("buttondown_error");
+      if (err.status === 429) {
+        return Response.json(
+          { error: "Too many attempts. Please try again shortly." },
+          { status: 429, headers: { "Retry-After": "60" } },
+        );
+      }
       return Response.json({ error: VENDOR_ERROR_MESSAGE }, { status: 502 });
     }
-    console.warn("resend_unexpected");
+    console.warn("buttondown_unexpected");
     return Response.json({ error: VENDOR_ERROR_MESSAGE }, { status: 502 });
   }
 

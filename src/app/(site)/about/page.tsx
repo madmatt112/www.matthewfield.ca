@@ -1,40 +1,21 @@
-import type { Metadata } from "next";
+import { permanentRedirect } from "next/navigation";
 
-import { pages } from "#site/content";
-
-import { MDXContent } from "@/components/shared/mdx-content";
-import { SectionKicker } from "@/components/shared/section-kicker";
-
-// Velite's pages schema requires content/pages/about.mdx (task 7). If that
-// entry is ever removed or renamed, fail loudly at module load rather than
-// letting generateMetadata and the page component disagree on whether the
-// route should render.
-function getAboutPage() {
-  const entry = pages.find((page) => page.slug === "about");
-  if (!entry) {
-    throw new Error("Missing Velite entry for 'about' (expected content/pages/about.mdx)");
-  }
-  return entry;
-}
-
-const aboutPage = getAboutPage();
-
-export function generateMetadata(): Metadata {
-  return {
-    title: aboutPage.title,
-    description: aboutPage.description,
-    robots: { index: true },
-  };
-}
-
-export default function AboutPage() {
-  return (
-    <article className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
-      <SectionKicker label="about" />
-      <h1 className="mt-3 font-display text-4xl tracking-tight sm:text-5xl">{aboutPage.title}</h1>
-      <div className="prose dark:prose-invert max-w-measure mt-6">
-        <MDXContent code={aboutPage.body} />
-      </div>
-    </article>
-  );
+/**
+ * /about was removed. It had been linked from the footer on every page and was
+ * indexable, so inbound links and search-engine records for it still exist;
+ * this sends them to /profile rather than a 404.
+ *
+ * The redirect lives in a route file rather than `next.config.ts` redirects()
+ * on purpose. `next.config.ts` is one of the four files in
+ * scripts/verify-paired-merge.mjs TRACKED_SET, which CI enforces as
+ * all-four-or-none on non-revert commits — adding one rule there would have
+ * required touching project-errors.ts and blog-errors.ts for no reason. A route
+ * file is unguarded and also works under `next dev`, which vercel.json
+ * redirects do not.
+ *
+ * Deliberately absent from src/app/sitemap.ts: a redirecting URL does not
+ * belong in a sitemap.
+ */
+export default function AboutRedirect(): never {
+  permanentRedirect("/profile");
 }

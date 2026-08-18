@@ -1,0 +1,53 @@
+# Welcome email
+
+**This cannot be installed on the free plan.** Buttondown classes the welcome email as a
+_transactional_ email, and Settings → Subscribing → Transactional email customization reads
+"Custom transactional emails are only available for accounts on the Standard plan or higher."
+Verified in the account on 2026-08-17. Note that is a **higher tier than the Basic plan** that
+custom CSS needs, so the two paid features unlock at different points.
+
+What the free plan does give you:
+
+- The **Welcome email toggle** (Settings → Subscribing) still works. Leaving it on sends
+  Buttondown's own default welcome text, which you cannot edit.
+- **"After confirming"** on the same screen redirects confirmed subscribers to any URL. That is the
+  free route to a welcome experience: point it at a page on matthewfield.ca carrying this copy, and
+  the site does the job the email can't. It also fits the front-door decision better than an email
+  does.
+
+When the plan does allow it, this goes in Settings → Subscribing → Transactional email
+customization, with the subject set on the same screen. It sends once, after a subscriber clicks
+the double opt-in confirmation link, so it addresses someone already confirmed. Do not add a
+confirmation instruction.
+
+Drafted with the `/human-prose` skill, per the drafting rule in
+`research/newsletter-buttondown-brief.md`: all human-facing copy goes through it, code and templates
+are exempt. Rewrite it through the skill rather than editing it ad hoc, or it will drift back toward
+sounding generated.
+
+**Subject:** What you just signed up for
+
+---
+
+Thanks for subscribing. Here's what this actually is, so you can bail now if it isn't what you
+wanted.
+
+I was laid off in January, after a decade as an infrastructure engineer. Since then I've been
+building software, helping local non-profits and small businesses untangle their technology,
+day-trading options, and writing about all of it. I've given myself until February to make
+self-employment actually pay. Field Notes is that attempt, sent while the ending is still in doubt.
+
+So you'll get essays about building and selling small software, and about what a decade of platform
+engineering turns out to be good for once you leave the job. You'll also get the other interests,
+because they're the same interest. I'm a classical musician and a producer. What connects all of it
+is connecting: people to ideas, systems to systems.
+
+The cadence is irregular on purpose. You might get two in a month, then nothing for six weeks. I'd
+rather skip than pad.
+
+Everything I send also goes up on [matthewfield.ca](https://www.matthewfield.ca). The site is the
+real home for it. Email just saves you checking.
+
+The unsubscribe link sits at the bottom of every email, this one included. One click, no exit survey.
+
+Matthew
