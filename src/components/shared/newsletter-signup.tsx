@@ -160,7 +160,12 @@ export function NewsletterSignup({
           className="min-h-11"
         />
       </div>
-      <Button type="submit" aria-disabled={isSubmitting} className="min-h-11 min-w-11">
+      <Button
+        type="submit"
+        variant="brand"
+        aria-disabled={isSubmitting}
+        className="min-h-11 min-w-11"
+      >
         {isSubmitting ? "Subscribing…" : "Subscribe"}
       </Button>
     </form>
