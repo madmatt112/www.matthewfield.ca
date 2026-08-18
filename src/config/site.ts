@@ -30,6 +30,7 @@ type SiteConfig = {
     linkedin: string;
     github: string;
     email: string;
+    storygraph: string;
   };
 };
 
@@ -101,5 +102,6 @@ export const siteConfig: SiteConfig = {
     linkedin: "https://www.linkedin.com/in/matthewcfield",
     github: "https://github.com/madmatt112",
     email: "hello@matthewfield.ca",
+    storygraph: "https://app.thestorygraph.com/profile/madmatt112",
   },
 };

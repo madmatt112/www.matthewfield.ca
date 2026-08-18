@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { pages } from "#site/content";
 
 import { ReadingList } from "@/components/now/reading-list";
+import { StoryGraphLink } from "@/components/now/storygraph-link";
 import { MDXContent } from "@/components/shared/mdx-content";
 import { NewTabHint } from "@/components/shared/new-tab-hint";
 import { SectionKicker } from "@/components/shared/section-kicker";
@@ -73,6 +74,7 @@ export default function NowPage() {
               </div>
             ) : null}
           </div>
+          <StoryGraphLink />
         </section>
       ) : null}
       {/* Lives here rather than at the end of now.mdx so the Reading section —
