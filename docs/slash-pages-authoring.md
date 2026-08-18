@@ -1,7 +1,7 @@
 # Slash pages authoring guide
 
-Reference documentation for authoring the MDX content files that back `/about`,
-`/now`, and `/colophon`. The build enforces these constraints; this doc explains
+Reference documentation for authoring the MDX content files that back `/now`
+and `/colophon`. The build enforces these constraints; this doc explains
 them so you learn them BEFORE breaking CI.
 
 The canonical section headings below are checked mechanically by
@@ -60,7 +60,6 @@ updated: "2026-05-29"
 
 | MDX file                     | Route       | Notes                                        |
 | ---------------------------- | ----------- | -------------------------------------------- |
-| `content/pages/about.mdx`    | `/about`    | Indexable. No `updated` required.            |
 | `content/pages/now.mdx`      | `/now`      | `updated` is required — see below.           |
 | `content/pages/colophon.mdx` | `/colophon` | Indexable. External links open in a new tab. |
 

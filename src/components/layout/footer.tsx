@@ -35,9 +35,6 @@ export function Footer() {
           )}
         </div>
         <nav aria-label="Footer" className="flex items-center gap-6">
-          <Link href="/about" className="hover:text-foreground">
-            /about
-          </Link>
           <Link href="/now" className="hover:text-foreground">
             /now
           </Link>

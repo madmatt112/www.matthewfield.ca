@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 
 import { THEME_STORAGE_KEY } from "../../src/components/layout/theme-provider";
 
-const SLASH_PAGES = ["/about", "/now", "/colophon", "/sitemap", "/slashes"] as const;
+const SLASH_PAGES = ["/now", "/colophon", "/sitemap", "/slashes"] as const;
 
 const THEMES: Array<"light" | "dark"> = ["light", "dark"];
 const AXE_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];

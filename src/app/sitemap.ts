@@ -11,7 +11,6 @@ const routes = [
   "/profile",
   "/projects",
   "/blog",
-  "/about",
   "/contact",
   "/colophon",
   "/now",

@@ -91,7 +91,6 @@ export const siteConfig: SiteConfig = {
     // Playground intentionally omitted — see the note on navItems above.
   ],
   slashPages: [
-    { href: "/about", title: "/about", description: "Who I am beyond the resume." },
     { href: "/now", title: "/now", description: "What I'm focused on right now." },
     { href: "/colophon", title: "/colophon", description: "How this site is built." },
     { href: "/contact", title: "/contact", description: "Get in touch." },
