@@ -181,7 +181,9 @@ in the file as history without appearing on the page. An empty list (`[]`) hides
 the whole section.
 
 Each card is a single link to `url`, the book's StoryGraph page, opened in a new
-tab like every other outbound link on the site.
+tab like every other outbound link on the site. `url` is optional — a
+self-published book has no StoryGraph page, and an entry without one renders as
+a plain card with no hover state and no new-tab hint.
 
 To update it: edit the entries, drop the cover image into `content/reading/`, and
 commit. StoryGraph serves both halves of an entry — the cover URL is the `<img>`
@@ -190,7 +192,7 @@ link on the same card. Covers download over plain `curl`; convert a PNG to JPEG
 before committing (StoryGraph's PNGs run ~240KB against ~30KB for the same image
 as JPEG).
 
-Every field except `finished` is required and hard-failed at build time by the
+Every field except `finished` and `url` is required and hard-failed at build time by the
 same authoritative YAML loader that guards `contributions.yaml` and
 `resources.yaml` — a malformed date, a future `started` or `finished`, a `url`
 that is not `http:`/`https:`, or an unknown key fails the build with a named

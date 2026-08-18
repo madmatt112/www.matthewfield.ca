@@ -20,14 +20,17 @@ import { BUILD_START_UTC, httpUrl, isoDate, trimmed } from "./content-schema-pri
  * dates because `isoDate()` aborts fatally first, so `Date.parse` never sees a
  * bad string.
  *
- * `url` is the book's StoryGraph page — the card links to it. Required, and
- * validated by the same `httpUrl()` two-stage check the project links use, so a
- * typo fails the build rather than shipping a dead card.
+ * `url` is the book's StoryGraph page — the card links to it. OPTIONAL, because
+ * self-published books are not always on StoryGraph and a book with no page is
+ * still a book you are reading; those entries render as a plain card instead of
+ * a link. When present it is validated by the same `httpUrl()` two-stage check
+ * the project links use, so a typo still fails the build rather than shipping a
+ * dead card.
  */
 const readingFields = {
   title: trimmed(1, 200),
   author: trimmed(1, 120),
-  url: httpUrl(),
+  url: httpUrl().optional(),
   started: isoDate().refine((d) => Date.parse(d) <= BUILD_START_UTC),
   finished: isoDate()
     .refine((d) => Date.parse(d) <= BUILD_START_UTC)
