@@ -4,12 +4,13 @@ Single source of in-flight phase state (per `spec-loop-v3`). The generated roadm
 `.spec-workflow/spec-decomposition/INDEX.md` (never hand-edited); build order lives in
 `decomposition.md`.
 
-## Current state (2026-08-17)
+## Current state (2026-08-18)
 
 **`github-activity-sync` (#12) is Complete — 17/17, merged and live.** Its spec documents were
 untracked until 2026-08-17 and are now committed.
 
-**The `decomposition.md` roadmap is finished. A thirteenth spec now exists outside it.**
+**The `decomposition.md` roadmap is finished. A thirteenth spec now exists outside it, and it is
+now merged.**
 
 All twelve specs named in `decomposition.md` exist on disk and are Complete. But `spec-index` no
 longer reports `all-on-disk-complete` — it routes to **`newsletter-buttondown`**, a spec that is
@@ -17,14 +18,26 @@ longer reports `all-on-disk-complete` — it routes to **`newsletter-buttondown`
 this is net-new scope added on top of the roadmap rather than derived from it. Anyone reading INDEX
 will see it under "Other specs (not in decomposition.md)" — that is correct, not a bug.
 
-### `newsletter-buttondown` — in flight, 14/16
+### `newsletter-buttondown` — MERGED, 14 of 17 task checkboxes ticked
 
+- **Merged 2026-08-18**: [PR #55](https://github.com/madmatt112/www.matthewfield.ca/pull/55) →
+  `9d2cb3c` on `main`. 25 commits, 59 files, +7896/-311.
+- **Count the checkboxes, not the numbers.** `tasks.md` numbers **two different tasks `14`**
+  (lines 194 and 204), so anything derived from the numbering reads 14/16 while `grep -c '^- \[[ x]\]'`
+  reports 17 tasks. The three outstanding are task 13 (point Buttondown's "After confirming"
+  redirect at `/newsletter/welcome` — free, one field), the first task 14 (blocked on a paid plan),
+  and the second task 14 (one live subscribe). All three are owner actions or plan-blocked; no code
+  is waiting.
 - **Spec captured retroactively** (`4539884`): the code shipped first on branch
   `feat/buttondown-email-template`, then requirements/design/tasks were written against it. Every
-  completed task carries an implementation log, but **review coverage is 0/13** — no dashboard
+  completed task carries an implementation log, but **review coverage is still 0** — no dashboard
   review has run against this spec, and the tasks header says so rather than letting `[x]` imply one.
-- **Open as [PR #55](https://github.com/madmatt112/www.matthewfield.ca/pull/55)** off
-  `feat/buttondown-email-template`. Not merged.
+- **The branch carried far more than the newsletter by the end.** `/about` removed and 308-redirected
+  to `/profile`; `/contact` given the site-standard `max-w-3xl` container and a SectionKicker;
+  `/newsletter` and `/newsletter/welcome` prose extracted into `content/pages/`; the reading list on
+  `/now` gained a StoryGraph profile link and an optional book `url`; Makefile gained `dev`, `build`,
+  `preview`, `check` and `drafts`. Anyone archaeologising a change in those areas should look at
+  PR #55 even though its title says Buttondown.
 - **The finding worth carrying forward**: the site CSP (`connect-src 'self'`, `form-action 'self'`)
   blocks Buttondown's own embed snippet outright — both the cross-origin form POST and any client
   fetch. Proven in-browser, not reasoned about. Any future vendor widget on this site hits the same
@@ -47,8 +60,25 @@ will see it under "Other specs (not in decomposition.md)" — that is correct, n
   transactional email), the full HTML template needs Professional. Matthew is not ready to pay.
   Task 16 routed around it: `/newsletter/welcome` is a confirmed-subscriber landing page, wired
   from the free "After confirming" redirect, so the site delivers the welcome the email cannot.
-- **Remaining**: task 13 is one free field (point "After confirming" at /newsletter/welcome);
-  task 14 is blocked on a plan; and one live subscribe still closes the single untested path.
+- **Remaining**: see the checkbox note above. Nothing in the queue is code.
+
+### Findings from the merge-day work that outlive the spec
+
+- **An HTTP 200 proved nothing three separate times on this branch.** StoryGraph's favicon endpoints
+  return `200` with a **zero-byte body**; WorldCat's `/isbn/<n>` returns `200` while redirecting to a
+  search page whose body says "No results"; and Buttondown's own embed endpoint answers a successful
+  subscribe with a 302. Read the body, not the status line.
+- **Velite never prunes `public/static/`.** Removing a cover from `content/reading.yaml` leaves its
+  hashed asset behind, tracked and unreferenced. Audit by diffing the directory against the names
+  mentioned in `.velite/*.json`. As of 2026-08-18 it is clean: 17 assets, 17 referenced.
+- **`next.config.ts` is in `verify-paired-merge.mjs` TRACKED_SET**, and the non-revert path is
+  literally all-four-or-none. A one-line redirect there would have forced edits to
+  `project-errors.ts` and `blog-errors.ts`. The `/about` redirect is a route file calling
+  `permanentRedirect()` instead — unguarded, and honoured by `next dev`, which `vercel.json`
+  redirects are not.
+- **Brand icons come from simple-icons, and the slug is not the obvious one.** The StoryGraph mark is
+  `thestorygraph.svg`, not `storygraph.svg`. `social-links.tsx` documents why brand marks are inlined
+  rather than imported: lucide-react dropped them over trademark.
 
 ### The sync is live and proven
 
@@ -118,9 +148,26 @@ re-reading the spec should not expect a large diff to be a correctness signal.
 
 **`github-activity-sync` implementation added 1; `newsletter-buttondown` added 3, then resolved 2. Total open queue: 22.**
 
+**Three of the 22 moved on merge day and should be actioned before anything new is started:**
+
+- **`d-eb289402` looks already fixed.** It claims the footer link row overflows the body at 320px on
+  every page. Removing `/about` took that nav from 5 links to 4. Measured 2026-08-18: the nav is
+  273px inside a 305px content width (320 minus scrollbar, the stricter case), with **zero**
+  overflowing elements on `/` and `/now`, and an identical 4-link nav on all 8 routes checked.
+  Re-measure and close it.
+- **`d-cd92bbdf`'s trigger fired.** It says "next time content schemas or build-error messages are
+  worked on, fix github-activity, resources and reading together". `reading-schema.ts` was edited on
+  2026-08-18 to make `url` optional. The deferral is about future-date rejection surfacing Zod's
+  generic message; do all three schemas in one pass.
+- **`d-a31e2253` and `d-096a531a` are the same complaint twice** — `pnpm build` never runs velite, so
+  it does not gate content. `make build` now runs velite first and `make preview` depends on it, so
+  the hole is plugged for anyone using the Makefile. Update both to name it rather than leaving them
+  reading as though nothing changed.
+
 Newsletter deferrals (all `originSpec: newsletter-buttondown`):
 
-- **`d-e77bd089`** — the body placeholder in `email/buttondown/template.html` is unverified.
+- **`d-e77bd089`** — still open, still plan-blocked. The body placeholder in
+  `email/buttondown/template.html` is unverified.
   Buttondown documents every other variable used but never names the one that injects the email body
   into a custom template; `{{ body }}` is a stand-in. Blocks nothing — the CSS path works on the
   Basic plan. Readable from Buttondown's template editor once a Professional plan exists.
@@ -151,9 +198,16 @@ Newsletter deferrals (all `originSpec: newsletter-buttondown`):
   `inactive` status. Keep parked until a real occurrence.
 - **`d-65ff36e0`** — the issue-based escalation channel, documented by task 15.
 
-**Worth working next:** `d-65ff36e0`. It is the only one closing a real observability gap — GitHub's
-60-day inactivity disablement has no detector in scope, and the sync now depends on the workflow
-staying enabled. Then `d-5abe889e`, a one-line fix that stops a reader following bad advice.
+**Worth working next**, in order:
+
+1. The three merge-day movers above (`d-eb289402`, `d-cd92bbdf`, `d-a31e2253`/`d-096a531a`). Two are
+   bookkeeping on work already done; only `d-cd92bbdf` needs code.
+2. `d-65ff36e0`. The only one closing a real observability gap — GitHub's 60-day inactivity
+   disablement has no detector in scope, and the sync depends on the workflow staying enabled.
+3. `d-5abe889e`, a one-line fix that stops a reader following bad advice.
+
+`d-c216e0c9` is worth pulling forward opportunistically: a raw NUL byte in `src/lib/mail.ts` makes
+git treat the file as binary, so every review of it shows no diff at all.
 
 ## Approval records (resume contract)
 
@@ -169,11 +223,19 @@ staying enabled. Then `d-5abe889e`, a one-line fix that stops a reader following
   cherry-pick `a6557de`, so `30f46b2` is now unreachable. Nothing depends on it — the authoring doc's
   evidence was inlined precisely so no SHA is load-bearing.
 - `feat/github-activity-sync` survives, local and remote, fully merged — deletable at will.
+- `feat/buttondown-email-template` is merged as of 2026-08-18 and likewise deletable.
 - **Never pass `projectPath` to an MCP call.**
 
 ## Not started
 
 - Content PR (four external contributions to `contributions.yaml`) — independent of any spec.
-- **`content/posts/increasing-my-luck-surface-area.mdx` is untracked and fails velite** with three
-  required-field errors (`date`, `description`, `title`). Noisy on every `vitest` and `dev` run.
-  Pre-existing, unrelated to any spec — a draft that needs frontmatter or removal.
+- **`content/posts/increasing-my-luck-surface-area.mdx` is now tracked and passes velite** (`583b72c`)
+  but is still a **2-line stub** carrying placeholder frontmatter and `draft: true`. It needs writing
+  or deleting; it is not blocking anything either way.
+- **`docs/slash-pages-authoring.md` has two stale spots** left by the merge. Its worked YAML example
+  is "Do I Stay Christian?" including `cover: ./reading/do-i-stay-christian.jpg`, a file deleted in
+  `373dff6` — copy-pasting the example now fails velite on a missing image. And its "which file
+  renders which page" table lost the `/about` row without gaining rows for `newsletter.mdx` and
+  `newsletter-welcome.mdx`, both of which now live in `content/pages/`.
+- **Owner actions still open on the newsletter**: point Buttondown's "After confirming" redirect at
+  `/newsletter/welcome`, and perform one live subscribe. Neither needs a developer.
