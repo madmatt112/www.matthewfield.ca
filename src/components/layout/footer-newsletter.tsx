@@ -32,7 +32,7 @@ export function FooterNewsletter(): React.JSX.Element | null {
         <div className="max-w-md">
           <p className="text-sm font-medium text-foreground">Field Notes, by email</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Essays on building software and working for myself.{" "}
+            Letters on working for yourself, building small software, and more.{" "}
             <Link href="/newsletter" className="underline underline-offset-4">
               More about it
             </Link>
