@@ -12,3 +12,9 @@ dashboard:
 	-fuser -k $(DASHBOARD_PORT)/tcp 2>/dev/null
 	sleep 1
 	npx -y $(SPEC_WORKFLOW_PKG) --dashboard --port $(DASHBOARD_PORT)
+
+.PHONY: dev
+# Velite in watch mode alongside Next on port 3013. Content edits under
+# content/ re-validate and hot-reload.
+dev:
+	pnpm dev
