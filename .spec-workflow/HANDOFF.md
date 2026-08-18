@@ -18,16 +18,21 @@ longer reports `all-on-disk-complete` — it routes to **`newsletter-buttondown`
 this is net-new scope added on top of the roadmap rather than derived from it. Anyone reading INDEX
 will see it under "Other specs (not in decomposition.md)" — that is correct, not a bug.
 
-### `newsletter-buttondown` — MERGED, 14 of 17 task checkboxes ticked
+### `newsletter-buttondown` — MERGED, 16 of 17. One task left, and it is a purchase decision
 
 - **Merged 2026-08-18**: [PR #55](https://github.com/madmatt112/www.matthewfield.ca/pull/55) →
   `9d2cb3c` on `main`. 25 commits, 59 files, +7896/-311.
-- **Count the checkboxes, not the numbers.** `tasks.md` numbers **two different tasks `14`**
-  (lines 194 and 204), so anything derived from the numbering reads 14/16 while `grep -c '^- \[[ x]\]'`
-  reports 17 tasks. The three outstanding are task 13 (point Buttondown's "After confirming"
-  redirect at `/newsletter/welcome` — free, one field), the first task 14 (blocked on a paid plan),
-  and the second task 14 (one live subscribe). All three are owner actions or plan-blocked; no code
-  is waiting.
+- **Tasks 13 and 17 were completed by Matthew on 2026-08-18.** The "After confirming" redirect now
+  points at `/newsletter/welcome`, and one live subscribe has run, which closes the only path the
+  test suite could never cover: the accepted-subscribe branch was previously inferred from the
+  vendor's 302 rather than observed.
+- **`tasks.md` used to number two different tasks `14`**, which is why every earlier reading said
+  14/16 while `grep -c '^- \[[ x]\]'` reported 17. The live-subscribe task has been renumbered **17**
+  (the only free number) and the duplicate is gone. Count checkboxes, not numbers.
+- **Task 14 is the only one open, and no amount of engineering will close it.** It bundles three
+  installs at three different price tiers, and should probably be split if it is ever revisited:
+  `custom-css.css` needs **Basic**, `welcome-email.md` needs **Standard**, `template.html` needs
+  **Professional**. See the plan note below — two of the three have lost their reason to exist.
 - **Spec captured retroactively** (`4539884`): the code shipped first on branch
   `feat/buttondown-email-template`, then requirements/design/tasks were written against it. Every
   completed task carries an implementation log, but **review coverage is still 0** — no dashboard
@@ -60,7 +65,14 @@ will see it under "Other specs (not in decomposition.md)" — that is correct, n
   transactional email), the full HTML template needs Professional. Matthew is not ready to pay.
   Task 16 routed around it: `/newsletter/welcome` is a confirmed-subscriber landing page, wired
   from the free "After confirming" redirect, so the site delivers the welcome the email cannot.
-- **Remaining**: see the checkbox note above. Nothing in the queue is code.
+- **The case for paying has narrowed to one item.** Of the three things task 14 gates:
+  - **`custom-css.css` (Basic) is the only one still worth buying.** It is what makes a sent issue
+    look like the site instead of like Buttondown's default.
+  - **`welcome-email.md` (Standard) is now redundant.** Task 16 built `/newsletter/welcome` and task
+    13 wired the free redirect to it, so the welcome is already delivered. The markdown stays in
+    `email/buttondown/` for whoever wants it, but it is no longer a reason to reach a higher tier.
+  - **`template.html` (Professional) carries known risk.** Its body placeholder is unverified —
+    see `d-e77bd089`. Do not buy Professional expecting the file to work unedited.
 
 ### Findings from the merge-day work that outlive the spec
 
@@ -237,5 +249,5 @@ git treat the file as binary, so every review of it shows no diff at all.
   `373dff6` — copy-pasting the example now fails velite on a missing image. And its "which file
   renders which page" table lost the `/about` row without gaining rows for `newsletter.mdx` and
   `newsletter-welcome.mdx`, both of which now live in `content/pages/`.
-- **Owner actions still open on the newsletter**: point Buttondown's "After confirming" redirect at
-  `/newsletter/welcome`, and perform one live subscribe. Neither needs a developer.
+- **Owner actions on the newsletter are done** (tasks 13 and 17, 2026-08-18). The only thing left on
+  that spec is task 14, which is a purchase decision, not work.

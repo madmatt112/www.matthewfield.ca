@@ -187,7 +187,7 @@
 
 ## Owner actions (not code)
 
-- [ ] 13. Point Buttondown's "After confirming" redirect at `/newsletter/welcome`
+- [x] 13. Point Buttondown's "After confirming" redirect at `/newsletter/welcome`
   - Settings → Subscribing → Redirects → After confirming. This is free and is the only part of the
     email work that can ship on the current plan. One field, and the welcome experience is live.
 
@@ -201,6 +201,6 @@
     specifically), Outlook Windows, Apple Mail macOS + iOS dark, a forwarded copy, and a long issue
     against Gmail's ~102KB clipping threshold.
 
-- [ ] 14. Perform one live subscribe to close the untested success path
+- [x] 17. Perform one live subscribe to close the untested success path
   - The failure paths are verified; the accepted path is inferred from the vendor's 302. One real
     signup on the preview deployment settles it, and confirms the double opt-in copy is accurate
