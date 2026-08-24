@@ -1,0 +1,22 @@
+/* Slice: lead paragraph
+ *
+ * Styles the `<p class="lead">` emitted by `remarkLead` (velite.config.ts,
+ * `sharedRemarkPlugins`) for the `::lead[...]` directive. A stand-out line
+ * that is not a heading: it never enters the TOC and carries no h2 top margin.
+ *
+ * `@tailwindcss/typography` already gives `.lead` 1.25em muted text. This
+ * raises it to the display serif at the h2 step (design.md §4) with paragraph
+ * spacing, in full foreground colour.
+ *
+ * Specificity note: the plugin wraps its selectors in `:where()` (0,1,0), so
+ * this plain `.prose .lead` selector (0,2,0) wins without `!important`. */
+
+.prose .lead {
+  font-family: var(--font-display);
+  font-size: 1.875rem; /* text-3xl, matches .prose h2 */
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  color: var(--foreground);
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+}

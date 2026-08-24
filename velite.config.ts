@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import remarkDirective from "remark-directive";
 import remarkGfm from "remark-gfm";
 import remarkParse from "remark-parse";
 import remarkMdx from "remark-mdx";
@@ -12,6 +13,7 @@ import { assets, defineConfig, defineCollection, s } from "velite";
 import { siteConfig } from "@/config/site";
 import { rehypeAbsolutizeUrls } from "./src/lib/build/rehype-absolutize-urls";
 import { rehypeCopyButton } from "./src/lib/build/rehype-copy-button";
+import { remarkLead } from "./src/lib/build/remark-lead";
 import { countWordsFromMdast } from "./src/lib/build/word-count";
 import { KNOWN_FIXTURE_SLUGS, derivePostSlug } from "./src/lib/build/derive-post-slug.mjs";
 import {
@@ -45,7 +47,9 @@ const prettyCodeOptions = {
   keepBackground: false,
 } as const;
 
-const sharedRemarkPlugins = [remarkGfm];
+// `remarkDirective` parses `::lead[...]`; `remarkLead` maps it to
+// `<p class="lead">` and rejects every other directive (see remark-lead.ts).
+const sharedRemarkPlugins = [remarkGfm, remarkDirective, remarkLead];
 const sharedRehypePlugins = [
   rehypeSlug,
   rehypeCopyButton,
