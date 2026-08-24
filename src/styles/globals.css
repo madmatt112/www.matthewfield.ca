@@ -31,6 +31,7 @@
    alphabetical order so re-orderings are obvious in diff. */
 @import "./blog/copy-button.css";
 @import "./blog/footnotes.css";
+@import "./blog/lead.css";
 @import "./blog/pagefind-ui.css";
 @import "./blog/reading-progress.css";
 @import "./blog/related-posts.css";
