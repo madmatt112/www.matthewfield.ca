@@ -42,8 +42,8 @@ property of the live site (see Scope on the already-built sections).
 ## Design Principles
 
 1. **Wide & spacious.** Generous, rhythmic whitespace on a named spacing scale; long-form prose
-   held to a ~75-character measure ceiling (see Typography). Spaciousness is a choice of *steps*,
-   not arbitrary values.
+   fills one wide content column (see Typography). Spaciousness is a choice of *steps*, not
+   arbitrary values.
 2. **Restraint over decoration.** Minimal and precise — signal infra/platform craft; feel like a
    person's home, not a corporate template.
 3. **Accessible by default.** Semantic HTML, the full accessibility contract below, in both themes.
@@ -112,9 +112,13 @@ property of the live site (see Scope on the already-built sections).
   (`--font-sans`, UI/body/`h3`+) and Geist Mono (`--font-mono`, code and the `/ kicker`), all
   self-hosted via `next/font` (the content-page CSP forbids external font origins).
 - **Usage rules:** components pick a named scale step; they never set ad-hoc sizes.
-- **Measure:** ~75 characters is a **ceiling on wide viewports**, not a fixed width — on narrow
-  viewports the measure is viewport-bound and shrinks below 75ch. The wide-profile layout widens
-  *gutters/asides*, not the prose measure.
+- **Measure:** the site has **one content column**, and long-form prose fills it. The column is
+  992px on wide viewports and viewport-bound below them, so body copy runs to ~93 characters.
+  Every route uses this width — see Containers & density.
+- **The 75ch cap is for secondary text.** `max-w-measure` (75ch) no longer holds body copy. Apply
+  it to the smaller elements inside the wide column: lede and description paragraphs, list-item
+  descriptions, captions, and form sections. A form control at the full column width reads as
+  stretched. Print keeps its own 75ch measure in `print.css`, independent of the screen rule.
 - **Exact scale & voice:** fixed by the `visual-design` spec (design.md §4). Fraunces
   (`--font-display`) carries `h1`/`h2`; Geist Sans carries `h3`–`h6` and body; Geist Mono is
   reserved for code and the `/ kicker` label and is used for nothing else.
@@ -158,9 +162,12 @@ the tag follows the document structure, the styling follows the role.
 - **Breakpoints:** responsive layout uses Tailwind v4's named breakpoints (`sm`/`md`/`lg`/`xl`/`2xl`)
   as the source of truth; the Responsive gate is written against those named tiers, not device
   labels. Breakpoint-specific layouts are `Deferred: design spec`.
-- **Containers & density:** content sits in constrained, centered measures; comfortable density by
-  default. The professional profile widens its layout (not its prose measure); see the exceptions
-  rule below.
+- **Containers & density:** every route uses one centered container — `max-w-5xl` with `px-4`
+  gutters — which gives a 992px content column at 1024px viewports and wider. The homepage is the
+  only exception: it uses `max-w-6xl`. Density stays comfortable by default.
+- **No responsive gutter steps on the container.** Do not add `sm:px-6` or `lg:px-8`. They apply
+  only at viewports that already keep a wide margin at each side, so they decrease the content
+  column by 32px and give no benefit.
 - **Exceptions rule:** a surface may exceed the standard measure/density only with a rationale
   recorded in *its* spec — not by ad-hoc negotiation per page.
 - **Motion (optional):** purposeful and restrained — clarifies state/relationship, never decorates.
@@ -266,7 +273,8 @@ pressure-tested in the design spec's requirements phase. Each item names where i
 - **Legal color-pair matrix + max surface-nesting depth** — `Deferred: design spec`.
 - **Type scale** (ratio/steps/line-heights, mobile- vs desktop-first) **& typographic voice** —
   `Deferred: design spec`.
-- **Spacing rhythm / gutters** (which steps express "spacious") — `Deferred: design spec`.
+- **Spacing rhythm** (which steps express "spacious") — `Deferred: design spec`. Page gutters are
+  settled: `px-4` on the container, with no responsive steps (see Layout).
 - **Breakpoint-specific layouts** — `Deferred: design spec` (breakpoint *values* are Tailwind's).
 - **Motion presence + duration/easing tokens** — `Deferred: design spec`, within the perf bar. The
   theme-toggle no-flash mechanism is an implementation detail — `Deferred: code / tech.md`.
@@ -294,6 +302,12 @@ plain-English pass. Detailed content conventions are out of scope here.
 
 ## Revision History
 
+- **v6 (2026-08-24)** — reconciled the measure and container rules with the shipped site. The 75ch
+  prose ceiling is gone: all routes now render one 992px content column (`max-w-5xl` + `px-4`), and
+  long-form prose fills it at ~93 characters. `max-w-measure` stays, but its job changed — it caps
+  secondary text and form sections *inside* that column. Recorded the ban on responsive gutter
+  steps, and moved page gutters out of the spacing deferral. Blog posts set this width first; this
+  entry makes the doc match the code, it does not propose a new direction.
 - **v5 (2026-06-06)** — addressed adversarial r4. Removed all description of *current CI state* from
   the gates (it churns, is `tech.md`/CI's domain, and v4 stated it wrong — `lighthouserc.js` actually
   asserts four categories and `lhci` runs on deploy, not as a PR check). The "Non-Negotiable Gates"
