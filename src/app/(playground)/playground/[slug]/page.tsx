@@ -41,7 +41,7 @@ export default async function ItemLanding({ params }: { params: Params }) {
         ? { height: it.frame.height }
         : { aspectRatio: it.frame?.aspectRatio ?? "16 / 10" };
     return (
-      <main className="mx-auto w-full max-w-3xl px-4 py-12">
+      <main className="mx-auto w-full max-w-5xl px-4 py-12">
         <h1>{it.title}</h1>
         <p>{it.description}</p> {/* real indexable text (Req 4.1, 8.5) */}
         <iframe

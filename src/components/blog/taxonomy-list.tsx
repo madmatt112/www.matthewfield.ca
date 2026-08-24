@@ -12,7 +12,7 @@ type TaxonomyListProps = {
 export function TaxonomyList({ kind, value, posts }: TaxonomyListProps) {
   const heading = kind === "tag" ? `Posts tagged ${value}` : `Posts in category ${value}`;
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-12 sm:py-16">
+    <div className="mx-auto w-full max-w-5xl px-4 py-12 sm:py-16">
       <h1 className="font-display text-4xl tracking-tight sm:text-5xl">{heading}</h1>
       <ul className="mt-10 divide-y divide-border">
         {posts.map((post) => (

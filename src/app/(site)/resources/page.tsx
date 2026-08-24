@@ -25,7 +25,7 @@ export function generateMetadata(): Metadata {
 export default function ResourcesPage() {
   const groups = getResourcesGroupedByCategory();
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+    <main className="mx-auto w-full max-w-5xl px-4 py-16 md:py-24">
       <SectionKicker label="resources" />
       <h1 id="page-heading" className="mt-3 font-display text-4xl tracking-tight sm:text-5xl">
         Resources

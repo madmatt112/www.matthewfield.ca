@@ -23,7 +23,7 @@ export function generateMetadata(): Metadata {
 export default function ProjectsPage() {
   const projects = getPublishedProjects();
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+    <div className="mx-auto w-full max-w-5xl px-4 py-16 md:py-24">
       <SectionKicker label="projects" />
       <h1 className="mt-3 font-display text-4xl tracking-tight sm:text-5xl">Projects</h1>
       <p className="mt-2 text-muted-foreground">{PROJECTS_DESCRIPTION}</p>

@@ -40,14 +40,14 @@ export function generateMetadata(): Metadata {
 
 export default function NewsletterPage() {
   return (
-    <article className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+    <article className="mx-auto w-full max-w-5xl px-4 py-16 md:py-24">
       <SectionKicker label="newsletter" />
       <h1 className="font-display mt-4 text-4xl sm:text-5xl">{newsletterPage.title}</h1>
       <p className="mt-6 max-w-prose text-lg text-muted-foreground">{newsletterPage.description}</p>
 
       {/* The "What you get" list was muted in the original markup; prose
           would otherwise promote it to full foreground. */}
-      <div className="prose dark:prose-invert max-w-measure mt-10 [&_ul]:text-muted-foreground">
+      <div className="prose dark:prose-invert max-w-none mt-10 [&_ul]:text-muted-foreground">
         <MDXContent code={newsletterPage.body} />
       </div>
 

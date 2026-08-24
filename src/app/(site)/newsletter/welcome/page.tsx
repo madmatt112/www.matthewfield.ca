@@ -46,14 +46,14 @@ export function generateMetadata(): Metadata {
 
 export default function NewsletterWelcomePage() {
   return (
-    <article className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+    <article className="mx-auto w-full max-w-5xl px-4 py-16 md:py-24">
       <SectionKicker label="newsletter" />
       <h1 className="font-display mt-4 text-4xl sm:text-5xl">{welcomePage.title}</h1>
 
       {/* The closing unsubscribe note is an aside, not part of the welcome, so
           it stays de-emphasised. Targeting the last paragraph keeps that true
           however many paragraphs the MDX grows to. */}
-      <div className="prose prose-lg dark:prose-invert max-w-measure mt-8 [&>p:last-child]:text-base [&>p:last-child]:text-muted-foreground">
+      <div className="prose prose-lg dark:prose-invert max-w-none mt-8 [&>p:last-child]:text-base [&>p:last-child]:text-muted-foreground">
         <MDXContent code={welcomePage.body} />
       </div>
     </article>

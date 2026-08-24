@@ -84,7 +84,7 @@ export default async function ProjectPage({ params }: { params: Promise<RoutePar
         />
         {project.links && project.links.length > 0 ? <LinkRail links={project.links} /> : null}
         <div className="mx-auto mt-8">
-          <div className="prose dark:prose-invert max-w-measure">
+          <div className="prose dark:prose-invert max-w-none">
             <MDXContent code={project.body} />
           </div>
         </div>
