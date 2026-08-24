@@ -21,7 +21,7 @@ export default function SitemapPage() {
   const projects = getPublishedProjects();
 
   return (
-    <article className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+    <article className="mx-auto w-full max-w-5xl px-4 py-16 md:py-24">
       <SectionKicker label="sitemap" />
       <h1 className="mt-3 font-display text-4xl tracking-tight sm:text-5xl">Sitemap</h1>
 

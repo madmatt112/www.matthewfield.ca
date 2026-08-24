@@ -54,7 +54,7 @@ export function generateMetadata(): Metadata {
  */
 export default function ProfilePage() {
   return (
-    <div className="profile-print-root mx-auto w-full max-w-5xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+    <div className="profile-print-root mx-auto w-full max-w-5xl px-4 py-16 md:py-24">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(buildProfileJsonLd()) }}
@@ -109,7 +109,7 @@ export default function ProfilePage() {
       {/* The personal narrative. `profile-narrative` is the hook task 20's print
           rule targets — without this exact class the PDF would keep the personal
           material and R6.3 would silently not hold. */}
-      <article className="profile-narrative prose dark:prose-invert max-w-measure mt-10">
+      <article className="profile-narrative prose dark:prose-invert max-w-none mt-10">
         <MDXContent code={profile.body} />
       </article>
 

@@ -7,7 +7,7 @@ type PlaceholderPageProps = {
 
 export function PlaceholderPage({ title, description }: PlaceholderPageProps) {
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-16 sm:py-24">
+    <div className="mx-auto w-full max-w-5xl px-4 py-16 sm:py-24">
       <h1 className="font-display text-4xl tracking-tight sm:text-5xl">{title}</h1>
       {description ? (
         <p className="mt-4 text-base text-muted-foreground sm:text-lg">{description}</p>

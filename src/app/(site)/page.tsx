@@ -13,7 +13,7 @@ export function generateMetadata(): Metadata {
 
 export default function HomePage() {
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 pt-20 pb-16 sm:px-6 md:pt-28 md:pb-24 lg:px-8">
+    <div className="mx-auto w-full max-w-6xl px-4 pt-20 pb-16 md:pt-28 md:pb-24">
       <HomeHero />
       <RecentWork />
       <HomeIndex />

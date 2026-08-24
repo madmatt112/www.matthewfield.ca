@@ -12,7 +12,7 @@ export default async function ComponentPreviewPage({ params }: { params: Promise
   if (!entry) notFound();
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-12 sm:py-16">
+    <div className="mx-auto w-full max-w-5xl px-4 py-12 sm:py-16">
       <h1 className="mb-8 text-2xl font-semibold tracking-tight">Component Preview: {name}</h1>
       {entry.kind === "component" ? (
         <entry.component />

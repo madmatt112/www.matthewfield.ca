@@ -42,13 +42,13 @@ export default function NowPage() {
   const recentlyRead = getRecentlyRead();
   const hasReading = currentlyReading.length > 0 || recentlyRead.length > 0;
   return (
-    <article className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+    <article className="mx-auto w-full max-w-5xl px-4 py-16 md:py-24">
       <SectionKicker label="now" />
       <h1 className="mt-3 font-display text-4xl tracking-tight sm:text-5xl">{nowPage.title}</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         Last updated <time dateTime={datetime}>{display}</time>
       </p>
-      <div className="prose dark:prose-invert max-w-measure mt-6">
+      <div className="prose dark:prose-invert max-w-none mt-6">
         <MDXContent code={nowPage.body} />
       </div>
       {hasReading ? (
@@ -79,7 +79,7 @@ export default function NowPage() {
       ) : null}
       {/* Lives here rather than at the end of now.mdx so the Reading section —
           which the page component owns, not the MDX body — comes before it. */}
-      <div className="prose dark:prose-invert max-w-measure mt-12 border-t border-border pt-6">
+      <div className="prose dark:prose-invert max-w-none mt-12 border-t border-border pt-6">
         <p className="text-sm">
           <em>
             This page follows the{" "}
