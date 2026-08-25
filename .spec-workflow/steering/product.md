@@ -75,6 +75,13 @@ A top navigation bar with links to each major section. Clean, functional, with s
 ### 10. Dark/Light Mode
 A toggle for dark and light themes. Applies to the Professional Profile, Project Showcase, Contributions Gallery, Blog, Resources, Landing Page, and Slash Pages. Does not apply to Playground items (they control their own presentation).
 
+### 11. Traffic Analytics
+Vercel Web Analytics, mounted once in the root layout so it covers every route including Playground items. Reports page views, referrers, countries, and device types.
+
+The beacon is served same-origin from `/_vercel/insights`, so the site CSP needs no third-party script or connect allowance. It is cookieless and collects no personal data; the colophon discloses it.
+
+Scope is deliberately limited by the Vercel Hobby plan: custom events (`track()`) are a Pro feature and are not wired up, the reporting window is one month, and there is no per-environment split, so preview-deployment traffic mixes into the same dashboard. Revisit contact-form and outbound-link event tracking if the account moves to Pro.
+
 ## Business Objectives
 
 - **Professional inbound funnel**: Make it easy for potential employers, recruiters, and collaborators to find Matthew, understand his experience, and get in touch.
@@ -84,7 +91,7 @@ A toggle for dark and light themes. Applies to the Professional Profile, Project
 
 ## Success Metrics
 
-- **Contact form submissions**: The site generates inbound professional inquiries.
+- **Contact form submissions**: The site generates inbound professional inquiries. Counted by hand from the Resend inbox — the Hobby analytics plan cannot track form submissions as an event.
 - **Content velocity**: Matthew is able to add new blog posts, projects, contributions, and resources by editing markdown files without touching React components.
 - **Playground extensibility**: New playground items can be added without restructuring the site.
 - **Performance**: Pages load fast. Static content is fully static. No unnecessary JavaScript on content pages.
@@ -106,5 +113,4 @@ The visual system that realizes these principles — design tokens and roles, ty
 ### Potential Enhancements
 - **Newsletter/email subscription**: If the blog gains readership, add opt-in email delivery of new posts.
 - **Comments**: Add a commenting system (e.g., Giscus via GitHub Discussions) to blog posts if community engagement develops.
-- **Analytics**: Lightweight, privacy-respecting analytics (e.g., Plausible, Umami) to understand what content resonates.
 - **Playground APIs**: If playground items need persistent backends, evaluate lightweight serverless options on a per-item basis.
