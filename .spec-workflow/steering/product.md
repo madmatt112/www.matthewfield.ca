@@ -80,7 +80,7 @@ Vercel Web Analytics, mounted once in the root layout so it covers every route i
 
 The beacon is served same-origin from `/_vercel/insights`, so the site CSP needs no third-party script or connect allowance. It is cookieless and collects no personal data; the colophon discloses it.
 
-Scope is deliberately limited by the Vercel Hobby plan: custom events (`track()`) are a Pro feature and are not wired up, the reporting window is one month, and there is no per-environment split, so preview-deployment traffic mixes into the same dashboard. Revisit contact-form and outbound-link event tracking if the account moves to Pro.
+Scope is deliberately limited by the Vercel Hobby plan: custom events (`track()`) are a Pro feature and are not wired up, and the reporting window is one month. Hobby also has no per-environment split, so a `beforeSend` filter drops any event not served from the canonical host — the beacon still loads on previews so the wiring can be verified there, but preview and e2e traffic never reaches the dashboard. Revisit contact-form and outbound-link event tracking if the account moves to Pro.
 
 ## Business Objectives
 

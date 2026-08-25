@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Fraunces } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
 import "@/styles/globals.css";
+import { Analytics } from "@/components/layout/analytics";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { siteConfig } from "@/config/site";
 
@@ -57,9 +57,11 @@ export default function RootLayout({
          * events via track() are a Pro-plan feature and are deliberately
          * not wired up. Revisit if the account moves off Hobby.
          *
-         * Loads on preview deployments as well as production; Hobby has
-         * no per-environment split, so preview traffic mixes into the
-         * same dashboard. The component no-ops in local dev.
+         * The beacon loads everywhere so the wiring can be verified on a
+         * preview URL, but the wrapper's beforeSend filter drops events
+         * that are not served from the canonical host — Hobby has no
+         * per-environment split, so previews and e2e runs would otherwise
+         * mix into the production dashboard.
          */}
         <Analytics />
       </body>
