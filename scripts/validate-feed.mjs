@@ -31,11 +31,19 @@ const ITEM_REQUIRED = ["title", "link", "guid", "description", "pubDate", "conte
 // inside the directory. Older shape (route inside feed.xml/) retained for
 // back-compat. Node's globSync does not traverse hidden dot-directories
 // (e.g. `.next/`) under the default `**` glob — explicit prefixes required.
+// The second entry pair covers /feed/field-notes.xml — the tag-filtered feed
+// consumed by Buttondown's RSS-to-email automation. It is validated by the same
+// structural pins as /feed.xml: an issue built from a malformed feed reaches
+// subscribers, and unlike a bad page it cannot be recalled.
 const FEED_GLOBS = [
   ".next/server/app/feed.xml/**/*",
   ".next/server/app/feed.xml.body",
   "**/server/app/feed.xml/**/*",
   "**/server/app/feed.xml.body",
+  ".next/server/app/feed/field-notes.xml/**/*",
+  ".next/server/app/feed/field-notes.xml.body",
+  "**/server/app/feed/field-notes.xml/**/*",
+  "**/server/app/feed/field-notes.xml.body",
 ];
 
 const errors = [];
