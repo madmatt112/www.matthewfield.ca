@@ -1,11 +1,13 @@
 import { z } from "zod";
 
 import {
+  AlreadySubscribedError,
   ButtondownError,
   InvalidEmailError,
   TimeoutError,
   subscribeToNewsletter,
 } from "@/lib/newsletter";
+import { clientIpFromHeaders } from "@/lib/client-ip";
 import { originAllowed } from "@/lib/request-origin";
 
 const MAX_BODY_BYTES = 4 * 1024;
@@ -53,10 +55,19 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   try {
-    await subscribeToNewsletter(result.data.email);
+    // Forward the visitor's IP. Without it Buttondown attributes every
+    // subscriber to this deployment's egress address and its firewall blocks
+    // them as bot traffic — see src/lib/client-ip.ts.
+    await subscribeToNewsletter(result.data.email, clientIpFromHeaders(req.headers));
   } catch (err) {
     if (err instanceof InvalidEmailError) {
       return Response.json({ error: INVALID_EMAIL_MESSAGE }, { status: 400 });
+    }
+    // Already on the list: report success. Their goal is satisfied, and a
+    // distinct "you are already subscribed" answer would turn this public,
+    // unauthenticated endpoint into a subscriber-enumeration oracle.
+    if (err instanceof AlreadySubscribedError) {
+      return Response.json({ ok: true }, { status: 200 });
     }
     if (err instanceof TimeoutError) {
       console.warn("buttondown_timeout");

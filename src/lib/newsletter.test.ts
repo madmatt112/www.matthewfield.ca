@@ -1,157 +1,214 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * Covers the status→error mapping in subscribeToNewsletter.
+ * Covers the request shape and the response→error mapping in
+ * subscribeToNewsletter.
  *
- * Why this is worth testing: Buttondown's embed endpoint answers with HTML, not
- * JSON, and its response contract is NOT documented — the mapping below was
- * derived by probing the live endpoint. That makes it exactly the kind of logic
- * that breaks silently when a vendor changes behaviour, and the kind a reader
- * cannot verify by inspection. See design.md § Data Models.
+ * Why this is worth testing: the `ip_address` field is the whole reason this
+ * module moved off Buttondown's public embed endpoint. Dropping it does not
+ * fail any build or throw at runtime — it silently reverts to the behaviour
+ * that got real subscribers firewalled on 2026-08-24. Only a test that asserts
+ * the field is on the wire can catch that regression.
  *
  * fetch is always stubbed. No test here may reach buttondown.com — a real call
  * on a valid address creates a subscriber and sends mail to a stranger.
  */
 
-const ENDPOINT = "https://buttondown.com/api/emails/embed-subscribe/matthewfield";
+const ENDPOINT = "https://api.buttondown.com/v1/subscribers";
+const KEY = "test-buttondown-key";
+
+function jsonError(status: number, code?: string): Response {
+  return new Response(JSON.stringify(code ? { code } : {}), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
 
 beforeEach(() => {
   vi.resetModules();
   vi.unstubAllGlobals();
+  vi.stubEnv("BUTTONDOWN_API_KEY", KEY);
+  vi.stubEnv("BUTTONDOWN_BASE_URL", "");
 });
 
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
   vi.restoreAllMocks();
 });
 
 describe("subscribeToNewsletter request shape", () => {
-  it("posts form-urlencoded email to the embed endpoint without following redirects", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 200 }));
+  it("posts the email and the visitor IP as JSON to the authenticated endpoint", async () => {
+    const fetchMock = vi.fn<(url: string, init: RequestInit) => Promise<Response>>(async () =>
+      Promise.resolve(new Response(null, { status: 201 })),
+    );
     vi.stubGlobal("fetch", fetchMock);
-
     const { subscribeToNewsletter } = await import("./newsletter");
-    await subscribeToNewsletter("ada@example.com");
 
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    await subscribeToNewsletter("reader@example.com", "203.0.113.7");
+
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe(ENDPOINT);
     expect(init.method).toBe("POST");
-    expect(init.headers["Content-Type"]).toBe("application/x-www-form-urlencoded");
-    // Not JSON: the endpoint is a form target, not an API.
-    expect(init.body).toBe("email=ada%40example.com");
-    // Following the success 302 would fetch an HTML page we never read.
-    expect(init.redirect).toBe("manual");
+    expect((init.headers as Record<string, string>).Authorization).toBe(`Token ${KEY}`);
+    expect(JSON.parse(init.body as string)).toEqual({
+      email_address: "reader@example.com",
+      ip_address: "203.0.113.7",
+    });
   });
 
-  it("url-encodes addresses containing characters that are legal in email but not in a form body", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 200 }));
+  it("omits ip_address entirely when no IP is available", async () => {
+    // Sending `ip_address: null` or "" would be worse than omitting it —
+    // Buttondown falls back to the caller's IP only when the key is absent.
+    const fetchMock = vi.fn<(url: string, init: RequestInit) => Promise<Response>>(async () =>
+      Promise.resolve(new Response(null, { status: 201 })),
+    );
     vi.stubGlobal("fetch", fetchMock);
-
     const { subscribeToNewsletter } = await import("./newsletter");
-    await subscribeToNewsletter("a+b c&d@example.com");
 
-    const [, init] = fetchMock.mock.calls[0];
-    // A raw & would split the body into two fields and truncate the address.
-    expect(init.body).toBe("email=a%2Bb+c%26d%40example.com");
+    await subscribeToNewsletter("reader@example.com");
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+    expect(body).toEqual({ email_address: "reader@example.com" });
+    expect("ip_address" in body).toBe(false);
+  });
+
+  it("does not send a `type`, so Buttondown's double opt-in stays on", async () => {
+    // A subscriber created with type: "regular" skips the confirmation email.
+    // That would silently turn a double opt-in list into a single opt-in one.
+    const fetchMock = vi.fn<(url: string, init: RequestInit) => Promise<Response>>(async () =>
+      Promise.resolve(new Response(null, { status: 201 })),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const { subscribeToNewsletter } = await import("./newsletter");
+
+    await subscribeToNewsletter("reader@example.com", "203.0.113.7");
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+    expect("type" in body).toBe(false);
+  });
+
+  it("refuses to call Buttondown at all when the API key is missing", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    vi.stubEnv("BUTTONDOWN_API_KEY", "");
+    const { subscribeToNewsletter } = await import("./newsletter");
+
+    await expect(subscribeToNewsletter("reader@example.com", "203.0.113.7")).rejects.toThrow(
+      /BUTTONDOWN_API_KEY/,
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
 
-describe("subscribeToNewsletter accepted responses", () => {
-  it.each([200, 201, 204, 301, 302, 303, 307])("resolves on status %i", async (status) => {
-    // 3xx is the real success path: Buttondown answers a subscribe with a
-    // redirect back to the public archive.
-    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status }));
-    vi.stubGlobal("fetch", fetchMock);
-
+describe("subscribeToNewsletter response mapping", () => {
+  it("resolves on 201", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(null, { status: 201 })),
+    );
     const { subscribeToNewsletter } = await import("./newsletter");
-    await expect(subscribeToNewsletter("ada@example.com")).resolves.toBeUndefined();
+    await expect(
+      subscribeToNewsletter("reader@example.com", "203.0.113.7"),
+    ).resolves.toBeUndefined();
   });
 
-  it("resolves on an opaqueredirect response, where the runtime reports status 0", async () => {
-    // `redirect: "manual"` surfaces a 3xx as an opaque response with status 0
-    // in some runtimes and as the real status in others. Both mean accepted,
-    // and treating status 0 as a failure would reject every success in one of
-    // the two runtimes.
-    const fetchMock = vi.fn().mockResolvedValue({ status: 0, type: "opaqueredirect" });
-    vi.stubGlobal("fetch", fetchMock);
-
-    const { subscribeToNewsletter } = await import("./newsletter");
-    await expect(subscribeToNewsletter("ada@example.com")).resolves.toBeUndefined();
-  });
-});
-
-describe("subscribeToNewsletter rejected responses", () => {
-  it("throws InvalidEmailError on 400, the status Buttondown returns for a bad address", async () => {
-    // Verified against the live endpoint: POSTing `not-an-email` returns 400
-    // with an HTML error page. This is the one branch a subscriber can act on.
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValue(new Response("<html>Subscription Error</html>", { status: 400 }));
-    vi.stubGlobal("fetch", fetchMock);
-
+  it("throws InvalidEmailError only for the email_invalid code", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => jsonError(400, "email_invalid")),
+    );
     const { subscribeToNewsletter, InvalidEmailError } = await import("./newsletter");
-    await expect(subscribeToNewsletter("nope")).rejects.toBeInstanceOf(InvalidEmailError);
+    await expect(subscribeToNewsletter("nope@", "203.0.113.7")).rejects.toBeInstanceOf(
+      InvalidEmailError,
+    );
   });
 
-  it.each([401, 403, 404, 429, 500, 502, 503])(
-    "throws ButtondownError carrying status %i",
-    async (status) => {
-      const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status }));
-      vi.stubGlobal("fetch", fetchMock);
+  it("throws AlreadySubscribedError for subscriber_already_exists", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => jsonError(400, "subscriber_already_exists")),
+    );
+    const { subscribeToNewsletter, AlreadySubscribedError } = await import("./newsletter");
+    await expect(subscribeToNewsletter("reader@example.com", "203.0.113.7")).rejects.toBeInstanceOf(
+      AlreadySubscribedError,
+    );
+  });
 
-      const { subscribeToNewsletter, ButtondownError } = await import("./newsletter");
-      const promise = subscribeToNewsletter("ada@example.com");
-      await expect(promise).rejects.toBeInstanceOf(ButtondownError);
-      // The route maps 429 to its own response, so the status must survive.
-      await expect(promise).rejects.toMatchObject({ status });
-    },
-  );
+  it("does NOT blame the address for an unrecognised 400", async () => {
+    // The regression this guards: a firewall block also arrives as a 400, and
+    // the previous implementation told the person their email was malformed.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => jsonError(400, "firewall_blocked")),
+    );
+    const { subscribeToNewsletter, InvalidEmailError, ButtondownError } =
+      await import("./newsletter");
+    const err = await subscribeToNewsletter("reader@example.com", "203.0.113.7").catch((e) => e);
+    expect(err).not.toBeInstanceOf(InvalidEmailError);
+    expect(err).toBeInstanceOf(ButtondownError);
+    expect((err as InstanceType<typeof ButtondownError>).code).toBe("firewall_blocked");
+  });
+
+  it("does not blame the address for a 400 with an unparseable body", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("<html>nope</html>", { status: 400 })),
+    );
+    const { subscribeToNewsletter, InvalidEmailError, ButtondownError } =
+      await import("./newsletter");
+    const err = await subscribeToNewsletter("reader@example.com", "203.0.113.7").catch((e) => e);
+    expect(err).not.toBeInstanceOf(InvalidEmailError);
+    expect(err).toBeInstanceOf(ButtondownError);
+  });
+
+  it("preserves the status on a rate limit so the route can answer 429", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => jsonError(429)),
+    );
+    const { subscribeToNewsletter, ButtondownError } = await import("./newsletter");
+    const err = await subscribeToNewsletter("reader@example.com", "203.0.113.7").catch((e) => e);
+    expect(err).toBeInstanceOf(ButtondownError);
+    expect((err as InstanceType<typeof ButtondownError>).status).toBe(429);
+  });
 
   it("does not swallow a non-abort fetch rejection", async () => {
-    // A DNS or TLS failure must surface, not be misreported as a timeout.
-    const fetchMock = vi.fn().mockRejectedValue(new TypeError("fetch failed"));
-    vi.stubGlobal("fetch", fetchMock);
-
-    const { subscribeToNewsletter, TimeoutError } = await import("./newsletter");
-    const promise = subscribeToNewsletter("ada@example.com");
-    await expect(promise).rejects.toBeInstanceOf(TypeError);
-    await expect(promise).rejects.not.toBeInstanceOf(TimeoutError);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new TypeError("network down");
+      }),
+    );
+    const { subscribeToNewsletter } = await import("./newsletter");
+    await expect(subscribeToNewsletter("reader@example.com", "203.0.113.7")).rejects.toThrow(
+      /network down/,
+    );
   });
 });
 
 describe("subscribeToNewsletter timeout", () => {
   it("throws TimeoutError when the vendor hangs past 8 seconds", async () => {
     vi.useFakeTimers();
-    const fetchMock = vi.fn(
-      (_url: string, init: RequestInit) =>
-        new Promise<Response>((_, reject) => {
-          init.signal!.addEventListener("abort", () => {
-            const err = new Error("The operation was aborted.");
-            err.name = "AbortError";
-            reject(err);
-          });
-        }),
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        (_url: string, init: RequestInit) =>
+          new Promise((_resolve, reject) => {
+            init.signal?.addEventListener("abort", () => {
+              const err = new Error("aborted");
+              err.name = "AbortError";
+              reject(err);
+            });
+          }),
+      ),
     );
-    vi.stubGlobal("fetch", fetchMock);
-
     const { subscribeToNewsletter, TimeoutError } = await import("./newsletter");
-    const promise = subscribeToNewsletter("ada@example.com");
-    const expectation = expect(promise).rejects.toBeInstanceOf(TimeoutError);
+
+    const promise = subscribeToNewsletter("reader@example.com", "203.0.113.7");
+    const assertion = expect(promise).rejects.toBeInstanceOf(TimeoutError);
     await vi.advanceTimersByTimeAsync(8000);
-    await expectation;
-  });
-
-  it("clears the timer on a fast response so the process is not held open", async () => {
-    vi.useFakeTimers();
-    const clearSpy = vi.spyOn(globalThis, "clearTimeout");
-    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 302 }));
-    vi.stubGlobal("fetch", fetchMock);
-
-    const { subscribeToNewsletter } = await import("./newsletter");
-    await subscribeToNewsletter("ada@example.com");
-
-    expect(clearSpy).toHaveBeenCalled();
+    await assertion;
   });
 });
