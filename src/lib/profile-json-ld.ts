@@ -136,10 +136,9 @@ export function buildProfileJsonLd(): ProfileJsonLd {
     knowsAbout: getSkills().flatMap((group) => group.items),
     hasOccupation: {
       "@type": "Occupation",
-      // The occupational category, which is what `siteConfig.description`
-      // already states site-wide. The dated, employer-bound history lives in
-      // `affiliation`.
-      name: siteConfig.description,
+      // The occupational category. The dated, employer-bound history lives
+      // in `affiliation`.
+      name: siteConfig.occupation,
     },
     // EVERY role, current one included — not just the finished ones. The
     // current role's start date exists nowhere else in the graph (`worksFor`

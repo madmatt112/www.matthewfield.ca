@@ -392,7 +392,7 @@ const projects = defineCollection({
         }
       } else if (data.draft !== true) {
         console.info(
-          `[velite/projects] ${fileRel}: ogImage absent for non-draft project '${slug}' — site-default OG image fallback applies`,
+          `[velite/projects] ${fileRel}: ogImage absent for non-draft project '${slug}' — generated project card fallback applies`,
         );
       }
 
