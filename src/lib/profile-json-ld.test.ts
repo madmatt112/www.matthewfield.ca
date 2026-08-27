@@ -296,7 +296,7 @@ describe("buildProfileJsonLd — schema.org Person shape (Req 7.1)", () => {
   it("states the occupational category on hasOccupation", () => {
     expect(jsonLd.hasOccupation).toEqual({
       "@type": "Occupation",
-      name: siteConfig.description,
+      name: siteConfig.occupation,
     });
   });
 

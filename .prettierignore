@@ -31,3 +31,11 @@
 # table-based email layout would break the inline styles Outlook depends on.
 # The sibling .css/.md files in that directory ARE formatted normally.
 /email/buttondown/template.html
+
+# Chrome user-data dirs leaked into the repo root by chrome-launcher under
+# WSL (literal `C:\Users\...\AppData\Local\lighthouse.NNNNNN` names). These
+# are gitignored, so CI never sees them, but prettier reads .prettierignore
+# rather than .gitignore and would otherwise fail `format:check` locally.
+# Mirrors the /C:\\Users\\* pattern in .gitignore. `pnpm lhci` (via
+# scripts/run-lhci.mjs) deletes them post-run.
+/C:\\Users\\*

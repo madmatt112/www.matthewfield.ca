@@ -18,7 +18,12 @@ export type SlashPage = {
 
 type SiteConfig = {
   name: string;
+  /** Meta description: one line on who this is and what the site is about. */
   description: string;
+  /** Occupational category. Feeds the profile JSON-LD `hasOccupation`. */
+  occupation: string;
+  /** The line under the name on the site-wide social card. */
+  tagline: string;
   /** Landing-page lead paragraph — the first thing a visitor actually reads. */
   intro: string;
   url: string;
@@ -36,7 +41,10 @@ type SiteConfig = {
 
 export const siteConfig: SiteConfig = {
   name: "Matthew Field",
-  description: "Infrastructure/Platform/DevOps engineer",
+  description:
+    "Field notes from an engineer, ADHD dad, and solopreneur: healing old wounds and building my dreams.",
+  occupation: "Infrastructure/Platform/DevOps engineer",
+  tagline: "Heal the wounds. Build the dreams.",
   intro:
     "I'm a platform and infrastructure engineer with a decade of experience building reliable distributed systems and developer tooling. Mostly Kubernetes and the platforms developers build on top of it. I write good docs, and I care about open source.",
   // Canonical host = the actual serving host: the apex 301/307-redirects to
