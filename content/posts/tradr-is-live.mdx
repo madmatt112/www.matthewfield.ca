@@ -1,36 +1,46 @@
 ---
 title: "Tradr is live"
-description: "I flipped the switch. The hosted Tradr is open, and a free account is enough for most traders. Sign up, log a real trade, tell me what breaks."
-date: "2026-08-27"
+description: "Tradr is open, and a free account is enough for most traders. Sign up, log a real trade, tell me what breaks."
+date: "2026-08-28"
 tags: ["tradr", "oss", "release", "trading", "field-notes"]
 categories: ["projects"]
 draft: false
 ---
 
-I just flipped the switch. [Tradr](https://www.tradr.cloud) is live and taking sign-ups.
+[Tradr](https://www.tradr.cloud) is live and taking sign-ups.
 
-::lead[Go make an account at app.tradr.cloud. It's free.]
+::lead[Go make an account at app.tradr.cloud/register. It's free.]
 
-_(that's [app.tradr.cloud/register](https://app.tradr.cloud/register), and the pillows are fluffed, mostly.)_
+_(that's [app.tradr.cloud/register](https://app.tradr.cloud/register).)_
 
-Is it a v1.0? Still no.\
-Is it live? Yes.
+## What is it?
 
-Tradr is an open-source stock & options trading journal. The build you'll land on today is v0.11.3. The journal part is finished and I've traded on it every day for months. The edges are rough in places, and I'd rather you find them than sit here guessing at them.
+Tradr is an open-source stock & options trading journal. The journalling, calculators, position tracking, and auto-fees are active and I've been using it for a few weeks now. The edges are rough in places, but I've got a vision and roadmap to improve the experience.
 
 ## What you get
 
-A free account (I'm calling it Hosted Free) gets you 1 brokerage account, 1,000 positions, 6 months of analytics, and 10 CSV imports a month. For one broker and a normal number of trades, that's plenty. If you outgrow it, Hosted Pro takes the caps off for $10 a month. That's a launch price; it goes to $15 later.
+A free account gets you 1 brokerage account, 1,000 positions, 6 months of analytics, and 10 CSV imports a month. For one broker and a normal number of trades, that's plenty.\
+If you outgrow it, Hosted Pro takes the caps off for $10 a month. (That's a launch price; it goes to $15 later.)
 
-The journal does the things I could never get a spreadsheet to do reliably. Positions with many fills, scaled in and scaled out, with the averages and the fee-accurate realised P&L coming out right. A double-entry ledger underneath so the cash reconciles. Greeks and OCC symbol parsing for the options crowd. A sizing calculator so you know your risk before you're in the trade. CSV import from whatever broker you use. And a guided tour with demo data, so you can poke around a populated Tradr before you enter a single real fill.
+The app does the things a spreadsheet just couldn't:
 
-It never places an order. Nothing in it touches your broker.
+- Positions with many fills, scaled in and scaled out, with the averages and the fee-accurate realised P&L coming out right.
+- A double-entry ledger underneath so the cash reconciles. Greeks and OCC symbol parsing for the options crowd.
+- A sizing calculator so you know your risk before you're in the trade.
+- CSV import from whatever broker you use. (this one in particular is pretty untested!)
+- Multi-currency handling.
 
-## What's missing, on purpose
+There's a guided tour with demo data, so you can poke around a populated Tradr.
 
-The AI advisor is switched off on the hosted app. It exists, it runs on your own Claude or OpenAI key, and you can use it today if you self-host. I turned it off on hosted on Monday because it needs real work before it's good enough, and shipping it half-baked on launch day felt worse than shipping without it. The Unusual Whales options-chain lookup sits behind the same switch, so that one is self-hosted only for now too.
+It never places an order. Nothing in it touches your broker. Someday it might be able to read some brokerages, but executing trades in the real world is not part of this product.
 
-There's no direct broker sync yet, CSV only. And the API will move around until 1.0.
+## What's missing
+
+The AI advisor is switched off on the hosted app. I turned it off because it simply needs more work to get it right for you and right for me. Agent observability and management is a whole can of worms.
+
+Fetching Options quote via your own Unusual Whales API key was a casualty of the advisor removal, but next release will have that feature included again.
+
+There's no direct broker sync yet, CSV only.
 
 ## If you'd rather run it yourself
 
@@ -38,6 +48,8 @@ Tradr is Apache 2.0 and built to self-host. One Docker Compose file gets you the
 
 ## What I'm watching
 
-Seven months after the layoff, this is the first thing I've built that gets a public verdict. The number I care about is how many people log a real trade in their first 30 days. Sign-ups are cheap.
+This is the first product I've ever launched. I'm watching [PostHog](https://www.posthog.com) analytics to see how many users add an account and write their first trade. I've got an in-app user feedback form in the works that'll be shipped in the next release.
 
-So: sign up, load the demo data if you want to look around, then clear it and book one real trade. If something breaks or confuses you, [open an issue](https://github.com/madmatt112/tradr/issues), or reply to this email if you're reading it in your inbox.
+So: sign up, load the demo data if you want to look around, then clear it and book one real trade. If something breaks or confuses you, [open an issue](https://github.com/madmatt112/tradr/issues), reply to this email if you're reading it in your inbox, or use the in-pp feedback tool when it arrives.
+
+Thanks! -Matt
