@@ -63,7 +63,7 @@
     "hast-util-to-text": "4.0.2",
     "jsdom": "^29.0.2",
     "mdast-util-to-string": "^4.0.0",
-    "node-html-parser": "7.1.0",
+    "node-html-parser": "9.0.2",
     "pagefind": "1.5.2",
     "prettier": "^3.8.2",
     "reading-time": "^1.5.0",
