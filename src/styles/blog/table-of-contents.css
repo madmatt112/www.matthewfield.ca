@@ -1,6 +1,6 @@
 /* Slice: table-of-contents — owned by Task 18.6
  *
- * Flat <ol> rendered by <TableOfContents />. Entries carry a
+ * Flat <ul> rendered by <TableOfContents />. Entries carry a
  * `data-depth` attribute (2 | 3); depth-3 entries receive a
  * Tailwind `ml-4` utility on the component side AND this slice
  * provides a CSS-only indentation rule so the indentation is
@@ -10,21 +10,36 @@
 
 .table-of-contents {
   margin: 1.5rem 0;
-  padding: 1rem;
+  /* Vertical padding trimmed vs the 1rem sides: the text line-height adds
+   * half-leading above the title and below the last row, so equal padding
+   * reads top/bottom-heavy against the left edge. */
+  padding: 0.75rem 1rem;
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   background-color: var(--background);
 }
 
+.toc-title {
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
 .toc-list {
   margin: 0;
-  padding: 0 0 0 1.25rem;
-  list-style: decimal;
+  padding: 0;
+  list-style: none;
 }
 
 .toc-entry {
   margin: 0.25rem 0;
   color: var(--foreground);
+}
+
+/* Drop the trailing row's bottom margin so it doesn't stack on the box
+ * padding and unbalance the bottom vs the top. */
+.toc-entry:last-child {
+  margin-bottom: 0;
 }
 
 /* CSS-side indentation rule (mirrors the `ml-4` utility on depth-3

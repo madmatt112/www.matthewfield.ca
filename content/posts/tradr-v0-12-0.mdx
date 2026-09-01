@@ -1,0 +1,39 @@
+---
+title: "Tradr v0.12.1: A smoother onboarding, some Quality of Life fixes, and an in-app feedback tool"
+description: "The hosted app moved to v0.12.1. Your first account is now your default everywhere, the sizing calculator prices with your broker's actual fees, and the guided setup is much better."
+date: "2026-09-01"
+tags: ["tradr", "oss", "release", "trading"]
+categories: ["projects"]
+draft: false
+---
+
+[Tradr](https://www.tradr.cloud) moved from v0.11.3 to v0.12.1 today. If you're on the hosted app, you already have it. Self-hosters can pull the new release whenever; DB migrations run at API boot as usual.
+
+_(Tradr is the open-source stock and options trading journal with a free-forever tier. Try it at [tradr.cloud](https://www.tradr.cloud) or run it yourself via [GitHub](https://github.com/madmatt112/tradr#quickstart))_
+
+5 days after launch, this release is focused on improving the onboarding experience and fixing bugs. I also implemented an in-app user feedback form built with PostHog. Look for the "feedback" tab on the right of the app.
+
+## Changes
+
+### New Features
+
+- New users keep a focused welcome screen until their first trade is logged. Creating an account used to drop you onto 6 empty widgets.
+- Admins: factory-reset a user from the admin portal. Option to retain or delete non-trade data (stored keys, preferences, etc.). I used this to quickly iterate on the onboarding fixes.
+
+### Fixed
+
+- The guided tour stops dead-ending. When a step needs you to do something, Next greys out and says exactly what it's waiting for. Shoutout to [Steven Polley](https://stevenpolley.net) for the bug report.
+- Password reset links no longer reach our [PostHog](https://www.posthog.com) analytics.
+- Default accounts. Your first account becomes the default and every picker in the app preselects it. You stop re-picking the same account 20 times a day.
+- The sizing calculator now loads your broker's actual fee schedule when you pick an account. Your risk numbers include what the trade really costs.
+- The ticker dropdown stops reopening after you pick a symbol.
+
+### Breaking changes
+
+None.
+
+## Feedback
+
+If anything in the setup flow still confuses you, I'd love to hear about it: use the in-app user feedback tab, [open an issue](https://github.com/madmatt112/tradr/issues), or reply if you're reading this in your inbox.
+
+Thanks! -Matt
