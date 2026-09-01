@@ -4,7 +4,8 @@ type TableOfContentsProps = {
   entries: ReadonlyArray<TocEntry>;
 };
 
-// Server component. Renders a flat <ol> of TOC entries; depth-3 entries
+// Server component. Renders a "Contents" title over a flat <ul> of TOC
+// entries; depth-3 entries
 // receive a `ml-4` indentation class (Req 7.5 v4: entries carry their depth
 // as a field). Returns null when fewer than 2 entries (Req 7.9).
 export function TableOfContents({ entries }: TableOfContentsProps) {
@@ -12,7 +13,8 @@ export function TableOfContents({ entries }: TableOfContentsProps) {
 
   return (
     <nav aria-label="On this page" data-pagefind-ignore="all" className="table-of-contents">
-      <ol className="toc-list">
+      <p className="toc-title">Contents</p>
+      <ul className="toc-list">
         {entries.map((entry) => (
           <li
             key={entry.id}
@@ -24,7 +26,7 @@ export function TableOfContents({ entries }: TableOfContentsProps) {
             </a>
           </li>
         ))}
-      </ol>
+      </ul>
     </nav>
   );
 }
