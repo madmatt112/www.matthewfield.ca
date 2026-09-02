@@ -91,6 +91,7 @@ export function SiteSearch() {
     if (!open) {
       // Reset to a clean "closed" state on every close. Don't preserve
       // "unavailable" — a transient failure shouldn't lock out future opens.
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: reset to "closed" when the dialog unmounts; deriving it during render would fight Radix re-mounting DialogContent
       setState("closed");
       return;
     }
