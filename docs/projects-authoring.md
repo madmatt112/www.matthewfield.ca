@@ -54,6 +54,7 @@ Push to `main`; CI builds and deploys. The slug is the filename without `.mdx`.
 
 - `updated` (ISO date string) — see §7
 - `ogImage` (relative path) — see §4
+- `cardImage` (relative path) — the image the index uses instead of `cover` (the featured spread, or a row's thumbnail); the detail-page hero always uses `cover`. Must be ≥1200 px wide. Omit to use `cover` on the index too.
 - `featured` (boolean, default `false`) — see §10
 - `links` (array of `{ kind, label, url }` objects)
 
@@ -79,10 +80,11 @@ The link renders with `label` and no icon. Add this BEFORE asking for a new icon
 - **File-size soft warning**: 500 KB. Logged at build time; not fatal.
 - **File-size hard cap**: 1 MB. The build fails above this.
 - **Colocation**: cover images live next to the MDX file as `./<slug>-cover.<ext>` (Req 3.3). The schema resolves the relative path.
-- **No aspect-ratio band enforced**: cards crop with `object-cover`; the cover area on cards and detail-page hero has a fixed aspect ratio. Pick an image that survives center-cropping.
+- **No aspect-ratio band enforced.** The featured spread and the detail-page hero show the image at its own ratio. Row thumbnails on the index crop it to 3:2 from the top-left with `object-cover`, so keep the subject in the upper-left of a wide image.
+- **Rows show a thumbnail only when the project has at least one `links` entry.** A project with no links is a write-up: the index labels it "write-up only" and shows no image for it, so a title-card cover only ever appears on its own detail page.
 - **In-body images** (`<img>` inside the MDX body) are NOT optimized through `next/image` — they render as plain `<img>` and DO escape to the outer container width via the wide-media pattern (Req 3.7, see §6).
 
-The dimension floor exists so the gallery card and detail-page hero have enough pixels for HiDPI rendering; the file-size cap bounds first-paint weight given lazy-loading of below-the-fold cards.
+The dimension floor exists so the featured spread and detail-page hero have enough pixels for HiDPI rendering; the file-size cap bounds first-paint weight given lazy-loading of the row thumbnails.
 
 ## §4 Sharing previews (`ogImage`)
 
@@ -228,7 +230,7 @@ The chokepoint canary fixture (`src/__tests__/fixtures/chokepoint-canary.ts`) ex
 
 > _As Matthew, I want to highlight a particularly relevant project by setting `featured: true`; I unset it when the spotlight is no longer warranted (e.g. after the project has been live for ~3 months or after a newer project supplants it)._
 
-`featured` is a boolean (default `false`) that gives a project an accent treatment on the gallery card and a "Featured" textual badge (Req 2.7).
+`featured` is a boolean (default `false`) that puts a project in the lead spread at the top of `/projects`: the one large image on the page, above the ledger of remaining rows. With no featured project the newest one leads. If several are flagged, the newest of them leads and the others fall back into the rows.
 
 ### When to set `featured: true`
 
@@ -244,4 +246,4 @@ The chokepoint canary fixture (`src/__tests__/fixtures/chokepoint-canary.ts`) ex
 
 ### How many features at once
 
-Aim for **1–2 featured projects at any time**. Three is the soft ceiling — beyond that, the accent loses meaning. There is no schema check; this is editorial discipline.
+**One.** Only a single project can lead, so flag exactly one. There is no schema check; this is editorial discipline.

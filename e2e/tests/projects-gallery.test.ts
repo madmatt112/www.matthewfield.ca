@@ -4,7 +4,7 @@ import path from "node:path";
 import { expect, test } from "@playwright/test";
 
 // Build-flavor coupling (per design Component 9 v4 / Testing Strategy E2E):
-// derive the expected card count from `.velite/projects.json` (NOT hard-coded).
+// derive the expected projects from `.velite/projects.json` (NOT hard-coded).
 // Filter by `!p.draft` unless PROJECTS_INCLUDE_DRAFTS=1. The dual-build CI runs
 // both flavors; this test process inherits the env-var the build was made with.
 //
@@ -20,7 +20,12 @@ type VeliteProject = {
   slug: string;
   date: string;
   draft?: boolean;
+  featured?: boolean;
+  links?: unknown[];
 };
+
+const LEAD = 'section[aria-labelledby="featured-heading"]';
+const ROWS = 'section[aria-label="More projects"] > ul > li';
 
 function readVeliteProjects(): VeliteProject[] {
   const raw = fs.readFileSync(VELITE_PROJECTS_PATH, "utf8");
@@ -38,83 +43,92 @@ function expectedPublishedProjects(): VeliteProject[] {
   });
 }
 
-test.describe("projects gallery", () => {
+// Mirrors the page: the lead is the newest featured project, else the newest
+// project; everything else is a ledger row in the same order.
+function expectedLayout(): { lead: VeliteProject; rest: VeliteProject[] } | null {
+  const published = expectedPublishedProjects();
+  if (published.length === 0) return null;
+  const lead = published.find((p) => p.featured) ?? published[0];
+  return { lead, rest: published.filter((p) => p !== lead) };
+}
+
+test.describe("projects index", () => {
   test.beforeAll(() => {
     if (process.env.CI !== "true" && !fs.existsSync(VELITE_PROJECTS_PATH)) {
       test.skip(true, "`.velite/projects.json` missing locally; run `pnpm build` first.");
     }
   });
 
-  test("renders the expected published cards", async ({ page }) => {
-    const expected = expectedPublishedProjects();
+  test("leads with the featured project, then the rest in reverse-chronological order", async ({
+    page,
+  }) => {
+    const layout = expectedLayout();
     test.skip(
-      expected.length === 0,
+      layout === null,
       "No published projects under this build flavor; see empty-state test.",
     );
+    if (layout === null) return;
 
     await page.goto("/projects");
 
-    const cards = page.locator('ul[aria-label="Project gallery"] > li');
-    await expect(cards).toHaveCount(expected.length);
+    await expect(page.locator(LEAD)).toHaveCount(1);
+    await expect(page.locator(ROWS)).toHaveCount(layout.rest.length);
 
-    // Reverse-chronological order: assert titles appear in the same order as
-    // the filtered+sorted velite list.
-    const renderedTitles = await cards.locator("h3").allInnerTexts();
-    expect(renderedTitles).toEqual(expected.map((p) => p.title));
+    const renderedTitles = await page.locator(`${LEAD} h2, ${ROWS} h2`).allInnerTexts();
+    expect(renderedTitles.map((t) => t.trim())).toEqual(
+      [layout.lead, ...layout.rest].map((p) => p.title),
+    );
   });
 
-  test("eager-loads the top-2 covers and lazy-loads the rest", async ({ page }) => {
-    const expected = expectedPublishedProjects();
-    test.skip(expected.length === 0, "No published projects under this build flavor.");
+  test("every title links to its detail page", async ({ page }) => {
+    const layout = expectedLayout();
+    test.skip(layout === null, "No published projects under this build flavor.");
+    if (layout === null) return;
 
     await page.goto("/projects");
 
-    const cards = page.locator('ul[aria-label="Project gallery"] > li');
-    await expect(cards).toHaveCount(expected.length);
-
-    const expectedEager = Math.min(2, expected.length);
-
-    // Assert the first N covers eager-load (`loading="eager"` OR no `loading`
-    // attribute — Next/Image emits `priority` cards without a `loading` attr;
-    // both states satisfy the "not lazy" eager contract). To make the
-    // assertion robust against either rendering, we check that the first N
-    // covers do NOT have loading="lazy", and the rest DO have loading="lazy".
-    for (let i = 0; i < expected.length; i++) {
-      const img = cards.nth(i).locator("img").first();
-      const loading = await img.getAttribute("loading");
-      if (i < expectedEager) {
-        expect(loading, `card ${i} (eager slot) must not be lazy`).not.toBe("lazy");
-      } else {
-        expect(loading, `card ${i} (lazy slot) must be loading="lazy"`).toBe("lazy");
-      }
+    const ordered = [layout.lead, ...layout.rest];
+    const headings = page.locator(`${LEAD} h2, ${ROWS} h2`);
+    await expect(headings).toHaveCount(ordered.length);
+    for (let i = 0; i < ordered.length; i++) {
+      const link = headings.nth(i).locator("a");
+      await expect(link, `title ${i} must link to its detail page`).toHaveAttribute(
+        "href",
+        `/projects/${ordered[i].slug}`,
+      );
     }
   });
 
-  test("each card link's accessible name is its project title via aria-labelledby → <h3 id>", async ({
+  test("eager-loads the lead image; rows show a lazy thumbnail only when the project has links", async ({
     page,
   }) => {
-    const expected = expectedPublishedProjects();
-    test.skip(expected.length === 0, "No published projects under this build flavor.");
+    const layout = expectedLayout();
+    test.skip(layout === null, "No published projects under this build flavor.");
+    if (layout === null) return;
 
     await page.goto("/projects");
 
-    const cards = page.locator('ul[aria-label="Project gallery"] > li');
-    await expect(cards).toHaveCount(expected.length);
+    // Next/Image emits `priority` images without a `loading` attribute, so the
+    // eager contract is "not lazy" rather than a literal loading="eager".
+    const leadImg = page.locator(`${LEAD} img`).first();
+    await expect(leadImg).toHaveCount(1);
+    expect(await leadImg.getAttribute("loading"), "lead image must not be lazy").not.toBe("lazy");
 
-    for (let i = 0; i < expected.length; i++) {
-      const card = cards.nth(i);
-      const link = card.locator("a[aria-labelledby]").first();
-      const labelledBy = await link.getAttribute("aria-labelledby");
-      expect(labelledBy, `card ${i} link must have aria-labelledby`).not.toBeNull();
-      const heading = card.locator(`h3#${labelledBy}`);
-      await expect(heading).toHaveCount(1);
-      const headingText = (await heading.innerText()).trim();
-      expect(headingText).toBe(expected[i].title);
+    const rows = page.locator(ROWS);
+    await expect(rows).toHaveCount(layout.rest.length);
+    for (let i = 0; i < layout.rest.length; i++) {
+      const img = rows.nth(i).locator("img");
+      if ((layout.rest[i].links?.length ?? 0) > 0) {
+        await expect(img, `row ${i} has links, so it shows a thumbnail`).toHaveCount(1);
+        await expect(img).toHaveAttribute("loading", "lazy");
+      } else {
+        await expect(img, `row ${i} has no links, so it shows no image`).toHaveCount(0);
+      }
     }
   });
 });
 
-test.describe("projects gallery — empty state", () => {
+test.describe("projects index — empty state", () => {
   test.beforeAll(() => {
     if (process.env.CI !== "true" && !fs.existsSync(VELITE_PROJECTS_PATH)) {
       test.skip(true, "`.velite/projects.json` missing locally; run `pnpm build` first.");
@@ -122,9 +136,9 @@ test.describe("projects gallery — empty state", () => {
   });
 
   test("renders the empty-state copy when no projects are published", async ({ page }) => {
-    const expected = expectedPublishedProjects();
+    const layout = expectedLayout();
     test.skip(
-      expected.length !== 0,
+      layout !== null,
       "Build flavor publishes projects; empty-state branch only exercises against an empty published set.",
     );
 
@@ -132,6 +146,7 @@ test.describe("projects gallery — empty state", () => {
 
     // Empty-state asserted by selector + visible text (per task restriction).
     await expect(page.getByText("No projects published yet.")).toBeVisible();
-    await expect(page.locator('ul[aria-label="Project gallery"] > li')).toHaveCount(0);
+    await expect(page.locator(LEAD)).toHaveCount(0);
+    await expect(page.locator(ROWS)).toHaveCount(0);
   });
 });

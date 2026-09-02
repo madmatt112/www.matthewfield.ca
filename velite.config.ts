@@ -319,6 +319,7 @@ const projects = defineCollection({
         .default([]),
       status: s.enum(["active", "archived", "concept"]).default("active"),
       ogImage: s.image().optional(),
+      cardImage: s.image().optional(),
       updated: s.isodate().optional(),
       draft: s.boolean().default(false),
       slug: s.path(),
@@ -393,6 +394,15 @@ const projects = defineCollection({
       } else if (data.draft !== true) {
         console.info(
           `[velite/projects] ${fileRel}: ogImage absent for non-draft project '${slug}' — generated project card fallback applies`,
+        );
+      }
+
+      // Step 3b — cardImage validation (when present). Overrides `cover` on the
+      // gallery card only; the detail-page hero always uses `cover`. Same width
+      // floor as ogImage; no aspect band since the card crops with object-cover.
+      if (data.cardImage != null && data.cardImage.width < OG_MIN_WIDTH) {
+        throw new Error(
+          `[velite/projects] ${fileRel}: cardImage-too-narrow — '${slug}' cardImage is ${data.cardImage.width}px wide (< required ${OG_MIN_WIDTH}px)`,
         );
       }
 
