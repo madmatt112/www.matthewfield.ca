@@ -12,8 +12,7 @@ import statusCallout from "./status-callout";
 import tableOfContents from "./table-of-contents";
 
 export type RegistryEntry =
-  | { kind: "component"; component: ComponentType }
-  | { kind: "html"; html: string };
+  { kind: "component"; component: ComponentType } | { kind: "html"; html: string };
 
 export const registry: Record<string, RegistryEntry> = {
   "series-badge": seriesBadge,
