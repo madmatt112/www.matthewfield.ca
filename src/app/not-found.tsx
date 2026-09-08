@@ -1,22 +1,26 @@
 import Link from "next/link";
 
 import { SiteShell } from "@/components/layout/site-shell";
+import { NotFoundFlavour } from "@/components/shared/not-found-flavour";
 
 export default function NotFound() {
   return (
     <SiteShell>
-      <div className="mx-auto w-full max-w-5xl px-4 py-16 sm:py-24">
-        <p className="text-sm font-medium text-muted-foreground">404</p>
-        <h1 className="mt-2 font-display text-4xl tracking-tight sm:text-5xl">Page not found</h1>
-        <p className="mt-4 text-base text-muted-foreground sm:text-lg">
-          The page you&apos;re looking for doesn&apos;t exist or has moved.
-        </p>
-        <Link
-          href="/"
-          className="mt-8 inline-block text-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:ring-ring focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-        >
-          Return home
-        </Link>
+      <div className="mx-auto grid w-full max-w-5xl items-center gap-10 px-4 py-16 sm:grid-cols-[minmax(0,1fr)_auto] sm:py-24">
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">404</p>
+          <h1 className="mt-2 font-display text-4xl tracking-tight sm:text-5xl">Page not found</h1>
+          <p className="mt-4 text-base text-muted-foreground sm:text-lg">
+            The page you&apos;re looking for doesn&apos;t exist or has moved.
+          </p>
+          <Link
+            href="/"
+            className="mt-8 inline-block text-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:ring-ring focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+          >
+            Return home
+          </Link>
+        </div>
+        <NotFoundFlavour />
       </div>
     </SiteShell>
   );
