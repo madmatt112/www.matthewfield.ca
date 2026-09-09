@@ -65,8 +65,8 @@ export default function ProfilePage() {
           <Image
             src={profile.headshot.src}
             alt={`Portrait of ${profile.title}`}
-            width={profile.headshot.width}
-            height={profile.headshot.height}
+            width={160}
+            height={160}
             placeholder="blur"
             blurDataURL={profile.headshot.blurDataURL}
             priority
