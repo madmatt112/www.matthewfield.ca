@@ -225,7 +225,7 @@ const posts = defineCollection({
       // 4.3 — Reading-time transform (markdown-only stack, no remark-mdx).
       const readingTree = unified().use(remarkParse).use(remarkGfm).parse(content);
       const words = countWordsFromMdast(readingTree as Parameters<typeof countWordsFromMdast>[0]);
-      const readingTime = Math.max(1, Math.round(words / 238));
+      const readingTime = Math.max(1, Math.round(words / 200));
 
       // 4.4 — CDATA-safe bodyHtml. Substitution applied to bodyHtml ONLY
       // (never to body, which remains the MDX compiled artifact).
