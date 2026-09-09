@@ -93,10 +93,9 @@ const profile = defineCollection({
       title: s.string().max(200),
       description: s.string().max(500),
       headline: s.string().max(200),
+      // The hero's second line; optional so the header can stand alone.
+      subheadline: s.string().max(300).optional(),
       location: s.string().max(200),
-      availability: s.string().max(200),
-      availabilityLinkLabel: s.string().max(100),
-      availabilityLinkHref: s.string().url(),
       // Deliberately optional. A required field would abort the whole profile
       // parse when it is absent, and velite reports that as
       // `no data resolved for 'profile' collection` — naming neither the file

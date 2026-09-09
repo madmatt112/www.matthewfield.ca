@@ -9,7 +9,6 @@ import { SkillsList } from "@/components/profile/skills-list";
 import { AvatarPlaceholder } from "@/components/shared/avatar-placeholder";
 import { ContactForm } from "@/components/shared/contact-form";
 import { MDXContent } from "@/components/shared/mdx-content";
-import { NewTabHint } from "@/components/shared/new-tab-hint";
 import { ObfuscatedEmail } from "@/components/shared/obfuscated-email";
 import { SectionKicker } from "@/components/shared/section-kicker";
 import { SocialLinks } from "@/components/shared/social-links";
@@ -80,26 +79,10 @@ export default function ProfilePage() {
           <h1 className="font-display text-4xl tracking-tight text-balance sm:text-5xl">
             {profile.headline}
           </h1>
-          <p className="text-sm text-muted-foreground">
-            {profile.location} · {profile.availability}{" "}
-            <a
-              href={profile.availabilityLinkHref}
-              target="_blank"
-              rel="noopener"
-              // PERMANENT underline, never `hover:underline` (R8.3, WCAG 1.4.1):
-              // brand against muted-foreground is ~1.05:1 in light theme, so
-              // colour alone cannot distinguish the link from its sentence — axe
-              // reported `link-in-text-block` here until this underline landed.
-              //
-              // `profile-print-no-url` (R6.4): this is an organisation link like
-              // the ones on roles and education, so print.css must not expand it
-              // into "Mossfoot Digital (https://www.mossfootdigital.com)".
-              className="profile-print-no-url text-brand underline underline-offset-4"
-            >
-              {profile.availabilityLinkLabel}
-              <NewTabHint />
-            </a>
-          </p>
+          {profile.subheadline ? (
+            <p className="max-w-measure text-lg text-muted-foreground">{profile.subheadline}</p>
+          ) : null}
+          <p className="text-sm text-muted-foreground">{profile.location}</p>
           <Button asChild variant="brand" className="mt-2 w-fit">
             <a href="#get-in-touch">Get in touch</a>
           </Button>
