@@ -93,10 +93,9 @@ const profile = defineCollection({
       title: s.string().max(200),
       description: s.string().max(500),
       headline: s.string().max(200),
+      // The hero's second line; optional so the header can stand alone.
+      subheadline: s.string().max(300).optional(),
       location: s.string().max(200),
-      availability: s.string().max(200),
-      availabilityLinkLabel: s.string().max(100),
-      availabilityLinkHref: s.string().url(),
       // Deliberately optional. A required field would abort the whole profile
       // parse when it is absent, and velite reports that as
       // `no data resolved for 'profile' collection` — naming neither the file
@@ -226,7 +225,7 @@ const posts = defineCollection({
       // 4.3 — Reading-time transform (markdown-only stack, no remark-mdx).
       const readingTree = unified().use(remarkParse).use(remarkGfm).parse(content);
       const words = countWordsFromMdast(readingTree as Parameters<typeof countWordsFromMdast>[0]);
-      const readingTime = Math.max(1, Math.round(words / 238));
+      const readingTime = Math.max(1, Math.round(words / 200));
 
       // 4.4 — CDATA-safe bodyHtml. Substitution applied to bodyHtml ONLY
       // (never to body, which remains the MDX compiled artifact).

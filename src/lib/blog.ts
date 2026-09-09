@@ -97,7 +97,7 @@ export function shouldShowUpdatedBadge(post: Post): boolean {
   return post.updated != null && new Date(post.updated) > new Date(post.date);
 }
 
-const WORDS_PER_MINUTE = 238;
+const WORDS_PER_MINUTE = 200;
 export function wordsToReadingTime(wordCount: number): number {
   return Math.max(1, Math.round(wordCount / WORDS_PER_MINUTE));
 }

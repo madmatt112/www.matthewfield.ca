@@ -6,13 +6,17 @@ matthewfield.ca is a personal website for Matthew Field, an infrastructure/platf
 
 ## Target Users
 
-1. **Potential employers and recruiters** — Looking for infrastructure/platform/DevOps engineers. Need to quickly assess Matthew's experience, skills, and communication ability. Want an easy way to get in touch.
+Ranked. The order is Matthew's decision as of 2026-09-08 and will change as paid products come online.
 
-2. **Peers and collaborators** — Fellow engineers, open-source contributors, and tech community members interested in Matthew's projects, blog posts, or shared resources.
+1. **Readers and followers** — Someone who arrived from an essay, Field Notes, LinkedIn, or Bluesky and is deciding whether Matthew is a person worth following and subscribing to. The site opens as a person.
 
-3. **General visitors** — Anyone who lands on the site via a blog post, shared link, or search result. May be interested in the blog, resources, or playground items regardless of professional context.
+2. **Consulting buyers** — A nonprofit executive director or small-business owner deciding whether to contact Mossfoot Digital about their technology. They need senior-infrastructure credibility and an easy way to get in touch.
 
-4. **Matthew himself** — As the sole author and maintainer, the site must be easy to update via markdown files and straightforward to extend with new playground items.
+3. **Potential employers and recruiters** — Looking for infrastructure/platform/DevOps engineers. Still served by the professional profile, the print summary, and the experience timeline, but a job is a fallback rather than the goal. They need to quickly assess Matthew's experience and get in touch.
+
+4. **Tradr users, peers, and collaborators** — People checking who is behind the software before they trust it, fellow engineers, open-source contributors, and tech community members interested in Matthew's projects, blog posts, or shared resources.
+
+5. **Matthew himself** — As the sole author and maintainer, the site must be easy to update via markdown files and straightforward to extend with new playground items.
 
 ## Key Features
 
@@ -84,7 +88,7 @@ Scope is deliberately limited by the Vercel Hobby plan: custom events (`track()`
 
 ## Business Objectives
 
-- **Professional inbound funnel**: Make it easy for potential employers, recruiters, and collaborators to find Matthew, understand his experience, and get in touch.
+- **Inbound funnel for the business**: Make it easy for readers to subscribe to Field Notes, for consulting buyers to contact Mossfoot Digital, and for recruiters or collaborators to find Matthew and get in touch.
 - **Builder credibility**: Demonstrate active building and contributing through the project showcase, contributions gallery, and the website itself.
 - **Personal expression**: Provide a space for writing, sharing, and building things outside of professional obligations.
 - **Independence from platforms**: Own the content and presentation rather than depending on WordPress.com or any other managed platform.

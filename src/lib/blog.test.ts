@@ -195,22 +195,22 @@ describe("wordsToReadingTime — pure-function conversion fidelity", () => {
   const cases: ReadonlyArray<readonly [number, number]> = [
     [0, 1],
     [1, 1],
-    [237, 1],
-    [238, 1],
-    [239, 1],
-    [1000, 4],
-    [10000, 42],
+    [199, 1],
+    [200, 1],
+    [201, 1],
+    [1000, 5],
+    [10000, 50],
   ];
   for (const [n, expected] of cases) {
-    it(`wordsToReadingTime(${n}) === Math.max(1, Math.round(${n}/238))`, () => {
-      expect(wordsToReadingTime(n)).toBe(Math.max(1, Math.round(n / 238)));
+    it(`wordsToReadingTime(${n}) === Math.max(1, Math.round(${n}/200))`, () => {
+      expect(wordsToReadingTime(n)).toBe(Math.max(1, Math.round(n / 200)));
       expect(wordsToReadingTime(n)).toBe(expected);
     });
   }
 });
 
 describe("end-to-end reading-time identity (fixture-reading-time)", () => {
-  it("Math.max(1, Math.round(countWordsFromMdast(parsedBody)/238)) === post.readingTime", () => {
+  it("Math.max(1, Math.round(countWordsFromMdast(parsedBody)/200)) === post.readingTime", () => {
     process.env.BLOG_INCLUDE_DRAFTS = "1";
     const post = posts.find((p) => p.slug === "fixture-reading-time");
     if (!post) throw new Error("fixture-reading-time not found in built manifest");
@@ -225,7 +225,7 @@ describe("end-to-end reading-time identity (fixture-reading-time)", () => {
 
     const tree = unified().use(remarkParse).use(remarkGfm).parse(body);
     const words = countWordsFromMdast(tree as Parameters<typeof countWordsFromMdast>[0]);
-    const expected = Math.max(1, Math.round(words / 238));
+    const expected = Math.max(1, Math.round(words / 200));
     expect(post.readingTime).toBe(expected);
   });
 });
