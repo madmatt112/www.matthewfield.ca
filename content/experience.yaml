@@ -20,14 +20,19 @@
 
 - organisation: "Mossfoot Digital Inc."
   organisationUrl: "https://www.mossfootdigital.com"
-  title: "Independent IT Consultant"
+  title: "Founder & Principal Consultant"
   start: "2026-01"
   location: "Edmonton, AB"
-  summary: "Independent infrastructure and IT consulting through my Alberta-incorporated practice, working with small and mid-sized organizations in Edmonton and remotely across Canada."
+  summary: "My Alberta-incorporated consultancy & software firm: fractional IT leadership and infrastructure consulting for small and mid-sized organizations in Edmonton and across Canada, and the home for the software products I build and host."
+  deliveries:
+    - title: "Tradr"
+      role: "Founder & sole engineer"
+      project: "tradr"
+      body: "An open-source (Apache 2.0) stock and options trading journal: fee-exact P&L, a reconcilable ledger, one-command self-hosting, and a hosted offering at tradr.cloud with a free tier, opened to the public in August 2026."
   highlights:
     - "Delivered a Google Workspace primary domain migration end to end — planning, user communications, change management, and cutover — on time, on budget, and documented."
-    - "Offer infrastructure assessments, migration delivery, and fractional IT advisory, so a small organization gets senior infrastructure help without carrying a full-time hire."
-
+    - "Offer technology and security assessments, migration delivery, and fractional IT advisory, so a small organization gets senior infrastructure help without carrying a full-time hire."
+    - "Built and launched Tradr under the firm: a TypeScript monorepo shipped as container images, self-hosted in one command, with a hosted tier that opened to the public on August 27, 2026."
 - organisation: "CrowdStrike"
   organisationUrl: "https://www.crowdstrike.com"
   title: "Infrastructure Engineer III"
