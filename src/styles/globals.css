@@ -39,6 +39,7 @@
 @import "./blog/series-badge.css";
 @import "./blog/series-navigator.css";
 @import "./blog/share-bar.css";
+@import "./blog/sketch.css";
 @import "./blog/table-of-contents.css";
 
 /* Print/PDF profile slice — owned by Task 12. All rules live under

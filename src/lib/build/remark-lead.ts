@@ -4,10 +4,11 @@ import { visit } from "unist-util-visit";
 /**
  * `::lead[...]` — a stand-out paragraph that is NOT a heading.
  * `:::aside` … `:::` — a boxed side thought inside the post body.
+ * `:::sketch` … `:::` — a hand-drawn image on paper that inverts in dark mode.
  *
  * Runs after `remark-directive`, which parses the generic directive syntax
  * (`:text[...]`, `::leaf[...]`, `:::container`). This plugin gives meaning to
- * exactly two directives:
+ * exactly three directives:
  * - the `lead` leaf directive becomes `<p class="lead">`.
  *   `@tailwindcss/typography` already styles `.lead`;
  *   `src/styles/blog/lead.css` raises it to display type.
@@ -16,6 +17,10 @@ import { visit } from "unist-util-visit";
  *   `src/styles/blog/aside.css` draws the box. No label is generated: the
  *   author writes the "Side note:" opener when they want one, which is also
  *   what marks the block in unstyled RSS readers.
+ * - the `sketch` container directive becomes `<div class="sketch">` around
+ *   its markdown image. `src/styles/blog/sketch.css` inverts the image in
+ *   dark mode so white paper reads as dark paper. Feed readers see the
+ *   image as-is.
  *
  * It lives in `sharedRemarkPlugins` so the on-page body (`s.mdx()`) and the RSS
  * body (`s.markdown()`) render the same HTML — no JSX, so the post-rejection
@@ -62,6 +67,15 @@ export function remarkLead() {
         return;
       }
 
+      if (directive.type === "containerDirective" && directive.name === "sketch") {
+        directive.data = {
+          ...directive.data,
+          hName: "div",
+          hProperties: { className: ["sketch"] },
+        };
+        return;
+      }
+
       if (directive.type === "textDirective") {
         if (!parent || index == null) return;
         const start = directive.position?.start.offset;
@@ -76,7 +90,7 @@ export function remarkLead() {
 
       const marker = directive.type === "leafDirective" ? "::" : ":::";
       throw new Error(
-        `[remark-lead] unknown directive \`${marker}${directive.name}\`. Only \`::lead[...]\` and \`:::aside\` are supported.`,
+        `[remark-lead] unknown directive \`${marker}${directive.name}\`. Only \`::lead[...]\`, \`:::aside\` and \`:::sketch\` are supported.`,
       );
     });
   };
