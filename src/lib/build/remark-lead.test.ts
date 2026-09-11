@@ -34,6 +34,28 @@ describe("remarkLead", () => {
     expect(lead.children?.map((c) => c.type)).toEqual(["text", "strong", "text"]);
   });
 
+  test(':::aside becomes <aside class="aside"> with block children intact', () => {
+    const [, aside] = run(
+      "Before.\n\n:::aside\nSide note: first **para**.\n\n- one\n- two\n:::\n\nAfter.",
+    );
+
+    expect(aside.type).toBe("containerDirective");
+    expect(aside.data?.hName).toBe("aside");
+    expect(aside.data?.hProperties).toEqual({ className: ["aside"] });
+    expect(aside.children?.map((c) => c.type)).toEqual(["paragraph", "list"]);
+    expect(aside.children![0].children?.map((c) => c.type)).toEqual(["text", "strong", "text"]);
+  });
+
+  test(':::sketch becomes <div class="sketch"> around its image', () => {
+    const [sketch] = run(":::sketch\n![A drawing](./a.png)\n:::");
+
+    expect(sketch.type).toBe("containerDirective");
+    expect(sketch.data?.hName).toBe("div");
+    expect(sketch.data?.hProperties).toEqual({ className: ["sketch"] });
+    expect(sketch.children?.map((c) => c.type)).toEqual(["paragraph"]);
+    expect(sketch.children![0].children?.map((c) => c.type)).toEqual(["image"]);
+  });
+
   test("an unknown leaf directive is a build error", () => {
     expect(() => run("::callout[nope]")).toThrow(/unknown directive `::callout`/);
   });

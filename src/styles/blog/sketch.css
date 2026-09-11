@@ -1,0 +1,27 @@
+/* Slice: sketch image
+ *
+ * Styles the `<div class="sketch">` emitted by `remarkLead` (velite.config.ts,
+ * `sharedRemarkPlugins`) for the `:::sketch` container directive: a
+ * hand-drawn image, dark ink on white paper.
+ *
+ * In dark mode the image inverts so the paper goes dark and the ink goes
+ * light. `invert()` alone would also flip the ink's hue (teal to salmon);
+ * the `hue-rotate(180deg)` puts it back. Inverting at 0.92 rather than 1
+ * lands the paper a step above the page background, so the drawing reads as
+ * a dark card instead of dissolving into the page.
+ *
+ * Cascade contract mirrors the Shiki block in globals.css: `.dark` on <html>
+ * wins, `.light` wins, and with neither class set the OS preference decides.
+ * Print is always light, so the filter is scoped to screen. */
+
+@media screen {
+  .dark .prose .sketch img {
+    filter: invert(0.92) hue-rotate(180deg);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not(.light):not(.dark) .prose .sketch img {
+      filter: invert(0.92) hue-rotate(180deg);
+    }
+  }
+}

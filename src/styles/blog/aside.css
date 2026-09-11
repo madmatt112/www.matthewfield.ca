@@ -1,0 +1,32 @@
+/* Slice: aside block
+ *
+ * Styles the `<aside class="aside">` emitted by `remarkLead` (velite.config.ts,
+ * `sharedRemarkPlugins`) for the `:::aside` container directive: a side
+ * thought the author steps out of the essay to make.
+ *
+ * A hairline box on the body type, so it is clearly set apart from the
+ * paragraphs around it without reading as a blockquote (left rail, italic).
+ * The border is the neutral `--border` warmed with the brand colour, which
+ * gives the box a hint of the link colour without matching it.
+ *
+ * Specificity note: `@tailwindcss/typography` wraps its selectors in
+ * `:where()` (0,1,0), so these plain `.prose .aside` selectors (0,2,0) win
+ * without `!important`. The child rules keep the plugin's paragraph and list
+ * margins inside the box but drop the leading and trailing ones so the padding
+ * is the only space at the top and bottom. */
+
+.prose .aside {
+  margin-top: 1.75em;
+  margin-bottom: 1.75em;
+  padding: 1.1rem 1.4rem;
+  border: 1px solid color-mix(in oklch, var(--brand) 45%, var(--border));
+  border-radius: var(--radius);
+}
+
+.prose .aside > :first-child {
+  margin-top: 0;
+}
+
+.prose .aside > :last-child {
+  margin-bottom: 0;
+}

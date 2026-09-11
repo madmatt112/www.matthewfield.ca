@@ -29,6 +29,7 @@
    Each slice file is independently editable so the nine 18.x sub-tasks
    can land in parallel without globals.css merge conflicts. Listed in
    alphabetical order so re-orderings are obvious in diff. */
+@import "./blog/aside.css";
 @import "./blog/copy-button.css";
 @import "./blog/footnotes.css";
 @import "./blog/lead.css";
@@ -38,6 +39,7 @@
 @import "./blog/series-badge.css";
 @import "./blog/series-navigator.css";
 @import "./blog/share-bar.css";
+@import "./blog/sketch.css";
 @import "./blog/table-of-contents.css";
 
 /* Print/PDF profile slice — owned by Task 12. All rules live under

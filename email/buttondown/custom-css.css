@@ -198,6 +198,46 @@ blockquote.pullquote {
   border-left: none !important;
 }
 
+/* ---------------------------------------------------------------- Lead ---
+ * The site's `::lead[...]` directive (remarkLead → <p class="lead">): the one
+ * line to leave with. Display serif at the h2 step with a brand rule down the
+ * left edge, matching src/styles/blog/lead.css. Fraunces falls back to
+ * Georgia where the webfont is stripped.
+ */
+p.lead {
+  font-family: Fraunces, Georgia, "Times New Roman", serif !important;
+  font-size: 30px !important;
+  line-height: 34px !important;
+  letter-spacing: -0.5px;
+  color: #0a0a0a !important; /* --foreground */
+  margin: 40px 0 !important;
+  padding-left: 20px !important;
+  border-left: 3px solid #9e441d !important; /* --brand */
+}
+
+/* --------------------------------------------------------------- Aside ---
+ * The site's `:::aside` directive (remarkLead → <aside class="aside">): a
+ * boxed side thought. On the site it is a hairline box on the body type with
+ * the border colour warmed toward the brand, deliberately not a blockquote.
+ * The hex is color-mix(in oklch, --brand 45%, --border) flattened.
+ * If Buttondown's sanitizer drops the <aside> wrapper, the paragraphs inside
+ * still render and the author's "Side note:" opener marks the block.
+ */
+.aside {
+  border: 1px solid #c99d8c !important; /* --brand 45% into --border */
+  border-radius: 10px !important; /* --radius */
+  padding: 16px 20px !important;
+  margin: 28px 0 !important;
+}
+
+.aside > :first-child {
+  margin-top: 0 !important;
+}
+
+.aside > :last-child {
+  margin-bottom: 0 !important;
+}
+
 /* ---------------------------------------------------------------- Rule ---
  * Buttondown centres a 300px double rule. The site uses a full-width hairline
  * on --border.
@@ -352,6 +392,15 @@ table.buttondown-block-styled th {
   blockquote li,
   blockquote * {
     color: #fafafa !important; /* .dark --foreground */
+  }
+
+  p.lead {
+    color: #fafafa !important; /* .dark --foreground */
+    border-left-color: #e89960 !important; /* .dark --brand */
+  }
+
+  .aside {
+    border-color: #7c583f !important; /* .dark --brand 45% into .dark --border, flattened over bg */
   }
 
   pre,

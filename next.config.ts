@@ -59,6 +59,14 @@ runDraftGuard(
   PROJECTS_DRAFT_LEAK_GUARD_MSG_PREVIEW,
 );
 
+// `next dev` only. React's development build calls eval(), and Vercel
+// Analytics loads its debug script from va.vercel-scripts.com in development.
+// Both trip the production CSP and light up the dev overlay's issue badge on
+// every page. Neither happens in a production build, which keeps the strict
+// policy below.
+const devScriptSources =
+  process.env.NODE_ENV === "development" ? " 'unsafe-eval' https://va.vercel-scripts.com" : "";
+
 const cspDirectives = [
   "default-src 'self'",
   // `'wasm-unsafe-eval'` is required by Pagefind's WebAssembly index runtime
@@ -66,7 +74,7 @@ const cspDirectives = [
   // Without it, the search dialog's WASM instantiation throws a CSP error
   // and Pagefind cannot return results. Scoped to script-src only — does
   // not allow eval() in JavaScript.
-  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${devScriptSources}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
   "font-src 'self'",
