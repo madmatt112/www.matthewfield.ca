@@ -1,12 +1,16 @@
 /* Slice: lead paragraph
  *
  * Styles the `<p class="lead">` emitted by `remarkLead` (velite.config.ts,
- * `sharedRemarkPlugins`) for the `::lead[...]` directive. A stand-out line
- * that is not a heading: it never enters the TOC and carries no h2 top margin.
+ * `sharedRemarkPlugins`) for the `::lead[...]` directive. The one line the
+ * author wants you to leave with, mid-post: an announcement, a punchline, a
+ * call to action. It is not a heading and never enters the TOC.
  *
  * `@tailwindcss/typography` already gives `.lead` 1.25em muted text. This
- * raises it to the display serif at the h2 step (design.md §4) with paragraph
- * spacing, in full foreground colour.
+ * raises it to the display serif at the h2 step (design.md §4) in full
+ * foreground colour, then sets it apart from an actual h2 with a 3px brand
+ * rule down its left edge. The rule borrows the blockquote's gesture, but in
+ * brand and on upright display type, so a quote (italic body text on a grey
+ * rail) and a lead (the author's own line on a rust one) stay distinct.
  *
  * Specificity note: the plugin wraps its selectors in `:where()` (0,1,0), so
  * this plain `.prose .lead` selector (0,2,0) wins without `!important`. */
@@ -17,6 +21,8 @@
   line-height: 1.15;
   letter-spacing: -0.025em;
   color: var(--foreground);
-  margin-top: 1.25em;
-  margin-bottom: 1.25em;
+  margin-top: 1.75em;
+  margin-bottom: 1.75em;
+  padding-left: 1.25rem;
+  border-left: 3px solid var(--brand);
 }
