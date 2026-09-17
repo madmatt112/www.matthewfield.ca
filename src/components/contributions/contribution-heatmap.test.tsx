@@ -242,16 +242,16 @@ describe("ContributionHeatmap", () => {
     expect(text).not.toContain("in the past 6 months");
   });
 
-  it("links to the GitHub profile in the same tab, as a button carrying the mark", () => {
+  it("links to the GitHub profile in a new tab, as a button carrying the mark", () => {
     const { getByRole } = render(<ContributionHeatmap window={full.activityWindow} />);
-    // The mark is aria-hidden, so the accessible name comes from the visible
-    // "My profile" plus the sr-only suffix. Asserting the full name is what
-    // stops the suffix being dropped and leaving a bare "My profile" in a
-    // screen reader's link list.
-    const link = getByRole("link", { name: "My profile on GitHub" });
+    // The mark is aria-hidden, so the accessible name is the aria-label, which
+    // states the profile name once and carries the new-tab warning. Asserting
+    // the full name keeps the "(opens in a new tab)" suffix (WCAG 3.2.5) from
+    // being dropped and leaving a bare "My profile" in a screen reader's list.
+    const link = getByRole("link", { name: "My profile on GitHub (opens in a new tab)" });
     expect(link.getAttribute("href")).toBe("https://github.com/madmatt112");
+    expect(link.getAttribute("target")).toBe("_blank");
     expect(link.getAttribute("rel")).toBe("noopener");
-    expect(link.hasAttribute("target")).toBe(false);
     // Rendered through Button asChild, so the anchor itself carries the button
     // treatment rather than being wrapped in one.
     expect(link.getAttribute("data-slot")).toBe("button");

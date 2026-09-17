@@ -4,7 +4,9 @@
   description: "Hard fork of Pimzino/spec-workflow-mcp. Adds adversarial review of spec docs, a required decomposition phase, deferred-decisions tracking, fresh-context task review, design-system steering, correct git-worktree execution, and an index that names the next spec to build."
   date: "2026-06-22"
   language: "TypeScript"
-  links:
-    - kind: "release"
-      label: "v5.1.0 release"
-      url: "https://github.com/madmatt112/spec-workflow-mcp/releases/tag/v5.1.0"
+- repo: "madmatt112/claude-tmux-resurrect"
+  repoUrl: "https://github.com/madmatt112/claude-tmux-resurrect"
+  title: "tmux-resurrect plugin that resumes each Claude Code session in its pane"
+  description: "A tmux-resurrect companion that brings each Claude Code session back in the pane where it ran after a restart. It rewrites each saved pane command to resume the right session instead of starting a fresh one, by reading Claude's on-disk session files. Linux and WSL only."
+  date: "2026-09-15"
+  language: "Shell"

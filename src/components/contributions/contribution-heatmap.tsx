@@ -195,13 +195,10 @@ export function ContributionHeatmap({ window }: ContributionHeatmapProps) {
       <p className="max-w-measure mt-2 text-muted-foreground">
         {headline}, {period}.
       </p>
-      {/* Same-tab by design, so no NewTabHint — that suffix pairs with
-       * target="_blank" (shared/new-tab-hint.tsx).
-       *
-       * The mark is aria-hidden, so the sr-only suffix is what stops the
-       * accessible name being a bare "My profile" in a screen reader's link
-       * list. The visible text stays a prefix of that name, which is what
-       * WCAG 2.5.3 (Label in Name) requires. */}
+      {/* Opens in a new tab; the "(opens in a new tab)" warning (WCAG 3.2.5)
+       * rides in the aria-label below rather than a NewTabHint suffix, for the
+       * same aria-hidden-mark / separator-less-name reason the label is stated
+       * once (see the note on the anchor). */}
       <p className="mt-4">
         <Button asChild variant="outline" size="sm">
           {/* aria-label rather than a visually-hidden suffix: the accessible
@@ -209,7 +206,12 @@ export function ContributionHeatmap({ window }: ContributionHeatmapProps) {
            * "My profile" + " on GitHub" computes as "My profileon GitHub".
            * Stating the name once removes the seam. The visible text stays a
            * contiguous substring of it, which is what WCAG 2.5.3 requires. */}
-          <a href={siteConfig.links.github} rel="noopener" aria-label="My profile on GitHub">
+          <a
+            href={siteConfig.links.github}
+            target="_blank"
+            rel="noopener"
+            aria-label="My profile on GitHub (opens in a new tab)"
+          >
             <GitHubIcon className="size-4" />
             My profile
           </a>

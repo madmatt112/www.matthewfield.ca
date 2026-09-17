@@ -41,4 +41,17 @@ describe("ContributionLinkRail", () => {
       expect(anchor.getAttribute("target")).toBe("_blank");
     }
   });
+
+  it("labels the GitHub repo link 'View on GitHub' and points it at the README anchor", () => {
+    const { getByRole } = render(
+      <ContributionLinkRail
+        links={[]}
+        labelledBy={labelledBy}
+        repoUrl="https://github.com/octo/example"
+      />,
+    );
+    const anchor = getByRole("group").querySelector("a");
+    expect(anchor?.textContent).toBe("View on GitHub (opens in a new tab)");
+    expect(anchor?.getAttribute("href")).toBe("https://github.com/octo/example#readme");
+  });
 });

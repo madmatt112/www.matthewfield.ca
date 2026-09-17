@@ -32,6 +32,6 @@ export const contributionEntrySchema = s
     description: trimmed(30, 280),
     date: isoDate(),
     language: s.string().min(1).max(24).optional(),
-    links: s.array(contributionLinkSchema).min(1).max(5).superRefine(uniqueByKind),
+    links: s.array(contributionLinkSchema).max(5).superRefine(uniqueByKind).default([]),
   })
   .strict();
