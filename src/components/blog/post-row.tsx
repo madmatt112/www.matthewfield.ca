@@ -39,6 +39,11 @@ export function PostRow({ post, headingLevel = "h2" }: PostRowProps) {
           {formatReadingTime(post.readingTime)}
         </span>
         {post.series ? <SeriesBadge series={post.series} order={post.seriesOrder} /> : null}
+        {post.draft ? (
+          <span className="inline-flex items-center rounded-full border border-destructive bg-destructive/10 px-2 py-0.5 font-mono text-xs tracking-widest text-destructive uppercase">
+            Draft
+          </span>
+        ) : null}
       </div>
       <Heading className="mt-2 text-lg leading-snug font-semibold">
         <Link
